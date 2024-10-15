@@ -7,7 +7,7 @@ import { BlurView } from "expo-blur";
 import OrganisationScreen from "./screens/OrganisationScreen";
 import SearchScreen from "./screens/SearchScreen";
 import * as Icon from "@expo/vector-icons";
-import { StatusBar, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
 
 const Stack = createNativeStackNavigator();
