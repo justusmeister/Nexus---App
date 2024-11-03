@@ -100,7 +100,7 @@ const DeadlineScreen = function ({ navigation }) {
 
 const HomeScreen = function ({ navigation }) {
   return (
-    <View style={styles.container}>
+    <View style={ styles.container }>
       <ScrollView contentContainerStyle={styles.view}>
         <MessageBox
           title="Neuigkeiten"
