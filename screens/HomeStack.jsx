@@ -1,10 +1,15 @@
 import React, { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, ScrollView, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  ScrollView,
+  View,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import MessageBox from "../components/MessageBox";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HeaderTab from "../components/HeaderTab";
-import HeaderStack from "../components/HeaderStack";
+import * as Icon from "@expo/vector-icons";
 
 const Stack = createNativeStackNavigator();
 
@@ -22,12 +27,46 @@ const HomeStack = function ({ navigation }) {
       <Stack.Screen
         name="HomeScreen"
         component={HomeScreen}
-        options={{ headerShown: false, tabBarStyle: { display: "none" } }}
+        options={{
+          title: "Startseite",
+          headerLargeTitle: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: "#EFEEF6" },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("SettingsScreen")}
+            >
+              <Icon.Ionicons name="settings" size={31} />
+            </TouchableOpacity>
+          ),
+        }}
       />
       <Stack.Screen
         name="NewsScreen"
         component={NewsScreen}
-        options={{ headerShown: false }}
+        options={{
+          title: "Neuigkeiten",
+          headerBackTitle: "Zurück",
+          headerTintColor: "black",
+        }}
+      />
+      <Stack.Screen
+        name="InboxScreen"
+        component={InboxScreen}
+        options={{
+          title: "Posteingang",
+          headerBackTitle: "Zurück",
+          headerTintColor: "black",
+        }}
+      />
+      <Stack.Screen
+        name="DeadlineScreen"
+        component={DeadlineScreen}
+        options={{
+          title: "anstehende Fristen",
+          headerBackTitle: "Zurück",
+          headerTintColor: "black",
+        }}
       />
     </Stack.Navigator>
   );
@@ -38,7 +77,22 @@ export default HomeStack;
 const NewsScreen = function ({ navigation }) {
   return (
     <View>
-      <HeaderStack onPress={() => navigation.goBack()} title="Neuigkeiten" />
+      <Text>Moin</Text>
+    </View>
+  );
+};
+
+const InboxScreen = function ({ navigation }) {
+  return (
+    <View>
+      <Text>Moin</Text>
+    </View>
+  );
+};
+
+const DeadlineScreen = function ({ navigation }) {
+  return (
+    <View>
       <Text>Moin</Text>
     </View>
   );
@@ -47,19 +101,31 @@ const NewsScreen = function ({ navigation }) {
 const HomeScreen = function ({ navigation }) {
   return (
     <View style={styles.container}>
-      <HeaderTab title="Startseite" />
       <ScrollView contentContainerStyle={styles.view}>
         <MessageBox
-          style={{ backgroundColor: "green", borderRadius: 20 }}
-          onPress={() => {
-            navigation.navigate("NewsScreen");
+          title="Neuigkeiten"
+          style={{
+            backgroundColor: "#0d7a18",
+            borderRadius: 20,
           }}
+          onPress={() => navigation.navigate("NewsScreen")}
         />
         <MessageBox
-          style={{ backgroundColor: "blue", borderRadius: 20, height: "38%" }}
+          title="iServ Postfach"
+          style={{
+            backgroundColor: "#2165bf",
+            borderRadius: 20,
+          }}
+          onPress={() => navigation.navigate("InboxScreen")}
         />
-        <MessageBox style={{ backgroundColor: "red", borderRadius: 20 }} />
-        <StatusBar />
+        <MessageBox
+          title="anstehende Fristen"
+          style={{
+            backgroundColor: "#e02225",
+            borderRadius: 20,
+          }}
+          onPress={() => navigation.navigate("DeadlineScreen")}
+        />
       </ScrollView>
     </View>
   );
@@ -68,12 +134,13 @@ const HomeScreen = function ({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginHorizontal: 14,
+    marginBottom: 0,
   },
   view: {
     flex: 1,
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 20,
-    marginBottom: 100,
   },
 });

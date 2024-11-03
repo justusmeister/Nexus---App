@@ -2,29 +2,36 @@ import { useState } from "react";
 import * as Icon from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Text, StyleSheet, Pressable } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 
-const HeaderTab = function ({ title }) {
-  const navigation = useNavigation();
-
-  const [iconPressAnim, setIconPressAnim] = useState("black");
+const HeaderSettings = function ({ title, settingsOnPress }) {
+  const [iconPressColor, setIconPressColor] = useState("black");
 
   return (
-    <BlurView tint="light" intensity={100} style={styles.container}>
+    <BlurView
+      tint="light"
+      intensity={100}
+      style={[styles.container, { height: 70 }]}
+    >
       <Text style={styles.title}>{title}</Text>
       <Pressable
-        onPress={() => navigation.getParent().navigate("SettingsScreen")}
-        onPressIn={() => setIconPressAnim("#454545")}
-        onPressOut={() => setIconPressAnim("black")}
-        style={{ marginBottom: 10, marginRight: 25 }}
+        onPress={settingsOnPress}
+        onPressIn={() => setIconPressColor("#666666")}
+        onPressOut={() => setIconPressColor("#4a4a4a")}
+        style={{
+          marginBottom: 10,
+          marginRight: 25,
+          padding: 9,
+          backgroundColor: "#c7c9c8",
+          borderRadius: 50,
+        }}
       >
-        <Icon.Ionicons name="settings" size={31} color={iconPressAnim} />
+        <Icon.Fontisto name="close-a" size={15} color={iconPressColor} />
       </Pressable>
     </BlurView>
   );
 };
 
-export default HeaderTab;
+export default HeaderSettings;
 
 const styles = StyleSheet.create({
   container: {

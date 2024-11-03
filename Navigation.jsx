@@ -5,10 +5,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeStack from "./screens/HomeStack";
 import { BlurView } from "expo-blur";
 import OrganisationScreen from "./screens/OrganisationScreen";
-import SearchScreen from "./screens/SearchScreen";
 import * as Icon from "@expo/vector-icons";
 import { StyleSheet } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
+import SearchStack from "./screens/SearchStack";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -16,11 +16,11 @@ const Tab = createBottomTabNavigator();
 const Navigation = function () {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Tabs" >
+      <Stack.Navigator initialRouteName="Tabs">
         <Stack.Screen
           name="SettingsScreen"
           component={SettingsScreen}
-          options={{ headerShown: false, presentation: "modal", }}
+          options={{ headerShown: false, presentation: "modal" }}
         />
         <Stack.Screen
           name="Tabs"
@@ -72,27 +72,45 @@ const Tabs = function () {
 
   return (
     <Tab.Navigator initialRouteName="Home" screenOptions={setTabBarIcons}>
-    <Tab.Screen
-      name="Organisation"
-      component={OrganisationScreen}
-      options={{
-        title: "Organisation",
-      }}
-    />
-    <Tab.Screen
-      name="Home"
-      component={HomeStack}
-      options={{
-        title: "Startseite",
-      }}
-    />
-    <Tab.Screen
-      name="Search"
-      component={SearchScreen}
-      options={{
-        title: "Suche",
-      }}
-    />
-  </Tab.Navigator>
+      <Tab.Screen
+        name="Organisation"
+        component={OrganisationScreen}
+        options={{
+          title: "Stundenplan",
+          headerLargeTitle: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: "#EFEEF6" },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={({}) => navigation.navigate("SettingsScreen")}
+            >
+              <Icon.Ionicons name="settings" size={31} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{
+          title: "Startseite",
+        }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchStack}
+        options={{
+          title: "Suche",
+        }}
+      />
+    </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

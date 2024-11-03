@@ -6,7 +6,13 @@ const HeaderStack = function ({ title, onPress }) {
   return (
     <BlurView tint="light" intensity={100} style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      <Pressable onPress={onPress} style={styles.backButton}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.backButton,
+          { backgroundColor: pressed ? "#e0e0e0" : "#c7c9c8" }, // Hintergrundfarbe basierend auf gedrückt
+        ]}
+      >
         <Icon.FontAwesome5 name="arrow-left" size={22} />
       </Pressable>
     </BlurView>
@@ -30,11 +36,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 25,
     bottom: 10,
-    padding: 8,
-    paddingBottom: 6,
-    paddingTop: 6,
+    padding: 9,
+    paddingBottom: 7,
+    paddingTop: 7,
     borderRadius: 10,
-    backgroundColor: "#c7c9c8",
   },
   title: {
     marginBottom: 14,
@@ -42,5 +47,5 @@ const styles = StyleSheet.create({
     fontFamily: "Arial",
     fontWeight: 500,
     fontWeight: "500",
-  },  
+  },
 });
