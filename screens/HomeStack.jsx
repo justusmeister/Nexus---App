@@ -100,8 +100,8 @@ const DeadlineScreen = function ({ navigation }) {
 
 const HomeScreen = function ({ navigation }) {
   return (
-    <View style={ styles.container }>
-      <ScrollView contentContainerStyle={styles.view}>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.view} contentInsetAdjustmentBehavior="automatic">
         <MessageBox
           title="Neuigkeiten"
           style={{
@@ -135,10 +135,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginHorizontal: 14,
-    marginBottom: 0,
+    justifyContent: "center",
   },
   view: {
-    flex: 1,
+    height: "68%",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 20,

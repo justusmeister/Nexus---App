@@ -1,11 +1,8 @@
-import { useState } from "react";
 import * as Icon from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { Text, StyleSheet, Pressable } from "react-native";
+import { Text, StyleSheet, TouchableOpacity } from "react-native";
 
 const HeaderSettings = function ({ title, settingsOnPress }) {
-  const [iconPressColor, setIconPressColor] = useState("black");
-
   return (
     <BlurView
       tint="light"
@@ -13,10 +10,8 @@ const HeaderSettings = function ({ title, settingsOnPress }) {
       style={[styles.container, { height: 70 }]}
     >
       <Text style={styles.title}>{title}</Text>
-      <Pressable
+      <TouchableOpacity
         onPress={settingsOnPress}
-        onPressIn={() => setIconPressColor("#666666")}
-        onPressOut={() => setIconPressColor("#4a4a4a")}
         style={{
           marginBottom: 10,
           marginRight: 25,
@@ -25,8 +20,8 @@ const HeaderSettings = function ({ title, settingsOnPress }) {
           borderRadius: 50,
         }}
       >
-        <Icon.Fontisto name="close-a" size={15} color={iconPressColor} />
-      </Pressable>
+        <Icon.Fontisto name="close-a" size={15} color="black" />
+      </TouchableOpacity>
     </BlurView>
   );
 };
