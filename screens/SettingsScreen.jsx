@@ -18,7 +18,7 @@ const SettingsScreen = function ({ navigation }) {
           onPress={() => navigation.goBack()}
         />
       )}
-      <Text>Moin</Text>
+      <Text>TEST</Text>
       <StatusBar
         style={Platform.OS === "ios" ? "light" : "auto"}
       />

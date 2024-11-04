@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeStack from "./screens/HomeStack";
 import { BlurView } from "expo-blur";
-import OrganisationScreen from "./screens/OrganisationScreen";
+import OrganisationStack from "./screens/OrganisationStack";
 import * as Icon from "@expo/vector-icons";
 import { StyleSheet } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
@@ -74,7 +74,7 @@ const Tabs = function () {
     <Tab.Navigator initialRouteName="Home" screenOptions={setTabBarIcons}>
       <Tab.Screen
         name="Organisation"
-        component={OrganisationScreen}
+        component={OrganisationStack}
         options={{
           title: "Stundenplan",
           headerLargeTitle: true,

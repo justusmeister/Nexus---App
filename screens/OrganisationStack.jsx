@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-const OrganisationScreen = function () {
+const OrganisationStack = function () {
   return (
     <View
       style={ styles.container }
@@ -11,7 +11,7 @@ const OrganisationScreen = function () {
   );
 };
 
-export default OrganisationScreen;
+export default OrganisationStack;
 
 const styles = StyleSheet.create({
   container: {
