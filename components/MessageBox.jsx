@@ -3,21 +3,19 @@ import * as Icon from "@expo/vector-icons";
 
 const MessageBox = function ({ style, onPress, title, content, contentStyle }) {
   return (
-    <View style={[styles.boxSize, style]}>
+    <Pressable style={[styles.boxSize, style]} onPress={onPress}>
       <View style={styles.titleBox}>
         <Text style={{ color: "white", fontSize: 20, marginBottom: 5 }}>
           {title}
         </Text>
-        <Pressable style={styles.button} onPress={onPress}>
-          <Icon.Entypo name="chevron-right" size={23} color="white" />
-        </Pressable>
+        <Icon.Entypo name="chevron-right" size={23} color="white" />
       </View>
       <View style={styles.infoBoxOuterView}>
         <View style={[styles.infoBox, contentStyle]}>{content}</View>
         <View style={[styles.infoBox, contentStyle]}>{content}</View>
         <View style={[styles.infoBox, contentStyle]}>{content}</View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -59,9 +57,5 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    borderRadius: 50,
-    width: 30,
-    height: 30,
   },
 });

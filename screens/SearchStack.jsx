@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   StyleSheet,
-  TextInput,
   View,
   ScrollView,
   Text,
