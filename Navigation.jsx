@@ -6,7 +6,7 @@ import HomeStack from "./screens/HomeStack";
 import { BlurView } from "expo-blur";
 import OrganisationStack from "./screens/OrganisationStack";
 import * as Icon from "@expo/vector-icons";
-import { StyleSheet } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
 import SearchStack from "./screens/SearchStack";
 
@@ -20,7 +20,7 @@ const Navigation = function () {
         <Stack.Screen
           name="SettingsScreen"
           component={SettingsScreen}
-          options={{ headerShown: false, presentation: "modal" }}
+          options={{ presentation: "modal" }}
         />
         <Stack.Screen
           name="Tabs"

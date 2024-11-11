@@ -1,27 +1,32 @@
-import React from "react";
+import { useLayoutEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { View, Text, StyleSheet, Platform } from "react-native";
-import HeaderStack from "../components/HeaderStack";
-import HeaderSettings from "../components/HeaderSettings";
+import * as Icon from "@expo/vector-icons";
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from "react-native";
 
 const SettingsScreen = function ({ navigation }) {
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () =>
+              Platform.OS === "ios" ? (
+                <TouchableOpacity
+                  onPress={({}) => navigation.goBack()}
+                  style={{
+                    marginRight: 15,
+                    padding: 9,
+                    backgroundColor: "#c7c9c8",
+                    borderRadius: 50,
+                  }}
+                >
+                  <Icon.Fontisto name="close-a" size={13} color="black" />
+                </TouchableOpacity>
+              ) : null,
+    });
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
-      {Platform.OS === "ios" ? (
-        <HeaderSettings
-          title="Einstellungen"
-          settingsOnPress={() => navigation.goBack()}
-        />
-      ) : (
-        <HeaderStack
-          title="Einstellungen"
-          onPress={() => navigation.goBack()}
-        />
-      )}
       <Text>TEST</Text>
-      <StatusBar
-        style={Platform.OS === "ios" ? "light" : "auto"}
-      />
+      <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
     </View>
   );
 };
