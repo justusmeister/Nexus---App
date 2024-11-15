@@ -61,7 +61,6 @@ const OpenDatabase = async () => {
   }
 };
 
-
 const SearchStack = function ({ navigation }) {
   useEffect(() => {}, []);
 
@@ -206,15 +205,7 @@ const OnSearchAbbrevation = async function (searchValue) {
 };
 
 const OpenedSearchScreen = function ({ navigation }) {
-  const searchField = useRef(null);
-
   const [inputText, setInputText] = useState("");
-
-  useFocusEffect(
-    React.useCallback(() => {
-      searchField.current?.focus();
-    }, [])
-  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
@@ -231,7 +222,7 @@ const OpenedSearchScreen = function ({ navigation }) {
               <TextInput
                 placeholder="Suchen"
                 placeholderTextColor={"#8E8E93"}
-                ref={searchField}
+                autoFocus={true}
                 value={inputText} // Text wird vom State gesteuert
                 onChangeText={(text) => {
                   setInputText(text);
@@ -343,8 +334,8 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     width: "100%",
     height: 55,
-    //borderBottomWidth: 1,
-    //borderBottomColor: "#dedee3",
+    borderBottomWidth: 1,
+    borderBottomColor: "#dedee3",
   },
   searchBarAButton: {
     flex: 1,
