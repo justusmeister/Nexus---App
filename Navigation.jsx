@@ -76,17 +76,7 @@ const Tabs = function () {
         name="Organisation"
         component={OrganisationStack}
         options={{
-          title: "Stundenplan",
-          headerLargeTitle: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: "#EFEEF6" },
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={({}) => navigation.navigate("SettingsScreen")}
-            >
-              <Icon.Ionicons name="settings" size={31} />
-            </TouchableOpacity>
-          ),
+          title: "Organisation",
         }}
       />
       <Tab.Screen
