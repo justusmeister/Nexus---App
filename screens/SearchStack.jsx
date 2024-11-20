@@ -1,69 +1,55 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import {
   StyleSheet,
   View,
   ScrollView,
+  FlatList,
   Text,
   Pressable,
   TouchableOpacity,
   TextInput,
   SafeAreaView,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import * as SQLite from "expo-sqlite";
 import * as Icon from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { SQLiteProvider } from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
+import * as SQLite from "expo-sqlite";
+import { FlatList } from "react-native-gesture-handler";
+
+let dbLocal;
+
+const loadDatabase = async () => {
+  const dbName = "teacherAbbrevationsList.db";
+  const dbAsset = require("../assets/db/teacherAbbrevationsList.db");
+  const dbUri = Asset.fromModule(dbAsset).uri;
+  const dbFilePath = `${FileSystem.documentDirectory}SQLite/${dbName}`;
+
+  const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
+
+  /*if (fileInfo.exists) {
+    console.log("Alte Datenbank gefunden. Lösche alte Datenbank...");
+    await FileSystem.deleteAsync(dbFilePath, { idempotent: true });
+  }*/
+
+  if (!fileInfo.exists) {
+    await FileSystem.makeDirectoryAsync(
+      `${FileSystem.documentDirectory}SQLite`,
+      { intermediates: true }
+    );
+    await FileSystem.downloadAsync(dbUri, dbFilePath);
+  }
+
+  console.log("Datenbank geladen!");
+  dbLocal = await SQLite.openDatabaseAsync(dbName);
+};
 
 const Stack = createNativeStackNavigator();
 
-// Globale Variable, um die geöffnete Datenbankverbindung zu speichern
-let db = null;
-
-const OpenDatabase = async () => {
-  if (db) {
-    // Gibt die Datenbank zurück, falls sie bereits geöffnet ist
-    return db;
-  }
-
-  try {
-    // Pfad, wo die Datenbank im App-Speicher liegen wird
-    const dbPath = `${FileSystem.documentDirectory}SQLite/teacherAbbrevationsList.db`;
-
-    // Prüfe, ob die Datenbank bereits im App-Speicher existiert
-    const dbExists = await FileSystem.getInfoAsync(dbPath);
-
-    if (!dbExists.exists) {
-      // Asset laden und kopieren, falls die Datei noch nicht existiert
-      const asset = Asset.fromModule(
-        require("../assets/db/teacherAbbrevationsList.db")
-      );
-
-      // Asset laden, um die URI verfügbar zu machen
-      await Asset.loadAsync(asset);
-
-      // Verzeichnis SQLite erstellen, falls es noch nicht existiert
-      await FileSystem.makeDirectoryAsync(
-        `${FileSystem.documentDirectory}SQLite`,
-        { intermediates: true }
-      );
-
-      // Kopiere die Datenbankdatei in das App-Verzeichnis
-      await FileSystem.downloadAsync(asset.uri, dbPath);
-    }
-
-    // Öffne die Datenbankverbindung und speichere sie in der `db`-Variablen
-    db = await SQLite.openDatabaseAsync("teacherAbbrevationsList.db");
-    return db;
-  } catch (error) {
-    console.error("Fehler beim Öffnen der Datenbank:", error);
-  }
-};
-
 const SearchStack = function ({ navigation }) {
-  useEffect(() => {}, []);
-
   useEffect(() => {
     const unsubscribe = navigation.addListener("tabPress", (e) => {
       navigation.navigate("SearchScreen");
@@ -189,26 +175,50 @@ const SearchScreen = function ({ navigation }) {
   );
 };
 
-const queryDatabase = async () => {
-  const dbInstance = await OpenDatabase();
-  dbInstance.transaction((tx) => {
-    tx.executeSql("SELECT * FROM teacherList", [], (_, { rows }) => {
-      console.log("Abfrageergebnisse:", rows._array);
-    });
-  });
+const ResultList = function () {
+  const resultBox = (
+    <View>
+      <View>
+        <Text>Lehrername</Text>
+        <Text>Lehrernachname</Text>
+      </View>
+      <Text>Lehrerkürzel</Text>
+    </View>
+  );
+
+  let results;
+
+  return (
+    <FlatList>
+      <View>{results}</View>
+    </FlatList>
+  );
 };
 
-const OnSearchAbbrevation = async function (searchValue) {
-  (async () => {
-    await queryDatabase();
-  })();
+const OnSearchAbbrevation = async function (db, searchValue) {
+  const result = await db.getAllAsync(
+    "SELECT * FROM teacherList WHERE teacherLastname LIKE ?",
+    [`${searchValue}%`]
+  );
+
+  console.log(result);
 };
 
 const OpenedSearchScreen = function ({ navigation }) {
   const [inputText, setInputText] = useState("");
 
+  useEffect(() => {
+    loadDatabase().catch((e) => console.error(e));
+  }, []);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#EFEEF6",
+        marginTop: Platform.OS === "ios" ? 0 : 20,
+      }}
+    >
       <View style={styles.backgroundOverlay}>
         <View style={styles.headerSearch}>
           <View style={styles.searchBarAButton}>
@@ -226,12 +236,17 @@ const OpenedSearchScreen = function ({ navigation }) {
                 value={inputText} // Text wird vom State gesteuert
                 onChangeText={(text) => {
                   setInputText(text);
-                  OnSearchAbbrevation(inputText);
+                  OnSearchAbbrevation(dbLocal, text);
                 }}
                 style={styles.teacherSearchInput}
               />
               {inputText.length > 0 && (
-                <TouchableOpacity onPress={() => setInputText("")}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setInputText("");
+                    OnSearchAbbrevation(dbLocal, "");
+                  }}
+                >
                   <Icon.MaterialIcons
                     name="clear"
                     size={20}
@@ -250,6 +265,23 @@ const OpenedSearchScreen = function ({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
+        <Suspense
+          fallback={
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color="black" />
+            </View>
+          }
+        >
+          <SQLiteProvider databaseName="teacherAbbrevationsList.db" useSuspense>
+            <ResultList />
+          </SQLiteProvider>
+        </Suspense>
       </View>
     </SafeAreaView>
   );

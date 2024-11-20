@@ -5,6 +5,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  SafeAreaView,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Icon from "@expo/vector-icons";
@@ -65,12 +66,17 @@ export default OrganisationStack;
 
 const TimeTableScreen = function ({ navigation }) {
   return (
-    <ScrollView
-      contentStyle={styles.container}
-      contentInsetAdjustmentBehavior="automatic"
-    >
-      <View style={{ backgroundColor: "#EFEEF6" }}></View>
-    </ScrollView>
+    <>
+      <View style={styles.customTabBar}></View>
+      <SafeAreaView
+        style={styles.screen}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <View style={styles.container}>
+          <View style={styles.timetableBox}></View>
+        </View>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -91,10 +97,30 @@ const HomeworkScreen = function ({ navigation }) {
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#EFEEF6",
+  },
   container: {
     flex: 1,
-    justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "#EFEEF6",
+    marginHorizontal: 14,
+    justifyContent: "center",
+    marginTop: 20,
+    marginBottom: 60,
+  },
+  timetableBox: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "grey",
+    borderRadius: 15,
+  },
+  customTabBar: {
+    position: "absolute",
+    right: 10,
+    top: 40,
+    width: 50,
+    height: 80,
+    backgroundColor: "green",
   },
 });

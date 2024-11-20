@@ -100,8 +100,8 @@ const DeadlineScreen = function ({ navigation }) {
 
 const HomeScreen = function ({ navigation }) {
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.view} contentInsetAdjustmentBehavior="automatic">
+    <SafeAreaView style={styles.container}>
+      <View style={styles.view} contentInsetAdjustmentBehavior="automatic">
         <MessageBox
           title="Neuigkeiten"
           style={{
@@ -126,8 +126,8 @@ const HomeScreen = function ({ navigation }) {
           }}
           onPress={() => navigation.navigate("DeadlineScreen")}
         />
-      </ScrollView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -136,11 +136,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 14,
     justifyContent: "center",
+    marginTop: 20,
+    marginBottom: 89,
   },
   view: {
-    height: "68%",
+    flex: 1,
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 20,
   },
 });
