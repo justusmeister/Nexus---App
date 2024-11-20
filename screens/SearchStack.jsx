@@ -18,7 +18,6 @@ import { SQLiteProvider } from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import * as SQLite from "expo-sqlite";
-import { FlatList } from "react-native-gesture-handler";
 
 let dbLocal;
 
@@ -175,37 +174,71 @@ const SearchScreen = function ({ navigation }) {
   );
 };
 
-const ResultList = function () {
-  const resultBox = (
-    <View>
-      <View>
-        <Text>Lehrername</Text>
-        <Text>Lehrernachname</Text>
+const ResultList = function ({ data, alreadySearched }) {
+  if (!data || data.length === 0 && alreadySearched) {
+    return (
+      <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "500",
+            color: "#8E8E93",
+          }}
+        >
+          Es wurden keine Einträge gefunden
+        </Text>
+      </ScrollView>
+    );
+  }
+
+  const resultBox = ({ item }) => (
+    <View
+      style={{
+        width: "100%",
+        height: 100,
+        marginVertical: 2,
+        backgroundColor: "#c2c2c2",
+        borderRadius: 20,
+        padding: 10,
+      }}
+    >
+      <View style={{ flexDirection: "row", marginBottom: 8 }}>
+        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
+          Lehrer:
+        </Text>
+        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
+          {item.teacherLastname}
+        </Text>
       </View>
-      <Text>Lehrerkürzel</Text>
+      <Text style={{ marginLeft: 10, fontSize: 15, fontWeight: "500" }}>
+        {item.teacherAbbrevation}
+      </Text>
     </View>
   );
 
-  let results;
-
   return (
-    <FlatList>
-      <View>{results}</View>
-    </FlatList>
+    <FlatList
+      data={data}
+      renderItem={resultBox}
+      keyExtractor={(item) => item.id.toString()}
+      style={{ marginHorizontal: 14, padding: 5 }}
+    />
   );
 };
 
-const OnSearchAbbrevation = async function (db, searchValue) {
-  const result = await db.getAllAsync(
-    "SELECT * FROM teacherList WHERE teacherLastname LIKE ?",
+const OnSearchAbbrevation = async function (db, searchValue, setResult, setAlreadySearched) {
+  const queryResult = await db.getAllAsync(
+    "SELECT * FROM teacherList WHERE teacherLastname LIKE ? ORDER BY teacherLastname",
     [`${searchValue}%`]
   );
-
-  console.log(result);
+  setResult(queryResult);
+  setAlreadySearched(true);
 };
 
 const OpenedSearchScreen = function ({ navigation }) {
   const [inputText, setInputText] = useState("");
+  const [result, setResult] = useState([]);
+  const [alreadySearched, setAlreadySearched] = useState(false);
 
   useEffect(() => {
     loadDatabase().catch((e) => console.error(e));
@@ -233,10 +266,10 @@ const OpenedSearchScreen = function ({ navigation }) {
                 placeholder="Suchen"
                 placeholderTextColor={"#8E8E93"}
                 autoFocus={true}
-                value={inputText} // Text wird vom State gesteuert
+                value={inputText}
                 onChangeText={(text) => {
                   setInputText(text);
-                  OnSearchAbbrevation(dbLocal, text);
+                  OnSearchAbbrevation(dbLocal, text, setResult, setAlreadySearched);
                 }}
                 style={styles.teacherSearchInput}
               />
@@ -244,14 +277,13 @@ const OpenedSearchScreen = function ({ navigation }) {
                 <TouchableOpacity
                   onPress={() => {
                     setInputText("");
-                    OnSearchAbbrevation(dbLocal, "");
+                    OnSearchAbbrevation(dbLocal, "", setResult);
                   }}
                 >
                   <Icon.MaterialIcons
                     name="clear"
                     size={20}
                     color="black"
-                    onPress={() => setInputText("")}
                     style={{ minWidth: "10%" }}
                   />
                 </TouchableOpacity>
@@ -279,7 +311,7 @@ const OpenedSearchScreen = function ({ navigation }) {
           }
         >
           <SQLiteProvider databaseName="teacherAbbrevationsList.db" useSuspense>
-            <ResultList />
+            <ResultList data={result} alreadySearched={alreadySearched} />
           </SQLiteProvider>
         </Suspense>
       </View>
