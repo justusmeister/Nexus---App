@@ -27,22 +27,17 @@ const loadDatabase = async () => {
   const dbUri = Asset.fromModule(dbAsset).uri;
   const dbFilePath = `${FileSystem.documentDirectory}SQLite/${dbName}`;
 
+  await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}SQLite`, {
+    intermediates: true,
+  });
+
   const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
-
-  /*if (fileInfo.exists) {
-    console.log("Alte Datenbank gefunden. Lösche alte Datenbank...");
-    await FileSystem.deleteAsync(dbFilePath, { idempotent: true });
-  }*/
-
-  if (!fileInfo.exists) {
-    await FileSystem.makeDirectoryAsync(
-      `${FileSystem.documentDirectory}SQLite`,
-      { intermediates: true }
-    );
-    await FileSystem.downloadAsync(dbUri, dbFilePath);
+  if (fileInfo.exists) {
+    await FileSystem.deleteAsync(dbFilePath);
   }
 
-  console.log("Datenbank geladen!");
+  await FileSystem.downloadAsync(dbUri, dbFilePath);
+
   dbLocal = await SQLite.openDatabaseAsync(dbName);
 };
 
@@ -175,7 +170,16 @@ const SearchScreen = function ({ navigation }) {
 };
 
 const ResultList = function ({ data, alreadySearched }) {
-  if (!data || data.length === 0 && alreadySearched) {
+  const db = SQLite.useSQLiteContext();
+
+  useEffect(() => {
+    db.withTransactionAsync(async () => {
+      const result = await db.getAllAsync("SELECT * FROM teacherList");
+      console.log(result);
+    });
+  }, [db]);
+
+  if (!data || (data.length === 0 && alreadySearched)) {
     return (
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
         <Text
@@ -204,7 +208,7 @@ const ResultList = function ({ data, alreadySearched }) {
     >
       <View style={{ flexDirection: "row", marginBottom: 8 }}>
         <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
-          Lehrer:
+          {item.teacherFirstname}
         </Text>
         <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
           {item.teacherLastname}
@@ -226,7 +230,12 @@ const ResultList = function ({ data, alreadySearched }) {
   );
 };
 
-const OnSearchAbbrevation = async function (db, searchValue, setResult, setAlreadySearched) {
+const OnSearchAbbrevation = async function (
+  db,
+  searchValue,
+  setResult,
+  setAlreadySearched
+) {
   const queryResult = await db.getAllAsync(
     "SELECT * FROM teacherList WHERE teacherLastname LIKE ? ORDER BY teacherLastname",
     [`${searchValue}%`]
@@ -265,11 +274,17 @@ const OpenedSearchScreen = function ({ navigation }) {
               <TextInput
                 placeholder="Suchen"
                 placeholderTextColor={"#8E8E93"}
+                selectionColor={"black"}
                 autoFocus={true}
                 value={inputText}
                 onChangeText={(text) => {
                   setInputText(text);
-                  OnSearchAbbrevation(dbLocal, text, setResult, setAlreadySearched);
+                  OnSearchAbbrevation(
+                    dbLocal,
+                    text,
+                    setResult,
+                    setAlreadySearched
+                  );
                 }}
                 style={styles.teacherSearchInput}
               />
