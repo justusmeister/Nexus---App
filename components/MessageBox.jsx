@@ -1,14 +1,41 @@
 import { StyleSheet, View, Pressable, Text } from "react-native";
 import * as Icon from "@expo/vector-icons";
 
-const MessageBox = function ({ style, onPress, title, content = [{}] }) {
+const MessageBox = function ({
+  titleStyle,
+  style,
+  onPress,
+  title,
+  icon,
+  content = [{}],
+}) {
   return (
     <Pressable style={[styles.boxSize, style]} onPress={onPress}>
-      <View style={styles.titleBox}>
-        <Text style={{ color: "white", fontSize: 20, marginBottom: 5, paddingTop: 3, }}>
-          {title}
-        </Text>
-        <Icon.Entypo name="chevron-right" size={23} color="white" style={{ paddingTop: 3 }} />
+      <View style={[styles.titleBox, titleStyle]}>
+        <View style={styles.title}>
+          <Icon.FontAwesome
+            name={icon}
+            size={20}
+            color="white"
+            style={{ marginRight: 8 }}
+          />
+          <Text
+            style={{
+              color: "white",
+              fontSize: 20,
+              marginBottom: 5,
+              paddingTop: 3,
+            }}
+          >
+            {title}
+          </Text>
+        </View>
+        <Icon.Entypo
+          name="chevron-right"
+          size={23}
+          color="white"
+          style={{ paddingTop: 3 }}
+        />
       </View>
       <View style={styles.infoBoxOuterView}>
         {content.map((item, index) => (
@@ -58,6 +85,11 @@ const styles = StyleSheet.create({
   },
   button: {
     justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
 });

@@ -66,17 +66,17 @@ export default OrganisationStack;
 
 const TimeTableScreen = function ({ navigation }) {
   return (
-    <>
-      <View style={styles.customTabBar}></View>
+    
       <SafeAreaView
         style={styles.screen}
         contentInsetAdjustmentBehavior="automatic"
       >
+        <View style={styles.customTabBar}></View>
         <View style={styles.container}>
           <View style={styles.timetableBox}></View>
         </View>
       </SafeAreaView>
-    </>
+    
   );
 };
 
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
-    marginBottom: 60,
+    marginBottom: 89,
   },
   timetableBox: {
     width: "100%",
@@ -118,9 +118,10 @@ const styles = StyleSheet.create({
   customTabBar: {
     position: "absolute",
     right: 10,
-    top: 40,
+    top: 100,
     width: 50,
     height: 80,
     backgroundColor: "green",
+    zIndex: 1,
   },
 });
