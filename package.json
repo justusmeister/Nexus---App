@@ -9,17 +9,22 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@babel/runtime": "^7.26.0",
     "@react-native-masked-view/masked-view": "0.3.1",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
     "@react-navigation/stack": "^6.4.1",
+    "assert": "^2.1.0",
+    "babel-preset-react-native": "^5.0.2",
     "expo": "~52.0.7",
     "expo-asset": "~11.0.1",
     "expo-blur": "~14.0.1",
+    "expo-device": "~7.0.1",
     "expo-file-system": "~18.0.3",
     "expo-sqlite": "~15.0.3",
     "expo-status-bar": "~2.0.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "react": "18.3.1",
     "react-native": "0.76.2",
     "react-native-bouncy-checkbox": "^4.1.2",
@@ -28,7 +33,7 @@
     "react-native-screens": "~4.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.26.0"
   },
   "private": true
 }

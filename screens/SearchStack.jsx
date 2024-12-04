@@ -10,6 +10,7 @@ import {
   TextInput,
   SafeAreaView,
   Platform,
+  Keyboard,
   ActivityIndicator,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -107,65 +108,67 @@ export default SearchStack;
 
 const SearchScreen = function ({ navigation }) {
   return (
-    <ScrollView
-      contentStyle={styles.container}
-      contentInsetAdjustmentBehavior="automatic"
-    >
-      <View style={{ backgroundColor: "#EFEEF6" }}>
-        <Pressable
-          style={styles.inputBox}
-          onPress={() => navigation.navigate("OpenedSearchScreen")}
-        >
-          <Icon.Ionicons
-            name="search"
-            size={22}
-            color={"#8E8E93"}
-            style={{ marginLeft: 3 }}
-          />
-          <Text style={styles.textInput}>Nach Lehrerkürzeln suchen </Text>
-        </Pressable>
-
-        <View style={styles.buttonsBox}>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+      <ScrollView
+        contentStyle={styles.container}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <View style={{ backgroundColor: "#EFEEF6" }}>
           <Pressable
-            style={[
-              styles.pressable,
-              {
-                borderBottomWidth: 0.5,
-                borderColor: "white",
-                backgroundColor: "#596270",
-                borderTopLeftRadius: 15,
-                borderTopRightRadius: 15,
-              },
-            ]}
-            onPress={() => navigation.navigate("PointsScreen")}
+            style={styles.inputBox}
+            onPress={() => navigation.navigate("OpenedSearchScreen")}
           >
-            <Icon.SimpleLineIcons
-              name="calculator"
-              size={20}
-              color={"white"}
-              style={styles.calculatorIcon}
+            <Icon.Ionicons
+              name="search"
+              size={22}
+              color={"#8E8E93"}
+              style={{ marginLeft: 3 }}
             />
-            <Text style={styles.buttonText}>Schnittrechner Punktesystem</Text>
+            <Text style={styles.textInput}>Nach Lehrerkürzeln suchen </Text>
           </Pressable>
 
-          <Pressable
-            style={styles.pressable}
-            onPress={() => {
-              navigation.navigate("GradesScreen");
-              console.log("test");
-            }}
-          >
-            <Icon.SimpleLineIcons
-              name="calculator"
-              size={20}
-              color={"white"}
-              style={styles.calculatorIcon}
-            />
-            <Text style={styles.buttonText}>Schnittrechner Notensystem</Text>
-          </Pressable>
+          <View style={styles.buttonsBox}>
+            <Pressable
+              style={[
+                styles.pressable,
+                {
+                  borderBottomWidth: 0.5,
+                  borderColor: "white",
+                  backgroundColor: "#596270",
+                  borderTopLeftRadius: 15,
+                  borderTopRightRadius: 15,
+                },
+              ]}
+              onPress={() => navigation.navigate("PointsScreen")}
+            >
+              <Icon.SimpleLineIcons
+                name="calculator"
+                size={20}
+                color={"white"}
+                style={styles.calculatorIcon}
+              />
+              <Text style={styles.buttonText}>Schnittrechner Punktesystem</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.pressable}
+              onPress={() => {
+                navigation.navigate("GradesScreen");
+                console.log("test");
+              }}
+            >
+              <Icon.SimpleLineIcons
+                name="calculator"
+                size={20}
+                color={"white"}
+                style={styles.calculatorIcon}
+              />
+              <Text style={styles.buttonText}>Schnittrechner Notensystem</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -226,6 +229,9 @@ const ResultList = function ({ data, alreadySearched }) {
       renderItem={resultBox}
       keyExtractor={(item) => item.id.toString()}
       style={{ marginHorizontal: 14, padding: 5 }}
+      keyboardShouldPersistTaps="handled"
+      onScroll={() => Keyboard.dismiss()}
+      showsVerticalScrollIndicator={false}
     />
   );
 };
@@ -258,7 +264,6 @@ const OpenedSearchScreen = function ({ navigation }) {
       style={{
         flex: 1,
         backgroundColor: "#EFEEF6",
-        marginTop: Platform.OS === "ios" ? 0 : 20,
       }}
     >
       <View style={styles.backgroundOverlay}>
@@ -355,6 +360,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "center",
+    marginTop: 20,
   },
   inputBox: {
     alignItems: "center",
@@ -362,7 +368,6 @@ const styles = StyleSheet.create({
     minWidth: "65%",
     padding: 8,
     borderRadius: 16,
-    marginTop: 5,
     backgroundColor: "#dedee3",
     marginHorizontal: 14,
   },
@@ -452,3 +457,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
 });
+
+
+

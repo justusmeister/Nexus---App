@@ -12,12 +12,9 @@ const SettingsScreen = function ({ navigation }) {
                   onPress={({}) => navigation.goBack()}
                   style={{
                     marginRight: 15,
-                    padding: 9,
-                    backgroundColor: "#c7c9c8",
-                    borderRadius: 50,
                   }}
                 >
-                  <Icon.Fontisto name="close-a" size={13} color="black" />
+                  <Icon.Ionicons name="close-circle" size={33} color="grey" />
                 </TouchableOpacity>
               ) : null,
     });

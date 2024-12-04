@@ -2,13 +2,14 @@ import React, { useEffect } from "react";
 import {
   StyleSheet,
   View,
-  ScrollView,
+  FlatList,
   Text,
   TouchableOpacity,
   SafeAreaView,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Icon from "@expo/vector-icons";
+import TimeTable from "../components/TimeTable";
 
 const Stack = createNativeStackNavigator();
 
@@ -44,7 +45,7 @@ const OrganisationStack = function ({ navigation }) {
         name="YearTimeTableScreen"
         component={YearTimeTableScreen}
         options={{
-          title: "Punkterechner",
+          title: "Jahreskalendar",
           headerBackTitle: "Zurück",
           headerTintColor: "black",
         }}
@@ -64,26 +65,47 @@ const OrganisationStack = function ({ navigation }) {
 
 export default OrganisationStack;
 
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
 const TimeTableScreen = function ({ navigation }) {
   return (
-    
-      <SafeAreaView
-        style={styles.screen}
-        contentInsetAdjustmentBehavior="automatic"
-      >
-        <View style={styles.customTabBar}></View>
-        <View style={styles.container}>
-          <View style={styles.timetableBox}></View>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.containerTimeTable}>
+          <View style={styles.customTabBar}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("YearTimeTableScreen")}
+            >
+              <Icon.MaterialCommunityIcons
+                name="timetable"
+                size={30}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.timetableBox}>
+            <TimeTable />
+          </View>
         </View>
       </SafeAreaView>
-    
+    </View>
   );
 };
+
+/* <FlatList
+              data={days}
+              horizontal
+              renderItem={({ item }) => <TimeTable />}
+              keyExtractor={(item) => item}
+              snapToAlignment="start"
+              decelerationRate="fast"
+              showsHorizontalScrollIndicator={false}
+            />*/
 
 const YearTimeTableScreen = function ({ navigation }) {
   return (
     <View>
-      <Text>TEST</Text>
+      <Text>Jahreskalendar</Text>
     </View>
   );
 };
@@ -99,29 +121,49 @@ const HomeworkScreen = function ({ navigation }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#EFEEF6",
-  },
-  container: {
-    flex: 1,
-    alignItems: "center",
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
     marginBottom: 89,
   },
+  containerTimeTable: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    backgroundColor: "#a1a1a1",
+    borderRadius: 20,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
   timetableBox: {
+    flex: 1,
     width: "100%",
-    height: "100%",
-    backgroundColor: "grey",
-    borderRadius: 15,
+    padding: 8,
+    paddingTop: 0,
+    marginTop: 62,
+    backgroundColor: "#a1a1a1",
+    borderRadius: 20,
   },
   customTabBar: {
     position: "absolute",
-    right: 10,
-    top: 100,
-    width: 50,
-    height: 80,
-    backgroundColor: "green",
+    right: 6,
+    top: 6,
+    width: 150,
+    height: 50,
+    backgroundColor: "black",
+    borderRadius: 15,
     zIndex: 1,
+  },
+  sectionHeader: {
+    backgroundColor: "#d3d3d3",
+    padding: 10,
+  },
+  sectionText: {
+    fontWeight: "bold",
   },
 });

@@ -20,7 +20,7 @@ const Navigation = function () {
         <Stack.Screen
           name="SettingsScreen"
           component={SettingsScreen}
-          options={{ presentation: "modal" }}
+          options={{ presentation: "modal", title: "Einstellungen" }}
         />
         <Stack.Screen
           name="Tabs"
