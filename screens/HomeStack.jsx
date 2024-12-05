@@ -14,7 +14,14 @@ import Checkbox from "../components/Checkbox";
 
 const Stack = createNativeStackNavigator();
 
-const newsBoxDummyData = [];
+const newsBoxDummyData = [
+  {
+    news: "Es fällt die 5. Stunde aus!",
+  },
+  {
+    news: "Neues Update verfügbar !",
+  },
+];
 
 const iServInboxDummyData = [
   {
@@ -154,7 +161,12 @@ const NewsScreen = function ({ navigation }) {
           { position: "absolute", backgroundColor: "rgba(0, 0, 0, 0.5)" },
         ]}
       ></View>
-      <FlatList />
+      <FlatList
+        data={data}
+        renderItem={resultBox}
+        keyExtractor={(item) => item.news}
+        style={{ padding: 8 }}
+      />
     </View>
   );
 };
@@ -162,7 +174,12 @@ const NewsScreen = function ({ navigation }) {
 const InboxScreen = function ({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <FlatList />
+      <FlatList
+        data={data}
+        renderItem={resultBox}
+        keyExtractor={(item) => item.title}
+        style={{ padding: 8 }}
+      />
     </View>
   );
 };
@@ -170,7 +187,12 @@ const InboxScreen = function ({ navigation }) {
 const DeadlineScreen = function ({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <FlatList />
+      <FlatList
+        data={data}
+        renderItem={resultBox}
+        keyExtractor={(item) => item.subject}
+        style={{ padding: 8 }}
+      />
     </View>
   );
 };
@@ -294,16 +316,46 @@ const HomeScreen = function ({ navigation }) {
             }}
             content={[
               {
-                content: noEntryTemplate("aktuell keine Neuigkeiten"),
-                style: [styles.iservContent, { borderWidth: 0 }],
+                content:
+                  newsBoxDummyData.length > 0 ? (
+                    <Text style={{ color: "white", fontSize: 15 }}>
+                      {newsBoxDummyData[0].news}
+                    </Text>
+                  ) : (
+                    noEntryTemplate("aktuell keine Neuigkeiten")
+                  ),
+                style: [
+                  styles.iservContent,
+                  { borderWidth: newsBoxDummyData.length > 0 ? 0.5 : 0 },
+                ],
               },
               {
-                content: <Text style={{ color: "white", fontSize: 15 }}></Text>,
-                style: [styles.iservContent, { borderWidth: 0 }],
+                content:
+                  newsBoxDummyData.length > 1 ? (
+                    <Text style={{ color: "white", fontSize: 15 }}>
+                      {newsBoxDummyData[1].news}
+                    </Text>
+                  ) : (
+                    noEntryTemplate("keine weiteren Neuigkeiten")
+                  ),
+                style: [
+                  styles.iservContent,
+                  { borderWidth: newsBoxDummyData.length > 1 ? 0.5 : 0 },
+                ],
               },
               {
-                content: <Text style={{ color: "white", fontSize: 15 }}></Text>,
-                style: [styles.iservContent, { borderWidth: 0 }],
+                content:
+                  newsBoxDummyData.length > 2 ? (
+                    <Text style={{ color: "white", fontSize: 15 }}>
+                      {newsBoxDummyData[2].news}
+                    </Text>
+                  ) : (
+                    noEntryTemplate("keine weiteren Neuigkeiten")
+                  ),
+                style: [
+                  styles.iservContent,
+                  { borderWidth: newsBoxDummyData.length > 2 ? 0.5 : 0 },
+                ],
               },
             ]}
             onPress={() => navigation.navigate("NewsScreen")}

@@ -205,7 +205,7 @@ const ResultList = function ({ data, alreadySearched }) {
         height: 100,
         marginVertical: 2,
         backgroundColor: "#c2c2c2",
-        borderRadius: 20,
+        borderRadius: 15,
         padding: 10,
       }}
     >

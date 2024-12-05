@@ -66,6 +66,7 @@ const TimeTable = () => {
       <ScrollView
         contentContainerStyle={styles.scrollView}
         style={styles.scrollViewStyle}
+        showsVerticalScrollIndicator={false}
       >
         <TimeColumn content={lessonStartTime} />
         {[0, 1, 2, 3, 4].map((colIndex) => (

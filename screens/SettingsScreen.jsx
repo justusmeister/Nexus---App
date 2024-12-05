@@ -11,7 +11,7 @@ const SettingsScreen = function ({ navigation }) {
                 <TouchableOpacity
                   onPress={({}) => navigation.goBack()}
                   style={{
-                    marginRight: 15,
+                    marginRight: 4,
                   }}
                 >
                   <Icon.Ionicons name="close-circle" size={33} color="grey" />
