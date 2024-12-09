@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
   FlatList,
+  Dimensions,
   Text,
   TouchableOpacity,
   SafeAreaView,
@@ -65,9 +66,48 @@ const OrganisationStack = function ({ navigation }) {
 
 export default OrganisationStack;
 
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const screenWidth = Dimensions.get("window").width - 44;
+
+const generateWeeks = (startWeek, count) =>
+  Array.from({ length: count }, (_, i) => {
+    const weekNumber = startWeek + i;
+    return {
+      index: weekNumber,
+      display: weekNumber < -4 || weekNumber > 4 ? "" : `Woche ${weekNumber}`,
+    };
+  });
 
 const TimeTableScreen = function ({ navigation }) {
+  const flatListRef = useRef();
+
+  const [weeks, setWeeks] = useState(generateWeeks(-10, 21));
+  const [currentIndex, setCurrentIndex] = useState(10);
+
+  const handleScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.floor(contentOffsetX / screenWidth);
+
+    if (index < 3) {
+      const firstWeek = weeks[0].index;
+      const newWeeks = generateWeeks(firstWeek - 10, 10);
+      setWeeks((prev) => [...newWeeks, ...prev]);
+      flatListRef.current.scrollToIndex({
+        index: index + 10,
+        animated: false,
+      });
+    }
+
+    if (index > weeks.length - 4) {
+      const lastWeek = weeks[weeks.length - 1].index;
+      const newWeeks = generateWeeks(lastWeek + 1, 10);
+      setWeeks((prev) => [...prev, ...newWeeks]);
+    }
+  };
+
+  const renderItem = ({ item }) => {
+    return <TimeTable currentWeek={item.index} />;
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <SafeAreaView style={styles.screen}>
@@ -84,23 +124,28 @@ const TimeTableScreen = function ({ navigation }) {
             </TouchableOpacity>
           </View>
           <View style={styles.timetableBox}>
-            <TimeTable />
+            <FlatList
+              ref={flatListRef}
+              data={weeks}
+              renderItem={renderItem}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.index.toString()}
+              onMomentumScrollEnd={handleScroll}
+              initialScrollIndex={currentIndex}
+              getItemLayout={(_, index) => ({
+                length: screenWidth,
+                offset: screenWidth * index,
+                index,
+              })}
+            />
           </View>
         </View>
       </SafeAreaView>
     </View>
   );
 };
-
-/* <FlatList
-              data={days}
-              horizontal
-              renderItem={({ item }) => <TimeTable />}
-              keyExtractor={(item) => item}
-              snapToAlignment="start"
-              decelerationRate="fast"
-              showsHorizontalScrollIndicator={false}
-            />*/
 
 const YearTimeTableScreen = function ({ navigation }) {
   return (
@@ -158,12 +203,5 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     borderRadius: 15,
     zIndex: 1,
-  },
-  sectionHeader: {
-    backgroundColor: "#d3d3d3",
-    padding: 10,
-  },
-  sectionText: {
-    fontWeight: "bold",
   },
 });

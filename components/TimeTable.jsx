@@ -14,6 +14,17 @@ const lessonStartTime = [
   "15:40",
 ];
 
+function addTime(timeString, minutesToAdd) {
+  const time = new Date(`2024-12-10T${timeString}:00`);
+  time.setMinutes(time.getMinutes() + minutesToAdd);
+  return time.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const screenWidth = Dimensions.get("window").width - 44;
+
 const { height: screenHeight } = Dimensions.get("window");
 const cellHeight = screenHeight * 0.06;
 
@@ -38,14 +49,16 @@ const TimeColumn = ({ content }) => {
         <View key={index} style={[styles.cell, { height: cellHeight }]}>
           <Text style={styles.timeText}>{lessonStartTime[index]}</Text>
           <Text style={styles.lessonNumber}>{index + 1}</Text>
-          <Text style={styles.timeText}>{lessonStartTime[index]}</Text>
+          <Text style={styles.timeText}>
+            {addTime(lessonStartTime[index], 45)}
+          </Text>
         </View>
       ))}
     </View>
   );
 };
 
-const TimeTable = () => {
+const TimeTable = ({ currentWeek }) => {
   return (
     <View style={styles.container}>
       <View style={styles.daysInfoBox}>
@@ -53,7 +66,7 @@ const TimeTable = () => {
           (day, index) => (
             <View key={index} style={styles.daysInfo}>
               <Text style={{ fontSize: 8, fontWeight: "500" }}>
-                {index === 0 ? "DEZ." : null}
+                {index === 0 ? currentWeek : null}
               </Text>
               <Text style={{ fontSize: 19, fontWeight: "600" }}>
                 {index + 1}
@@ -83,7 +96,8 @@ const TimeTable = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: "100%",
+    width: screenWidth,
   },
   daysInfoBox: {
     flexDirection: "row",

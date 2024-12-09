@@ -11,6 +11,10 @@ import MessageBox from "../components/MessageBox";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Icon from "@expo/vector-icons";
 import Checkbox from "../components/Checkbox";
+import InboxDetailedScreen from "./HomeDetailedScreens/InboxDetailedScreen";
+import NewsDetailedScreen from "./HomeDetailedScreens/NewsDetailedScreen";
+import { useRoute } from "@react-navigation/native";
+import DeadlineDetailedScreen from "./HomeDetailedScreens/DeadlineDetailedScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,65 +27,125 @@ const newsBoxDummyData = [
   },
 ];
 
-const iServInboxDummyData = [
+export const iServInboxDummyData = [
   {
     author: "Max Mustermann",
     title: "Ankündigung für die Klassenarbeit",
-    date: "21.11.24 15:00",
+    date: new Date("2024-11-21T15:00:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: false,
   },
   {
     author: "Lisa Müller",
     title: "Neue Hausaufgabe für Montag",
-    date: "12.11.24 12:00",
+    date: new Date("2024-11-12T12:00:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: true,
   },
   {
     author: "Herr Schmidt",
     title: "Wichtige Info zur Exkursion",
-    date: "21.11.24 15:00",
+    date: new Date("2024-11-21T15:00:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: false,
   },
   {
     author: "Frau Meier",
     title: "Korrektur der letzten Klausur",
-    date: "2024-11-18T12:45:00",
+    date: new Date("2024-11-18T12:45:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: true,
   },
   {
     author: "Max Mustermann",
     title: "Elternabend am nächsten Donnerstag",
-    date: "2024-11-22T18:00:00",
+    date: new Date("2024-11-22T18:00:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: false,
   },
   {
     author: "Herr Weber",
     title: "Material für das nächste Projekt",
-    date: "2024-11-21T09:00:00",
+    date: new Date("2024-11-21T09:00:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: true,
   },
   {
     author: "Frau Schulz",
     title: "Vertretung in der 3. Stunde",
-    date: "2024-11-23T07:45:00",
+    date: new Date("2024-11-23T07:45:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: false,
   },
   {
     author: "Lisa Müller",
     title: "Info zu den Winterferien",
-    date: "2024-11-24T13:30:00",
+    date: new Date("2024-11-24T13:30:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: false,
   },
   {
     author: "Herr Schmidt",
     title: "Abgabe der Facharbeit",
-    date: "2024-11-20T14:15:00",
+    date: new Date("2024-11-20T14:15:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: true,
   },
   {
     author: "Frau Meier",
     title: "Rückgabe der Seminararbeit",
-    date: "2024-11-25T11:00:00",
+    date: new Date("2024-11-25T11:00:00").toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     read: false,
   },
 ];
@@ -150,49 +214,84 @@ const HomeStack = function ({ navigation }) {
   );
 };
 
+const DeadlineTemplate = ({ subject, task, date, place }) => {
+  return (
+    <TouchableOpacity
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Text style={{ color: "white", fontSize: 15, fontWeight: "600" }}>
+          {subject}:
+        </Text>
+
+        <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
+          {task}
+        </Text>
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "500",
+            color: "#363636",
+          }}
+        >
+          {date}
+        </Text>
+      </View>
+      <Checkbox
+        onConfirm={() => {
+          console.log(deadlinesDummyData);
+          if (deadlines.length > 1) {
+            const updatedDeadlines = deadlines.filter(
+              (_, index) => index !== place
+            );
+            setDeadlines(updatedDeadlines);
+          } else {
+            setDeadlines([]);
+          }
+          console.log(deadlinesDummyData);
+        }}
+      />
+    </TouchableOpacity>
+  );
+};
+
 export default HomeStack;
 
 const NewsScreen = function ({ navigation }) {
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <View
-        style={[
-          styles.container,
-          { position: "absolute", backgroundColor: "rgba(0, 0, 0, 0.5)" },
-        ]}
-      ></View>
-      <FlatList
-        data={data}
-        renderItem={resultBox}
-        keyExtractor={(item) => item.news}
-        style={{ padding: 8 }}
-      />
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 85 }}>
+      <NewsDetailedScreen data={newsBoxDummyData} />
     </View>
   );
 };
 
 const InboxScreen = function ({ navigation }) {
+  const route = useRoute();
+
+  let index = route.params?.emailId !== null ? route.params?.emailId : null;
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <FlatList
-        data={data}
-        renderItem={resultBox}
-        keyExtractor={(item) => item.title}
-        style={{ padding: 8 }}
-      />
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 85 }}>
+      <InboxDetailedScreen data={iServInboxDummyData} index={index} />
     </View>
   );
 };
 
 const DeadlineScreen = function ({ navigation }) {
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <FlatList
-        data={data}
-        renderItem={resultBox}
-        keyExtractor={(item) => item.subject}
-        style={{ padding: 8 }}
-      />
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 79 }}>
+      <DeadlineDetailedScreen data={deadlinesDummyData} />
     </View>
   );
 };
@@ -215,8 +314,11 @@ const HomeScreen = function ({ navigation }) {
     );
   };
 
-  const inboxTemplate = (writer, reference, date, read) => (
-    <View style={{ justifyContent: "center" }}>
+  const inboxTemplate = (writer, reference, date, read, index) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("InboxScreen", { emailId: index })}
+      style={{ justifyContent: "center" }}
+    >
       <View
         style={{
           width: "100%",
@@ -246,7 +348,7 @@ const HomeScreen = function ({ navigation }) {
         </Text>
       </View>
       <Text style={{ color: "white", fontSize: 13 }}>{reference}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const deadlineTemplate = (subject, task, date, place) => (
@@ -318,9 +420,13 @@ const HomeScreen = function ({ navigation }) {
               {
                 content:
                   newsBoxDummyData.length > 0 ? (
-                    <Text style={{ color: "white", fontSize: 15 }}>
-                      {newsBoxDummyData[0].news}
-                    </Text>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate("NewsScreen")}
+                    >
+                      <Text style={{ color: "white", fontSize: 15 }}>
+                        {newsBoxDummyData[0].news}
+                      </Text>
+                    </TouchableOpacity>
                   ) : (
                     noEntryTemplate("aktuell keine Neuigkeiten")
                   ),
@@ -332,9 +438,13 @@ const HomeScreen = function ({ navigation }) {
               {
                 content:
                   newsBoxDummyData.length > 1 ? (
-                    <Text style={{ color: "white", fontSize: 15 }}>
-                      {newsBoxDummyData[1].news}
-                    </Text>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate("NewsScreen")}
+                    >
+                      <Text style={{ color: "white", fontSize: 15 }}>
+                        {newsBoxDummyData[1].news}
+                      </Text>
+                    </TouchableOpacity>
                   ) : (
                     noEntryTemplate("keine weiteren Neuigkeiten")
                   ),
@@ -346,9 +456,13 @@ const HomeScreen = function ({ navigation }) {
               {
                 content:
                   newsBoxDummyData.length > 2 ? (
-                    <Text style={{ color: "white", fontSize: 15 }}>
-                      {newsBoxDummyData[2].news}
-                    </Text>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate("NewsScreen")}
+                    >
+                      <Text style={{ color: "white", fontSize: 15 }}>
+                        {newsBoxDummyData[2].news}
+                      </Text>
+                    </TouchableOpacity>
                   ) : (
                     noEntryTemplate("keine weiteren Neuigkeiten")
                   ),
@@ -379,7 +493,8 @@ const HomeScreen = function ({ navigation }) {
                         iServInboxDummyData[0].author,
                         iServInboxDummyData[0].title,
                         iServInboxDummyData[0].date,
-                        iServInboxDummyData[0].read
+                        iServInboxDummyData[0].read,
+                        0
                       )
                     : noEntryTemplate("keine weiteren Einträge"),
                 style: [
@@ -394,7 +509,8 @@ const HomeScreen = function ({ navigation }) {
                         iServInboxDummyData[1].author,
                         iServInboxDummyData[1].title,
                         iServInboxDummyData[1].date,
-                        iServInboxDummyData[1].read
+                        iServInboxDummyData[1].read,
+                        1
                       )
                     : iServInboxDummyData.length > 0
                     ? noEntryTemplate("alle Aufgaben erledigt")
@@ -412,7 +528,8 @@ const HomeScreen = function ({ navigation }) {
                         iServInboxDummyData[2].author,
                         iServInboxDummyData[2].title,
                         iServInboxDummyData[2].date,
-                        iServInboxDummyData[2].read
+                        iServInboxDummyData[2].read,
+                        2
                       )
                     : iServInboxDummyData.length > 1
                     ? noEntryTemplate("alle Aufgaben erledigt")
@@ -513,5 +630,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
+  },
+  deadlineResult: {
+    width: "100%",
+    height: 100,
+    borderTopWidth: 0.5,
+    borderBottomWidth: 0.5,
   },
 });
