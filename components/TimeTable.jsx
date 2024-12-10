@@ -14,6 +14,22 @@ const lessonStartTime = [
   "15:40",
 ];
 
+const monthList = [
+  "Jan.",
+  "Feb.",
+  "Mär.",
+  "Apr.",
+  "Mai",
+  "Jun.",
+  "Jul.",
+  "Aug.",
+  "Sep.",
+  "Okt.",
+  "Nov.",
+  "Dez.",
+  null,
+];
+
 function addTime(timeString, minutesToAdd) {
   const time = new Date(`2024-12-10T${timeString}:00`);
   time.setMinutes(time.getMinutes() + minutesToAdd);
@@ -58,7 +74,37 @@ const TimeColumn = ({ content }) => {
   );
 };
 
+const setDayDate = (date, daysAmount) => {
+  newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + daysAmount);
+  return newDate;
+};
+
 const TimeTable = ({ currentWeek }) => {
+  let monthAlreadyDisplayed = false;
+
+  const createWeekDate = (currentWeek) => {
+    return new Date(new Date().setDate(new Date().getDate() + 7 * currentWeek));
+  };
+
+  const currentDate = createWeekDate(currentWeek);
+  const distanceToCurrentWeekMonday = (currentDate.getDay() + 6) % 7;
+  let currentWeekMonday = new Date(currentDate);
+  currentWeekMonday.setDate(
+    currentWeekMonday.getDate() - distanceToCurrentWeekMonday
+  );
+
+  const checkDateMonth = (mondayDate, dayDate) => {
+    if (mondayDate.getMonth() === dayDate.getMonth()) {
+      return 12;
+    } else {
+      if (!monthAlreadyDisplayed) {
+        monthAlreadyDisplayed = true;
+        return dayDate.getMonth();
+      } else return 12;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.daysInfoBox}>
@@ -66,10 +112,19 @@ const TimeTable = ({ currentWeek }) => {
           (day, index) => (
             <View key={index} style={styles.daysInfo}>
               <Text style={{ fontSize: 8, fontWeight: "500" }}>
-                {index === 0 ? currentWeek : null}
+                {index === 0
+                  ? monthList[currentWeekMonday.getMonth()]
+                  : monthList[
+                      checkDateMonth(
+                        currentWeekMonday,
+                        setDayDate(currentWeekMonday, index)
+                      )
+                    ]}
               </Text>
               <Text style={{ fontSize: 19, fontWeight: "600" }}>
-                {index + 1}
+                {index === 0
+                  ? currentWeekMonday.getDate()
+                  : setDayDate(currentWeekMonday, index).getDate()}
               </Text>
               <Text style={{ fontSize: 8 }}>{day}</Text>
             </View>
