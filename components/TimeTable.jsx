@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, Dimensions, StyleSheet } from "react-native";
+import * as Icon from "@expo/vector-icons";
 
 const lessonStartTime = [
   "07:50",
@@ -107,10 +108,29 @@ const TimeTable = ({ currentWeek }) => {
 
   return (
     <View style={styles.container}>
+      {currentWeek === 0 ? (
+        <Icon.FontAwesome
+          name="circle"
+          size={13}
+          color={"#bf5615"}
+          style={{ position: "absolute", top: 15, left: 15 }}
+        />
+      ) : null}
       <View style={styles.daysInfoBox}>
         {["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"].map(
           (day, index) => (
-            <View key={index} style={styles.daysInfo}>
+            <View
+              key={index}
+              style={[
+                styles.daysInfo,
+                {
+                  backgroundColor:
+                    currentWeek === 0 && index + 1 === currentDate.getDay()
+                      ? "#7d7d7d"
+                      : null,
+                },
+              ]}
+            >
               <Text style={{ fontSize: 8, fontWeight: "500" }}>
                 {index === 0
                   ? monthList[currentWeekMonday.getMonth()]
@@ -121,7 +141,15 @@ const TimeTable = ({ currentWeek }) => {
                       )
                     ]}
               </Text>
-              <Text style={{ fontSize: 19, fontWeight: "600" }}>
+              <Text
+                style={{
+                  fontSize: 19,
+                  fontWeight:
+                    currentWeek === 0 && index + 1 === currentDate.getDay()
+                      ? "900"
+                      : "600",
+                }}
+              >
                 {index === 0
                   ? currentWeekMonday.getDate()
                   : setDayDate(currentWeekMonday, index).getDate()}
@@ -167,6 +195,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 8,
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
   },
   scrollView: {
     flexDirection: "row",
@@ -198,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
   },
   timeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "500",
     color: "#4d4d4d",
   },
