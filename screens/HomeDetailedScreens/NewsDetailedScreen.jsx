@@ -1,9 +1,12 @@
+import React from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
+import * as Icon from "@expo/vector-icons";
 
 const NewsDetailedScreen = function ({ data }) {
-  const resultBox = ({ item }) => (
+  const resultBox = ({ item, index }) => (
     <View style={styles.deadlineResult}>
-      <Text style={{ color: "white", fontSize: 15 }}>{item.news}</Text>
+      <Icon.FontAwesome name="exclamation-circle" size={24} color={"#FF6F61"} />
+      <Text style={styles.text}>{item.news}</Text>
     </View>
   );
 
@@ -19,13 +22,25 @@ const NewsDetailedScreen = function ({ data }) {
 
 const styles = StyleSheet.create({
   deadlineResult: {
-    width: "100%",
-    height: 100,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
-    borderColor: "#ddd",
-    padding: 8,
-    backgroundColor: "#444",
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 18,
+    backgroundColor: "#ffffff",
+    marginVertical: 6,
+    borderRadius: 14,
+    borderLeftWidth: 5,
+    borderLeftColor: "#FF6F61",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  text: {
+    marginLeft: 15,
+    color: "#333",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 

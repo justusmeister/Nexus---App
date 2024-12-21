@@ -43,7 +43,7 @@ function addTime(timeString, minutesToAdd) {
 const screenWidth = Dimensions.get("window").width - 44;
 
 const { height: screenHeight } = Dimensions.get("window");
-const cellHeight = screenHeight * 0.06;
+const cellHeight = screenHeight * 0.0635;
 
 const Column = ({ data, indexColumn }) => {
   return (

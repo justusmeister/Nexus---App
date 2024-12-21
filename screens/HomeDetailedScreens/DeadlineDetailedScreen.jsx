@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +6,10 @@ import {
   FlatList,
 } from "react-native";
 import Checkbox from "../../components/Checkbox";
-import { deadlinesDummyData } from "../HomeStack";
+import { useDeadlinesData } from "../../contexts/DeadlinesDataContext";
 
-const DeadlineDetailedScreen = function ({ data }) {
-  const [deadlines, setDeadlines] = useState(deadlinesDummyData);
+const DeadlineDetailedScreen = function () {
+  const { deadlinesData, changeData } = useDeadlinesData();
 
   const renderDeadline = ({ item, index }) => (
     <View style={styles.deadlineResult}>
@@ -48,16 +47,14 @@ const DeadlineDetailedScreen = function ({ data }) {
         </View>
         <Checkbox
           onConfirm={() => {
-            console.log(deadlinesDummyData);
-            if (deadlines.length > 1) {
-              const updatedDeadlines = deadlines.filter(
+            if (deadlinesData.length > 1) {
+              const updatedDeadlines = deadlinesData.filter(
                 (_, index) => index !== place
               );
-              setDeadlines(updatedDeadlines);
+              changeData(updatedDeadlines);
             } else {
-              setDeadlines([]);
+              changeData([]);
             }
-            console.log(deadlinesDummyData);
           }}
         />
       </TouchableOpacity>
@@ -66,7 +63,7 @@ const DeadlineDetailedScreen = function ({ data }) {
 
   return (
     <FlatList
-      data={data}
+      data={deadlinesData}
       renderItem={renderDeadline}
       keyExtractor={(item, index) => index.toString()}
       style={{ padding: 8 }}
@@ -75,15 +72,15 @@ const DeadlineDetailedScreen = function ({ data }) {
 };
 
 const styles = StyleSheet.create({
-    deadlineResult: {
-      width: "100%",
-      height: 100,
-      borderTopWidth: 0.5,
-      borderBottomWidth: 0.5,
-      borderColor: "#ddd",
-      padding: 8,
-      backgroundColor: "#e02225",
-    },
-  });
-  
+  deadlineResult: {
+    width: "100%",
+    height: 100,
+    borderTopWidth: 0.5,
+    borderBottomWidth: 0.5,
+    borderColor: "#ddd",
+    padding: 8,
+    backgroundColor: "#e02225",
+  },
+});
+
 export default DeadlineDetailedScreen;

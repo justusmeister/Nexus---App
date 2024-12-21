@@ -9,10 +9,13 @@ import {
   SafeAreaView,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
 
 const Stack = createNativeStackNavigator();
+const Tab = createMaterialTopTabNavigator();
 
 const OrganisationStack = function ({ navigation }) {
   useEffect(() => {
@@ -23,44 +26,50 @@ const OrganisationStack = function ({ navigation }) {
     return unsubscribe;
   }, []);
 
+  insets = useSafeAreaInsets();
+
   return (
-    <Stack.Navigator>
-      <Stack.Screen
+    <Tab.Navigator
+      initialRouteName="TimeTableScreen"
+      screenOptions={{
+        tabBarActiveTintColor: "#333", // Textfarbe für aktive Tabs
+        tabBarInactiveTintColor: "#888", // Textfarbe für inaktive Tabs
+        tabBarLabelStyle: {
+          fontSize: 9, // Schriftgröße
+          fontWeight: "600", // Fetter Text für Lesbarkeit
+        },
+        tabBarStyle: {
+          backgroundColor: "#EFEEF6", // Hintergrundfarbe der Leiste
+          marginTop: insets.top,
+        },
+        tabBarIndicatorStyle: {
+          backgroundColor: "#333", // Indikator (die untere Linie) wird sichtbar
+          height: 3, // Dicke der Indikator-Linie
+        },
+      }}
+    >
+      <Tab.Screen
         name="TimeTableScreen"
         component={TimeTableScreen}
         options={{
-          title: "Stundenplan",
-          headerLargeTitle: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: "#EFEEF6", height: 1000 },
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("SettingsScreen")}
-            >
-              <Icon.Ionicons name="settings" size={31} />
-            </TouchableOpacity>
-          ),
+          tabBarLabel: "Stundenplan",
         }}
       />
-      <Stack.Screen
+      <Tab.Screen
         name="YearTimeTableScreen"
         component={YearTimeTableScreen}
         options={{
-          title: "Jahreskalendar",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
+          tabBarLabel: "Jahreskalendar",
         }}
       />
-      <Stack.Screen
+      <Tab.Screen
         name="HomeworkScreen"
         component={HomeworkScreen}
         options={{
-          title: "Notenrechner",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
+          tabBarLabel: "Hausaufgaben",
         }}
       />
-    </Stack.Navigator>
+    </Tab.Navigator>
   );
 };
 

@@ -6,51 +6,105 @@ import {
   FlatList,
   Pressable,
   Modal,
-  TouchableWithoutFeedback,
   TouchableOpacity,
   ScrollView,
+  Animated,
+  TouchableWithoutFeedback,
 } from "react-native";
+import * as Icon from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
-import { iServInboxDummyData } from "../HomeStack";
 
 const InboxDetailedScreen = ({ data, index }) => {
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentEmail, setCurrentEmail] = useState(null);
-
+  const [activeAnimation, setActiveAnimation] = useState(null);
+  const buttonScale = useState(new Animated.Value(1))[0];
   useEffect(() => {
     setTimeout(() => {
       if (index !== null && index !== undefined) {
-        const email = iServInboxDummyData[index];
+        const email = data[index];
         setCurrentEmail(email);
-        setModalVisible(true);
+        setIsModalVisible(true);
       } else {
         console.log("Kein Index vorhanden");
       }
     }, 300);
   }, [index]);
 
-  const resultBox = ({ item }) => {
+  const resultBox = ({ item, index }) => {
+    const handlePressIn = () => {
+      setActiveAnimation(index);
+      Animated.spring(buttonScale, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 10,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(buttonScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 10,
+      }).start(() => {
+        setActiveAnimation(null);
+      });
+    };
+
     return (
-      <Pressable
-        style={styles.deadlineResult}
-        onPress={() => {
-          setCurrentEmail(item);
-          setModalVisible(true);
-        }}
+      <Animated.View
+        style={[
+          styles.newsBoxContainer,
+          {
+            transform: [
+              {
+                scale: activeAnimation === index ? buttonScale : 1,
+              },
+            ],
+          },
+        ]}
       >
-        <View>
-          <View style={styles.emailPreview}>
-            <Text style={styles.emailAuthor}>{item.author}</Text>
-            <Text style={styles.emailDate}>{item.date}</Text>
+        <Pressable
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={() => {
+            setCurrentEmail(item);
+            setIsModalVisible(true);
+          }}
+        >
+          <View style={styles.newsBox}>
+            {item.read ? null : (
+              <Icon.FontAwesome
+                name="circle"
+                size={10}
+                color={"orange"}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: 15,
+                  zIndex: 1,
+                }}
+              />
+            )}
+            <Text
+              style={[
+                styles.newsBoxAuthor,
+                { fontWeight: item.read ? "500" : "700" },
+              ]}
+            >
+              {item.author}
+            </Text>
+            <Text style={styles.newsBoxContent}>{item.title}</Text>
+            <Text style={styles.newsBoxDate}>{item.date}</Text>
           </View>
-          <Text style={styles.emailTitle}>{item.title}</Text>
-        </View>
-      </Pressable>
+        </Pressable>
+      </Animated.View>
     );
   };
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <FlatList
         data={data}
         renderItem={resultBox}
@@ -60,7 +114,9 @@ const InboxDetailedScreen = ({ data, index }) => {
       <EmailModal
         visible={isModalVisible}
         email={currentEmail}
-        onClose={() => setModalVisible(false)}
+        onClose={() => {
+          setIsModalVisible(false);
+        }}
       />
     </View>
   );
@@ -74,11 +130,15 @@ const EmailModal = ({ visible, email, onClose }) => {
           <TouchableWithoutFeedback>
             <View style={styles.modalContainer}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Text style={styles.closeButtonText}>×</Text>
+                <Icon.Ionicons
+                  name="close-circle-sharp"
+                  size={32}
+                  color="#404040"
+                />
               </TouchableOpacity>
               <View style={styles.emailHeader}>
                 <Text style={styles.sender}>{email?.author}</Text>
-                <Text style={styles.subject}>{email?.title}</Text>
+                <Text style={styles.title}>{email?.title}</Text>
                 <Text style={styles.date}>{email?.date}</Text>
               </View>
               <View style={styles.divider} />
@@ -110,7 +170,7 @@ const styles = StyleSheet.create({
     width: "87%",
     height: "70%",
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 14,
     padding: 15,
     position: "relative",
     shadowColor: "#000",
@@ -121,28 +181,32 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: 7,
+    right: 7,
+    zIndex: 1,
   },
   closeButtonText: {
     fontSize: 24,
-    color: "#000",
+    color: "#4A90E2",
   },
   emailHeader: {
     marginBottom: 10,
+    backgroundColor: "#f1f5f9",
+    padding: 10,
+    borderRadius: 8,
   },
   sender: {
     fontWeight: "bold",
     fontSize: 16,
-    color: "#333",
+    color: "#4A90E2",
   },
-  subject: {
+  title: {
     fontSize: 14,
-    color: "#555",
+    color: "#333",
   },
   date: {
     fontSize: 12,
-    color: "#999",
+    color: "#666",
   },
   divider: {
     height: 1,
@@ -156,32 +220,36 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 10,
   },
-  deadlineResult: {
-    width: "100%",
-    height: 100,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
-    borderColor: "#ddd",
-    padding: 8,
-    backgroundColor: "green",
+  newsBoxContainer: {
+    marginVertical: 6,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#FFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  emailPreview: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  newsBox: {
+    padding: 15,
+    borderRadius: 10,
+    borderLeftWidth: 5,
+    borderLeftColor: "#4A90E2",
   },
-  emailAuthor: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "black",
+  newsBoxAuthor: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 5,
   },
-  emailDate: {
+  newsBoxContent: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 5,
+  },
+  newsBoxDate: {
     fontSize: 12,
-    color: "#363636",
-  },
-  emailTitle: {
-    color: "white",
-    fontSize: 13,
+    color: "#999",
   },
 });
 

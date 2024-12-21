@@ -1,4 +1,10 @@
-import React, { useEffect } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  createContext,
+  useContext,
+} from "react";
 import {
   StyleSheet,
   Text,
@@ -6,6 +12,10 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  Animated,
+  Pressable,
+  TouchableWithoutFeedback,
+  Modal,
 } from "react-native";
 import MessageBox from "../components/MessageBox";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -14,7 +24,9 @@ import Checkbox from "../components/Checkbox";
 import InboxDetailedScreen from "./HomeDetailedScreens/InboxDetailedScreen";
 import NewsDetailedScreen from "./HomeDetailedScreens/NewsDetailedScreen";
 import { useRoute } from "@react-navigation/native";
-import DeadlineDetailedScreen from "./HomeDetailedScreens/DeadlineDetailedScreen";
+import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+
+const DeadlinesContext = createContext();
 
 const Stack = createNativeStackNavigator();
 
@@ -25,11 +37,14 @@ const newsBoxDummyData = [
   {
     news: "Neues Update verfügbar !",
   },
+  {
+    news: "Die alten Bugs wurden gestern gefixed !",
+  },
 ];
 
 export const iServInboxDummyData = [
   {
-    author: "Max Mustermann",
+    author: "Herr Müller-Schmidt",
     title: "Ankündigung für die Klassenarbeit",
     date: new Date("2024-11-21T15:00:00").toLocaleString("de-DE", {
       day: "2-digit",
@@ -151,11 +166,17 @@ export const iServInboxDummyData = [
 ];
 
 const deadlinesDummyData = [
-  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "20.05.24" },
-  { subject: "Sport", task: "5 Runden laufen", dueDate: "03.06.24" },
+  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "16.12.24" },
+  { subject: "Sport", task: "5 Runden laufen", dueDate: "03.06.25" },
 ];
 
 const HomeStack = function ({ navigation }) {
+  const [deadlinesData, setDeadlinesData] = useState(deadlinesDummyData);
+
+  const changeData = (newData) => {
+    setDeadlinesData(newData);
+  };
+
   useEffect(() => {
     const unsubscribe = navigation.addListener("tabPress", (e) => {
       navigation.navigate("HomeScreen");
@@ -165,112 +186,64 @@ const HomeStack = function ({ navigation }) {
   }, []);
 
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HomeScreen"
-        component={HomeScreen}
-        options={{
-          title: "Startseite",
-          headerLargeTitle: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: "#EFEEF6" },
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("SettingsScreen")}
-            >
-              <Icon.Ionicons name="settings" size={31} />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="NewsScreen"
-        component={NewsScreen}
-        options={{
-          title: "Neuigkeiten",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
-        }}
-      />
-      <Stack.Screen
-        name="InboxScreen"
-        component={InboxScreen}
-        options={{
-          title: "Posteingang",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
-        }}
-      />
-      <Stack.Screen
-        name="DeadlineScreen"
-        component={DeadlineScreen}
-        options={{
-          title: "anstehende Fristen",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
-        }}
-      />
-    </Stack.Navigator>
-  );
-};
-
-const DeadlineTemplate = ({ subject, task, date, place }) => {
-  return (
-    <TouchableOpacity
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <View
-        style={{
-          flex: 1,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Text style={{ color: "white", fontSize: 15, fontWeight: "600" }}>
-          {subject}:
-        </Text>
-
-        <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
-          {task}
-        </Text>
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: "500",
-            color: "#363636",
+    <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="HomeScreen"
+          component={HomeScreen}
+          options={{
+            title: "Startseite",
+            headerLargeTitle: true,
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: "#EFEEF6" },
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => navigation.navigate("SettingsScreen")}
+              >
+                <Icon.Ionicons name="settings" size={31} />
+              </TouchableOpacity>
+            ),
           }}
-        >
-          {date}
-        </Text>
-      </View>
-      <Checkbox
-        onConfirm={() => {
-          console.log(deadlinesDummyData);
-          if (deadlines.length > 1) {
-            const updatedDeadlines = deadlines.filter(
-              (_, index) => index !== place
-            );
-            setDeadlines(updatedDeadlines);
-          } else {
-            setDeadlines([]);
-          }
-          console.log(deadlinesDummyData);
-        }}
-      />
-    </TouchableOpacity>
+        />
+        <Stack.Screen
+          name="NewsScreen"
+          component={NewsScreen}
+          options={{
+            title: "Neuigkeiten",
+            headerBackTitle: "Zurück",
+            headerTintColor: "black",
+          }}
+        />
+        <Stack.Screen
+          name="InboxScreen"
+          component={InboxScreen}
+          options={{
+            title: "Posteingang",
+            headerBackTitle: "Zurück",
+            headerTintColor: "black",
+          }}
+        />
+        <Stack.Screen
+          name="DeadlineScreen"
+          component={DeadlineScreen}
+          options={{
+            title: "anstehende Fristen",
+            headerBackTitle: "Zurück",
+            headerTintColor: "black",
+          }}
+        />
+      </Stack.Navigator>
+    </DeadlinesContext.Provider>
   );
 };
+
+export const useDeadlinesData = () => useContext(DeadlinesContext);
 
 export default HomeStack;
 
 const NewsScreen = function ({ navigation }) {
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 85 }}>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 80 }}>
       <NewsDetailedScreen data={newsBoxDummyData} />
     </View>
   );
@@ -282,22 +255,166 @@ const InboxScreen = function ({ navigation }) {
   let index = route.params?.emailId !== null ? route.params?.emailId : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 85 }}>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 80 }}>
       <InboxDetailedScreen data={iServInboxDummyData} index={index} />
     </View>
   );
 };
 
-const DeadlineScreen = function ({ navigation }) {
+const DeadlineInformationModal = ({ visible, task, onClose }) => {
+  const dueDate = task !== null ? task.dueDate : "01.01.2000";
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 79 }}>
-      <DeadlineDetailedScreen data={deadlinesDummyData} />
+    <Modal visible={visible} transparent={true} animationType="fade">
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.modalContent}>
+              <Text>{checkDeadlineRemainingTime(dueDate).time}</Text>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+};
+
+const DeadlineDetailedScreen = function () {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentTask, setCurrentTask] = useState(null);
+  const { deadlinesData, changeData } = useDeadlinesData();
+  const [activeAnimation, setActiveAnimation] = useState(null);
+  const scale = useState(new Animated.Value(1))[0];
+
+  const route = useRoute();
+
+  let index = route.params?.taskId !== null ? route.params?.taskId : null;
+
+  useEffect(() => {
+    if (index !== null && index !== undefined) {
+      const task = deadlinesData[index];
+      setTimeout(() => {
+        setCurrentTask(task);
+        setIsModalVisible(true);
+      }, 300);
+    } else {
+      console.log("Kein Index vorhanden");
+    }
+  }, [index]);
+
+  const renderDeadline = ({ item, index }) => {
+    const handlePressIn = () => {
+      setActiveAnimation(index);
+      Animated.spring(scale, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 10,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 10,
+      }).start(() => {
+        setActiveAnimation(null);
+      });
+    };
+
+    return (
+      <Animated.View
+        style={[
+          styles.deadlineResult,
+          { transform: [{ scale: activeAnimation === index ? scale : 1 }] },
+          {
+            shadowColor:
+              checkDeadlineRemainingTime(deadlinesData[index].dueDate)
+                .isWithinTwoDays === 1
+                ? "#e02225"
+                : "black",
+            shadowOpacity:
+              checkDeadlineRemainingTime(deadlinesData[index].dueDate)
+                .isWithinTwoDays === 1
+                ? 1
+                : 0.3,
+            shadowRadius:
+              checkDeadlineRemainingTime(deadlinesData[index].dueDate)
+                .isWithinTwoDays === 1
+                ? 9
+                : 4,
+          },
+        ]}
+      >
+        <Pressable
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={() => {
+            setCurrentTask(deadlinesData[index]);
+            setIsModalVisible(true);
+          }}
+          style={styles.deadlineTaskBox}
+        >
+          <View style={styles.deadlineDetails}>
+            <Text style={styles.subjectText}>{item.subject}:</Text>
+            <Text style={styles.taskText}>{item.task}</Text>
+            <Text
+              style={[
+                styles.dueDateText,
+                {
+                  color:
+                    checkDeadlineRemainingTime(deadlinesData[index].dueDate)
+                      .isWithinTwoDays === 1
+                      ? "#e02225"
+                      : "grey",
+                },
+              ]}
+            >
+              <Text style={styles.dueDateDescriptionText}>Frist endet am:</Text>{" "}
+              {item.dueDate}
+            </Text>
+          </View>
+          <Checkbox
+            onConfirm={() => {
+              const updatedDeadlines = deadlinesData.filter(
+                (_, objIndex) => objIndex !== index
+              );
+              changeData(updatedDeadlines);
+            }}
+          />
+        </Pressable>
+      </Animated.View>
+    );
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={deadlinesData}
+        renderItem={renderDeadline}
+        keyExtractor={(item, index) => index.toString()}
+        style={{ padding: 8 }}
+      />
+      <DeadlineInformationModal
+        visible={isModalVisible}
+        task={currentTask}
+        onClose={() => setIsModalVisible(false)}
+      />
     </View>
   );
 };
 
-const HomeScreen = function ({ navigation }) {
-  const [deadlines, setDeadlines] = React.useState(deadlinesDummyData);
+export const DeadlineScreen = function ({ navigation }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 79 }}>
+      <DeadlineDetailedScreen />
+    </View>
+  );
+};
+
+export const HomeScreen = function ({ navigation }) {
+  const { deadlinesData, changeData } = useContext(DeadlinesContext);
 
   const truncateText = (text, maxLength) => {
     if (text.length > maxLength) {
@@ -358,6 +475,7 @@ const HomeScreen = function ({ navigation }) {
         justifyContent: "space-between",
         alignItems: "center",
       }}
+      onPress={() => navigation.navigate("DeadlineScreen", { taskId: place })}
     >
       <View
         style={{
@@ -377,7 +495,7 @@ const HomeScreen = function ({ navigation }) {
         <Text
           style={{
             fontSize: 12,
-            fontWeight: "500",
+            fontWeight: "700",
             color: "#363636",
           }}
         >
@@ -386,16 +504,14 @@ const HomeScreen = function ({ navigation }) {
       </View>
       <Checkbox
         onConfirm={() => {
-          console.log(deadlinesDummyData);
-          if (deadlines.length > 1) {
-            const updatedDeadlines = deadlines.filter(
+          if (deadlinesData.length > 1) {
+            const updatedDeadlines = deadlinesData.filter(
               (_, index) => index !== place
             );
-            setDeadlines(updatedDeadlines);
+            changeData(updatedDeadlines);
           } else {
-            setDeadlines([]);
+            changeData([]);
           }
-          console.log(deadlinesDummyData);
         }}
       />
     </TouchableOpacity>
@@ -424,7 +540,7 @@ const HomeScreen = function ({ navigation }) {
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
                       <Text style={{ color: "white", fontSize: 15 }}>
-                        {newsBoxDummyData[0].news}
+                        {truncateText(newsBoxDummyData[0].news, 21)}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -442,7 +558,7 @@ const HomeScreen = function ({ navigation }) {
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
                       <Text style={{ color: "white", fontSize: 15 }}>
-                        {newsBoxDummyData[1].news}
+                        {truncateText(newsBoxDummyData[1].news, 21)}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -460,7 +576,7 @@ const HomeScreen = function ({ navigation }) {
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
                       <Text style={{ color: "white", fontSize: 15 }}>
-                        {newsBoxDummyData[2].news}
+                        {truncateText(newsBoxDummyData[2].news, 21)}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -490,8 +606,8 @@ const HomeScreen = function ({ navigation }) {
                 content:
                   iServInboxDummyData.length > 0
                     ? inboxTemplate(
-                        iServInboxDummyData[0].author,
-                        iServInboxDummyData[0].title,
+                        truncateText(iServInboxDummyData[0].author, 16),
+                        truncateText(iServInboxDummyData[0].title, 24),
                         iServInboxDummyData[0].date,
                         iServInboxDummyData[0].read,
                         0
@@ -506,8 +622,8 @@ const HomeScreen = function ({ navigation }) {
                 content:
                   iServInboxDummyData.length > 1
                     ? inboxTemplate(
-                        iServInboxDummyData[1].author,
-                        iServInboxDummyData[1].title,
+                        truncateText(iServInboxDummyData[1].author, 16),
+                        truncateText(iServInboxDummyData[1].title, 24),
                         iServInboxDummyData[1].date,
                         iServInboxDummyData[1].read,
                         1
@@ -525,8 +641,8 @@ const HomeScreen = function ({ navigation }) {
                 content:
                   iServInboxDummyData.length > 2
                     ? inboxTemplate(
-                        iServInboxDummyData[2].author,
-                        iServInboxDummyData[2].title,
+                        truncateText(iServInboxDummyData[2].author, 16),
+                        truncateText(iServInboxDummyData[2].title, 24),
                         iServInboxDummyData[2].date,
                         iServInboxDummyData[2].read,
                         2
@@ -550,57 +666,102 @@ const HomeScreen = function ({ navigation }) {
             }}
             icon="hourglass-1"
             titleStyle={{
-              borderBottomWidth: deadlines.length > 0 ? 0 : 1,
+              borderBottomWidth: deadlinesData.length > 0 ? 0 : 1,
               borderBottomColor: "#b3b3ba",
             }}
             content={[
               {
                 content:
-                  deadlines.length > 0
+                  deadlinesData.length > 0
                     ? deadlineTemplate(
-                        truncateText(deadlines[0].subject, 6),
-                        truncateText(deadlines[0].task, 10),
-                        deadlines[0].dueDate,
+                        truncateText(deadlinesData[0].subject, 6),
+                        truncateText(deadlinesData[0].task, 10),
+                        deadlinesData[0].dueDate,
                         0
                       )
                     : noEntryTemplate("alle Aufgaben erledigt"),
                 style: [
                   styles.iservContent,
-                  { borderWidth: deadlines.length > 0 ? 0.5 : 0 },
+                  {
+                    borderWidth:
+                      deadlinesData.length > 0
+                        ? checkDeadlineRemainingTime(deadlinesData[0].dueDate)
+                            .isWithinTwoDays === 1
+                          ? 2.5
+                          : 0.5
+                        : 0,
+                    borderColor:
+                      deadlinesData.length > 0
+                        ? checkDeadlineRemainingTime(deadlinesData[0].dueDate)
+                            .isWithinTwoDays === 1
+                          ? "#750101"
+                          : "#b3b3ba"
+                        : "#b3b3ba",
+                  },
                 ],
               },
               {
                 content:
-                  deadlines.length > 1
+                  deadlinesData.length > 1
                     ? deadlineTemplate(
-                        truncateText(deadlines[1].subject, 6),
-                        truncateText(deadlines[1].task, 10),
-                        deadlines[1].dueDate,
+                        truncateText(deadlinesData[1].subject, 6),
+                        truncateText(deadlinesData[1].task, 10),
+                        deadlinesData[1].dueDate,
                         1
                       )
-                    : deadlines.length > 0
+                    : deadlinesData.length > 0
                     ? noEntryTemplate("alle restlichen Aufgaben erledigt")
                     : null,
                 style: [
                   styles.iservContent,
-                  { borderWidth: deadlines.length > 1 ? 0.5 : 0 },
+                  {
+                    borderWidth:
+                      deadlinesData.length > 1
+                        ? checkDeadlineRemainingTime(deadlinesData[1].dueDate)
+                            .isWithinTwoDays === 1
+                          ? 2.5
+                          : 0.5
+                        : 0,
+                    borderColor:
+                      deadlinesData.length > 1
+                        ? checkDeadlineRemainingTime(deadlinesData[1].dueDate)
+                            .isWithinTwoDays === 1
+                          ? "#750101"
+                          : "#b3b3ba"
+                        : "#b3b3ba",
+                  },
                 ],
               },
               {
                 content:
-                  deadlines.length > 2
+                  deadlinesData.length > 2
                     ? deadlineTemplate(
-                        truncateText(deadlines[2].subject, 6),
-                        truncateText(deadlines[2].task, 10),
-                        deadlines[2].dueDate,
+                        truncateText(deadlinesData[2].subject, 6),
+                        truncateText(deadlinesData[2].task, 10),
+                        deadlinesData[2].dueDate,
                         2
                       )
-                    : deadlines.length > 1
+                    : deadlinesData.length > 1
                     ? noEntryTemplate("alle restlichen Aufgaben erledigt")
                     : null,
                 style: [
                   styles.iservContent,
-                  { borderWidth: deadlines.length > 2 ? 0.5 : 0 },
+                  {
+                    borderWidth:
+                      deadlinesData.length > 2
+                        ? checkDeadlineRemainingTime(deadlinesData[2].dueDate)
+                            .isWithinTwoDays === 1
+                          ? 2.5
+                          : 0.5
+                        : 0,
+                    borderColor:
+                      deadlinesData.length > 2
+                        ? checkDeadlineRemainingTime(deadlinesData[2].dueDate)
+                            .isWithinTwoDays === 1
+                          ? "#750101"
+                          : "#b3b3ba"
+                        : "#b3b3ba",
+                  },
                 ],
               },
             ]}
@@ -633,8 +794,61 @@ const styles = StyleSheet.create({
   },
   deadlineResult: {
     width: "100%",
-    height: 100,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
+    marginVertical: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  deadlineTaskBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    padding: 10,
+    borderRadius: 14,
+    borderLeftWidth: 5,
+    borderLeftColor: "#e02225",
+  },
+  deadlineDetails: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  subjectText: {
+    color: "#333",
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  taskText: {
+    color: "#333",
+    fontSize: 15,
+    fontWeight: "500",
+    marginBottom: 16,
+  },
+  dueDateText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "grey",
+  },
+  dueDateDescriptionText: {
+    color: "#333",
+    fontSize: 14,
+    fontWeight: "600",
+    marginRight: 10,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5,
   },
 });

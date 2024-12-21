@@ -9,19 +9,24 @@ const Checkbox = function ({ onConfirm, style }) {
     <TouchableOpacity
       style={[styles.checkBox, style]}
       onPress={() => {
-        Alert.alert("Aufgabe erledigt ?", "test", [
-          {
-            text: "Abbrechen",
-            onPress: () => setIsActivated(false),
-          },
-          {
-            text: "Bestätigen",
-            onPress: () => {
-              onConfirm();
-              setIsActivated(false);
+        Alert.alert(
+          "Frist abschließen?",
+          "Möchten Sie die Frist wirklich abschließen?",
+          [
+            {
+              text: "Abbrechen",
+              onPress: () => setIsActivated(false),
             },
-          },
-        ]);
+            {
+              text: "Bestätigen",
+              onPress: () => {
+                onConfirm();
+                setIsActivated(false);
+              },
+              style: "destructive",
+            },
+          ]
+        );
         setIsActivated(!isActivated);
       }}
     >
