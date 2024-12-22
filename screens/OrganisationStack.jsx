@@ -52,7 +52,7 @@ const OrganisationStack = function ({ navigation }) {
         name="TimeTableScreen"
         component={TimeTableScreen}
         options={{
-          tabBarLabel: "Stundenplan",
+          tabBarLatitlbel: "Stundenplan",
         }}
       />
       <Tab.Screen
@@ -121,17 +121,6 @@ const TimeTableScreen = function ({ navigation }) {
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <SafeAreaView style={styles.screen}>
         <View style={styles.containerTimeTable}>
-          <View style={styles.customTabBar}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("YearTimeTableScreen")}
-            >
-              <Icon.MaterialCommunityIcons
-                name="timetable"
-                size={30}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
           <View style={styles.timetableBox}>
             <FlatList
               ref={flatListRef}
@@ -158,16 +147,52 @@ const TimeTableScreen = function ({ navigation }) {
 
 const YearTimeTableScreen = function ({ navigation }) {
   return (
-    <View>
-      <Text>Jahreskalendar</Text>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.containerTimeTable}>
+          <View style={styles.timetableBox}></View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 };
 
 const HomeworkScreen = function ({ navigation }) {
+  const resultBox = ({ item }) => (
+    <View
+      style={{
+        width: "100%",
+        height: 100,
+        marginVertical: 2,
+        backgroundColor: "#c2c2c2",
+        borderRadius: 15,
+        padding: 10,
+      }}
+    >
+      <View style={{ flexDirection: "row", marginBottom: 8 }}>
+        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
+          test
+        </Text>
+        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
+          test
+        </Text>
+      </View>
+      <Text style={{ marginLeft: 10, fontSize: 15, fontWeight: "500" }}>
+        Test
+      </Text>
+    </View>
+  );
+
   return (
-    <View>
-      <Text>TEST</Text>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+      <View style={[styles.screen, { marginBottom: 79, marginTop: 0 }]}>
+        <FlatList
+          data={["Schule", "Informatik", "Mathe"]}
+          renderItem={resultBox}
+          keyExtractor={(id) => id.toString()}
+          style={{ paddingVertical: 5 }}
+        />
+      </View>
     </View>
   );
 };
@@ -202,15 +227,5 @@ const styles = StyleSheet.create({
     marginTop: 62,
     backgroundColor: "#a1a1a1",
     borderRadius: 20,
-  },
-  customTabBar: {
-    position: "absolute",
-    right: 6,
-    top: 6,
-    width: 150,
-    height: 50,
-    backgroundColor: "black",
-    borderRadius: 15,
-    zIndex: 1,
   },
 });
