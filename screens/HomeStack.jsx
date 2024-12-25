@@ -166,7 +166,7 @@ export const iServInboxDummyData = [
 ];
 
 const deadlinesDummyData = [
-  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "16.12.24" },
+  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "25.12.24" },
   { subject: "Sport", task: "5 Runden laufen", dueDate: "03.06.25" },
 ];
 

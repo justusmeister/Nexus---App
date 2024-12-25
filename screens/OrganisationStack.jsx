@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -7,15 +7,19 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
+  InteractionManager,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
+import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
+
+let hwGenericScreenTitle = "Mathe";
 
 const OrganisationStack = function ({ navigation }) {
   useEffect(() => {
@@ -29,22 +33,45 @@ const OrganisationStack = function ({ navigation }) {
   insets = useSafeAreaInsets();
 
   return (
+    <Stack.Navigator initialRouteName="MaterialTopTabs">
+      <Stack.Screen
+        name="MaterialTopTabs"
+        component={MaterialTopTabs}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GenericScreen"
+        component={GenericScreen}
+        options={{
+          title: hwGenericScreenTitle,
+          headerBackTitle: "Zurück",
+          headerTintColor: "black",
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+export default OrganisationStack;
+
+const MaterialTopTabs = function () {
+  return (
     <Tab.Navigator
       initialRouteName="TimeTableScreen"
       screenOptions={{
-        tabBarActiveTintColor: "#333", // Textfarbe für aktive Tabs
-        tabBarInactiveTintColor: "#888", // Textfarbe für inaktive Tabs
+        tabBarActiveTintColor: "#333",
+        tabBarInactiveTintColor: "#888",
         tabBarLabelStyle: {
-          fontSize: 9, // Schriftgröße
-          fontWeight: "600", // Fetter Text für Lesbarkeit
+          fontSize: 9,
+          fontWeight: "600",
         },
         tabBarStyle: {
-          backgroundColor: "#EFEEF6", // Hintergrundfarbe der Leiste
+          backgroundColor: "#EFEEF6",
           marginTop: insets.top,
         },
         tabBarIndicatorStyle: {
-          backgroundColor: "#333", // Indikator (die untere Linie) wird sichtbar
-          height: 3, // Dicke der Indikator-Linie
+          backgroundColor: "#333",
+          height: 3,
         },
       }}
     >
@@ -73,8 +100,6 @@ const OrganisationStack = function ({ navigation }) {
   );
 };
 
-export default OrganisationStack;
-
 const screenWidth = Dimensions.get("window").width - 44;
 
 const generateWeeks = (startWeek, count) =>
@@ -87,6 +112,33 @@ const generateWeeks = (startWeek, count) =>
   });
 
 const TimeTableScreen = function ({ navigation }) {
+  const [currentDate, setCurrentDate] = useState(
+    new Date().toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  );
+  useEffect(() => {
+    const updateCurrentTime = () => {
+      InteractionManager.runAfterInteractions(() => {
+        setCurrentDate(
+          new Date().toLocaleString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        );
+      });
+    };
+    const timer = setInterval(updateCurrentTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const flatListRef = useRef();
 
   const [weeks, setWeeks] = useState(generateWeeks(-10, 21));
@@ -114,13 +166,52 @@ const TimeTableScreen = function ({ navigation }) {
   };
 
   const renderItem = ({ item }) => {
-    return <TimeTable currentWeek={item.index} />;
+    const timeTableWeekIndex = item.index;
+    return <TimeTable currentWeek={timeTableWeekIndex} />;
   };
-
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <SafeAreaView style={styles.screen}>
         <View style={styles.containerTimeTable}>
+          <View
+            style={{
+              paddingRight: 10,
+              height: 43,
+              marginVertical: 10,
+              marginLeft: 8,
+              alignSelf: "flex-start",
+              justifyContent: "center",
+              backgroundColor: "#7d7d7d",
+              borderRadius: 18,
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.3,
+              shadowRadius: 4.65,
+              elevation: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "lightgrey",
+            }}
+          >
+            <Icon.FontAwesome
+              name="bookmark"
+              size={25}
+              color="#e37a02"
+              style={{ marginHorizontal: 12 }}
+            />
+
+            <View>
+              <Text style={{ fontWeight: "500", fontSize: 14, color: "#333" }}>
+                Aktuelles Datum:
+              </Text>
+              <Text style={{ fontWeight: "700", fontSize: 15, color: "#333" }}>
+                {currentDate}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.timetableBox}>
             <FlatList
               ref={flatListRef}
@@ -157,44 +248,17 @@ const YearTimeTableScreen = function ({ navigation }) {
   );
 };
 
-const HomeworkScreen = function ({ navigation }) {
-  const resultBox = ({ item }) => (
-    <View
-      style={{
-        width: "100%",
-        height: 100,
-        marginVertical: 2,
-        backgroundColor: "#c2c2c2",
-        borderRadius: 15,
-        padding: 10,
-      }}
-    >
-      <View style={{ flexDirection: "row", marginBottom: 8 }}>
-        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
-          test
-        </Text>
-        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
-          test
-        </Text>
-      </View>
-      <Text style={{ marginLeft: 10, fontSize: 15, fontWeight: "500" }}>
-        Test
-      </Text>
-    </View>
-  );
-
-  return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <View style={[styles.screen, { marginBottom: 79, marginTop: 0 }]}>
-        <FlatList
-          data={["Schule", "Informatik", "Mathe"]}
-          renderItem={resultBox}
-          keyExtractor={(id) => id.toString()}
-          style={{ paddingVertical: 5 }}
-        />
-      </View>
-    </View>
-  );
+const GenericScreen = function ({ navigation }) {
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={({}) => navigation.goBack()}>
+          <Icon.AntDesign name="pluscircle" size={33} color="lightblue" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+  return <Text>teacherSearchInput</Text>;
 };
 
 const styles = StyleSheet.create({
@@ -224,7 +288,6 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 8,
     paddingTop: 0,
-    marginTop: 62,
     backgroundColor: "#a1a1a1",
     borderRadius: 20,
   },
