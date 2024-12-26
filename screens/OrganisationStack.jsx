@@ -15,20 +15,51 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
 import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
+import { calculateHolidayAPIDates } from "../externMethods/calculateHolidayAPIDates";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
+const { startDate, targetDate } = calculateHolidayAPIDates();
+let holidayData;
+
 let hwGenericScreenTitle = "Mathe";
 
 const OrganisationStack = function ({ navigation }) {
+  const [publicHolidays, setHolidayDays] = useState(null);
+  const [schoolHolidays, setHolidayPeriods] = useState(null);
+
   useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const schoolHolidaysResponse = await fetch(
+          `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
+        );
+        const schoolHolidaysData = await schoolHolidaysResponse.json();
+        setHolidayPeriods(schoolHolidaysData);
+        const publicHolidaysResponse = await fetch(
+          `https://openholidaysapi.org/PublicHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
+        );
+        const publicHolidaysData = await publicHolidaysResponse.json();
+        setHolidayDays(publicHolidaysData);
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Daten:", error);
+      }
+    };
     const unsubscribe = navigation.addListener("tabPress", (e) => {
       navigation.navigate("TimeTableScreen");
     });
-
+    fetchHolidays();
     return unsubscribe;
   }, []);
+  useEffect(() => {
+    if (publicHolidays && schoolHolidays) {
+      holidayData = [
+        { name: "Feiertage", data: publicHolidays },
+        { name: "Ferien", data: schoolHolidays },
+      ];
+    }
+  }, [publicHolidays, schoolHolidays]);
 
   insets = useSafeAreaInsets();
 

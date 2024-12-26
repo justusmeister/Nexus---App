@@ -386,7 +386,7 @@ const createWeekDate = (currentWeek) => {
   return new Date(new Date().setDate(new Date().getDate() + 7 * currentWeek));
 };
 
-const TimeTable = ({ currentWeek }) => {
+const TimeTable = ({ currentWeek, holidayData }) => {
   const [currentDate, setCurrentDate] = useState(createWeekDate(currentWeek));
   useEffect(() => {
     const updateCurrentTime = () => {
