@@ -319,6 +319,11 @@ const { height: screenHeight } = Dimensions.get("window");
 const cellHeight = screenHeight * 0.0635;
 
 const Column = ({ data, indexColumn }) => {
+  const emptyCells = Array.from(
+    { length: 10 - data.length },
+    (_, index) => index
+  );
+
   return (
     <View
       style={[styles.column, { borderRightWidth: indexColumn !== 4 ? 1 : 0 }]}
@@ -329,14 +334,18 @@ const Column = ({ data, indexColumn }) => {
         </View>
       ))}
       {data.length < 10
-        ? Array.from({ length: 10 - data.length }, (_, index) => index).map(
-            (item, index) => (
-              <View
-                key={index}
-                style={[styles.cell, { height: cellHeight }]}
-              ></View>
-            )
-          )
+        ? emptyCells.map((item, index) => (
+            <View
+              key={index}
+              style={[
+                styles.cell,
+                {
+                  height: cellHeight,
+                  borderBottomWidth: index === emptyCells.length - 1 ? 0 : 1,
+                },
+              ]}
+            ></View>
+          ))
         : null}
     </View>
   );
@@ -346,7 +355,16 @@ const TimeColumn = ({ content }) => {
   return (
     <View style={styles.timeColumn}>
       {content.map((item, index) => (
-        <View key={index} style={[styles.cell, { height: cellHeight }]}>
+        <View
+          key={index}
+          style={[
+            styles.cell,
+            {
+              height: cellHeight,
+              borderBottomWidth: index === content.length - 1 ? 0 : 1,
+            },
+          ]}
+        >
           <Text style={styles.timeText}>{lessonStartTime[index]}</Text>
           <Text style={styles.lessonNumber}>{index + 1}</Text>
           <Text style={styles.timeText}>
