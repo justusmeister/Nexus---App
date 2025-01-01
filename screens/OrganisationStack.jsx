@@ -49,6 +49,15 @@ const OrganisationStack = function ({ navigation }) {
           headerTintColor: "black",
         }}
       />
+      <Stack.Screen
+        name="YearDetailedScreen"
+        component={YearDetailedScreen}
+        options={{
+          title: "Monatsdetaillansicht",
+          headerBackTitle: "Zurück",
+          headerTintColor: "black",
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -237,13 +246,25 @@ const TimeTableScreen = function ({ navigation }) {
   );
 };
 
-
 const GenericScreen = function ({ navigation }) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={({}) => navigation.goBack()}>
-          <Icon.AntDesign name="pluscircle" size={33} color="lightblue" />
+        <TouchableOpacity style={styles.addButton}>
+          <Icon.AntDesign name="pluscircle" size={35} color="#3a5f8a" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+  return <Text>teacherSearchInput</Text>;
+};
+
+const YearDetailedScreen = function ({ navigation }) {
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.addButton}>
+          <Icon.AntDesign name="pluscircle" size={35} color="#3a5f8a" />
         </TouchableOpacity>
       ),
     });
@@ -280,5 +301,11 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     backgroundColor: "#a1a1a1",
     borderRadius: 20,
+  },
+  addButton: {
+    height: 35,
+    width: 35,
+    borderRadius: 50,
+    backgroundColor: "white",
   },
 });

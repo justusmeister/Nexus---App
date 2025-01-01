@@ -25,8 +25,6 @@ const InboxDetailedScreen = ({ data, index }) => {
         const email = data[index];
         setCurrentEmail(email);
         setIsModalVisible(true);
-      } else {
-        console.log("Kein Index vorhanden");
       }
     }, 300);
   }, [index]);

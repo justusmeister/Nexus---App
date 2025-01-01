@@ -128,7 +128,7 @@ const SearchScreen = function ({ navigation }) {
           </Pressable>
 
           <View style={styles.buttonsBox}>
-            <Pressable
+            <TouchableOpacity
               style={[
                 styles.pressable,
                 {
@@ -139,6 +139,7 @@ const SearchScreen = function ({ navigation }) {
                   borderTopRightRadius: 15,
                 },
               ]}
+              activeOpacity={0.4}
               onPress={() => navigation.navigate("PointsScreen")}
             >
               <Icon.SimpleLineIcons
@@ -148,13 +149,20 @@ const SearchScreen = function ({ navigation }) {
                 style={styles.calculatorIcon}
               />
               <Text style={styles.buttonText}>Schnittrechner Punktesystem</Text>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
-              style={styles.pressable}
+            <TouchableOpacity
+              style={[
+                styles.pressable,
+                {
+                  backgroundColor: "#f5a002",
+                  borderBottomLeftRadius: 15,
+                  borderBottomRightRadius: 15,
+                },
+              ]}
+              activeOpacity={0.4}
               onPress={() => {
                 navigation.navigate("GradesScreen");
-                console.log("test");
               }}
             >
               <Icon.SimpleLineIcons
@@ -164,7 +172,7 @@ const SearchScreen = function ({ navigation }) {
                 style={styles.calculatorIcon}
               />
               <Text style={styles.buttonText}>Schnittrechner Notensystem</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -174,13 +182,6 @@ const SearchScreen = function ({ navigation }) {
 
 const ResultList = function ({ data, alreadySearched }) {
   const db = SQLite.useSQLiteContext();
-
-  useEffect(() => {
-    db.withTransactionAsync(async () => {
-      const result = await db.getAllAsync("SELECT * FROM teacherList");
-      console.log(result);
-    });
-  }, [db]);
 
   if (!data || (data.length === 0 && alreadySearched)) {
     return (
@@ -387,10 +388,8 @@ const styles = StyleSheet.create({
   },
   buttonsBox: {
     justifyContent: "center",
-    borderRadius: 20,
     marginTop: 20,
     marginHorizontal: 14,
-    backgroundColor: "#f5a002",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

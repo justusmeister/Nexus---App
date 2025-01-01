@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   subject: {
-    fontWeight: "bold",
+    fontWeight: "600",
     fontSize: 16,
     color: "#4A90E2",
   },

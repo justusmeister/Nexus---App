@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  createContext,
-  useContext,
-} from "react";
+import React, { useEffect, useState, createContext, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -16,6 +10,8 @@ import {
   Pressable,
   TouchableWithoutFeedback,
   Modal,
+  ScrollView,
+  Alert,
 } from "react-native";
 import MessageBox from "../components/MessageBox";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -166,7 +162,7 @@ export const iServInboxDummyData = [
 ];
 
 const deadlinesDummyData = [
-  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "25.12.24" },
+  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "03.01.25" },
   { subject: "Sport", task: "5 Runden laufen", dueDate: "03.06.25" },
 ];
 
@@ -261,8 +257,10 @@ const InboxScreen = function ({ navigation }) {
   );
 };
 
-const DeadlineInformationModal = ({ visible, task, onClose }) => {
+const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
   const dueDate = task !== null ? task.dueDate : "01.01.2000";
+  const taskText =
+    task !== null ? task.task : "Aufgabe konnte nicht geladen werden";
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
@@ -270,7 +268,59 @@ const DeadlineInformationModal = ({ visible, task, onClose }) => {
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
-              <Text>{checkDeadlineRemainingTime(dueDate).time}</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Icon.Ionicons
+                  name="close-circle-sharp"
+                  size={32}
+                  color="#333"
+                />
+              </TouchableOpacity>
+              <View style={styles.modalHeader}>
+                <Text style={styles.deadlineModalTitle}>
+                  Verbleibende Zeit:
+                </Text>
+                <Text style={styles.remainingTimeText}>
+                  {checkDeadlineRemainingTime(dueDate).time}
+                </Text>
+                <Text style={styles.motivationText}>
+                  {checkDeadlineRemainingTime(dueDate).isWithinTwoDays === 1
+                    ? "Du hast nicht mehr viel Zeit, bleib am Ball!"
+                    : checkDeadlineRemainingTime(dueDate).isWithinTwoDays === 2
+                    ? "Du schaffst das!"
+                    : "Nächstes mal schaffst du es bestimmt!"}
+                </Text>
+              </View>
+              <View style={styles.divider} />
+              <ScrollView>
+                <Text style={styles.taskTextHeader}>Aufgabe:</Text>
+                <Text style={styles.taskText}>{taskText}</Text>
+              </ScrollView>
+              <View style={styles.finishButtonView}>
+                <Pressable
+                  style={styles.finishButton}
+                  onPress={() => {
+                    onClose();
+                    Alert.alert(
+                      "Frist abschließen?",
+                      "Möchten Sie die Frist wirklich abschließen?",
+                      [
+                        {
+                          text: "Abbrechen",
+                        },
+                        {
+                          text: "Bestätigen",
+                          onPress: () => {
+                            onConfirm();
+                          },
+                          style: "destructive",
+                        },
+                      ]
+                    );
+                  }}
+                >
+                  <Text style={styles.finishButtonText}>Abschließen</Text>
+                </Pressable>
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -297,10 +347,24 @@ const DeadlineDetailedScreen = function () {
         setCurrentTask(task);
         setIsModalVisible(true);
       }, 300);
-    } else {
-      console.log("Kein Index vorhanden");
     }
   }, [index]);
+
+  if (!deadlinesData || deadlinesData.length === 0) {
+    return (
+      <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "500",
+            color: "#8E8E93",
+          }}
+        >
+          Alle Fristen abgeschlossen! 💪
+        </Text>
+      </ScrollView>
+    );
+  }
 
   const renderDeadline = ({ item, index }) => {
     const handlePressIn = () => {
@@ -400,6 +464,12 @@ const DeadlineDetailedScreen = function () {
         visible={isModalVisible}
         task={currentTask}
         onClose={() => setIsModalVisible(false)}
+        onConfirm={() => {
+          const updatedDeadlines = deadlinesData.filter(
+            (_, objIndex) => objIndex !== index
+          );
+          changeData(updatedDeadlines);
+        }}
       />
     </View>
   );
@@ -679,7 +749,7 @@ export const HomeScreen = function ({ navigation }) {
                         deadlinesData[0].dueDate,
                         0
                       )
-                    : noEntryTemplate("alle Aufgaben erledigt"),
+                    : noEntryTemplate("Alle Aufgaben erledigt! 💪"),
                 style: [
                   styles.iservContent,
                   {
@@ -710,7 +780,7 @@ export const HomeScreen = function ({ navigation }) {
                         1
                       )
                     : deadlinesData.length > 0
-                    ? noEntryTemplate("alle restlichen Aufgaben erledigt")
+                    ? noEntryTemplate("Alle restlichen Aufgaben erledigt! 💪")
                     : null,
                 style: [
                   styles.iservContent,
@@ -742,7 +812,7 @@ export const HomeScreen = function ({ navigation }) {
                         2
                       )
                     : deadlinesData.length > 1
-                    ? noEntryTemplate("alle restlichen Aufgaben erledigt")
+                    ? noEntryTemplate("Alle restlichen Aufgaben erledigt! 💪")
                     : null,
                 style: [
                   styles.iservContent,
@@ -846,9 +916,79 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
+    width: "85%",
+    height: "40%",
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 15,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
     elevation: 5,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 7,
+    right: 7,
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: "#4A90E2",
+  },
+  modalHeader: {
+    marginBottom: 10,
+    backgroundColor: "#fceded",
+    padding: 10,
+    borderRadius: 8,
+  },
+  deadlineModalTitle: {
+    fontWeight: "700",
+    fontSize: 16,
+    color: "#333",
+  },
+  remainingTimeText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#d13030",
+  },
+  motivationText: {
+    fontSize: 12,
+    color: "#666",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginVertical: 10,
+  },
+  bodyContainer: {
+    flex: 1,
+  },
+  finishButtonView: {
+    justifyContent: "center",
+    alignItems: "flex-end",
+  },
+  finishButton: {
+    width: 120,
+    height: 40,
+    backgroundColor: "#429e1b",
+    borderRadius: 15,
+    marginBottom: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 3,
+  },
+  finishButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  taskTextHeader: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 10,
   },
 });

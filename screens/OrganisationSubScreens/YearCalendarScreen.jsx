@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   SafeAreaView,
   StyleSheet,
   Text,
-  Pressable,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 import { useHolidayData } from "../../contexts/HolidayDataContext";
+import * as Icon from "@expo/vector-icons";
 
 const months = [
   "Januar",
@@ -66,26 +67,94 @@ const dummyEvents = {
   ],
 };
 
-const YearCalendarScreen = function () {
+const YearCalendarScreen = function ({ navigation }) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const flatListRef = useRef(null);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const containerRef = useRef(null);
+
+  const years = [
+    new Date().getMonth() < 4 ? currentYear - 1 : currentYear,
+    new Date().getMonth() < 4 ? currentYear : currentYear + 1,
+    new Date().getMonth() < 4 ? currentYear + 1 : currentYear + 2,
+  ];
+
+  useEffect(() => {
+    containerRef.current?.measure((_, __, ___, height) =>
+      setContainerHeight(height)
+    );
+  }, []);
+
+  useEffect(() => {
+    if (containerHeight > 0) {
+      const currentIndex = new Date().getMonth() < 4 ? 1 : 0;
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex,
+        animated: true,
+      });
+    }
+  }, [containerHeight]);
+
+  const getItemLayout = (data, index) => ({
+    length: containerHeight,
+    offset: containerHeight * index,
+    index,
+  });
+
+  const renderItem = ({ item }) => (
+    <View style={[styles.yearCalendarBox, { height: containerHeight }]}>
+      <View style={styles.contentContainer}>
+        <View style={styles.headerBox}>
+          <Text
+            style={[
+              styles.headerTitleText,
+              { color: item === currentYear ? "red" : "white" },
+            ]}
+          >
+            {item}
+          </Text>
+        </View>
+        <View style={styles.yearBox}>
+          <MonthRow
+            rowIndex={0}
+            year={item}
+            onPress={() => navigation.navigate("YearDetailedScreen")}
+          />
+          <MonthRow
+            rowIndex={1}
+            year={item}
+            onPress={() => navigation.navigate("YearDetailedScreen")}
+          />
+          <MonthRow
+            rowIndex={2}
+            year={item}
+            onPress={() => navigation.navigate("YearDetailedScreen")}
+          />
+          <MonthRow
+            rowIndex={3}
+            year={item}
+            onPress={() => navigation.navigate("YearDetailedScreen")}
+          />
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <SafeAreaView style={styles.screen}>
-        <View style={styles.containerYearCalendar}>
-          <View style={styles.yearCalendarBox}>
-            <View style={styles.contentContainer}>
-              <View style={styles.headerBox}>
-                <Text style={styles.headerTitleText}>{currentYear}</Text>
-              </View>
-              <View style={styles.yearBox}>
-                <MonthRow rowIndex={0} year={currentYear} />
-                <MonthRow rowIndex={1} year={currentYear} />
-                <MonthRow rowIndex={2} year={currentYear} />
-                <MonthRow rowIndex={3} year={currentYear} />
-              </View>
-            </View>
-          </View>
+        <View ref={containerRef} style={styles.containerYearCalendar}>
+          <FlatList
+            ref={flatListRef}
+            data={years}
+            keyExtractor={(item) => item.toString()}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            getItemLayout={getItemLayout}
+          />
+          <TouchableOpacity style={styles.addButton}>
+            <Icon.AntDesign name="pluscircle" size={40} color="#3a5f8a" />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
@@ -94,7 +163,7 @@ const YearCalendarScreen = function () {
 
 export default YearCalendarScreen;
 
-const MonthRow = ({ rowIndex, year }) => {
+const MonthRow = ({ rowIndex, year, onPress }) => {
   const firstMonthIndex = rowIndex * 3;
   const calcFirstDayDate = (monthIndex) => {
     const adjustedYear = monthIndex < 2 ? year - 1 : year;
@@ -121,22 +190,25 @@ const MonthRow = ({ rowIndex, year }) => {
         firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex)}
         month={firstMonthIndex}
         year={year}
+        onPress={onPress}
       />
       <MonthBox
         firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex + 1)}
         month={firstMonthIndex + 1}
         year={year}
+        onPress={onPress}
       />
       <MonthBox
         firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex + 2)}
         month={firstMonthIndex + 2}
         year={year}
+        onPress={onPress}
       />
     </View>
   );
 };
 
-const MonthBox = ({ firstMonthDayWeekDay, month, year }) => {
+const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
   const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   const monthLength = () => {
     if (month === 1) return isLeapYear ? 29 : 28;
@@ -159,7 +231,7 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year }) => {
   const lastDayOfMonth = monthLength();
 
   return (
-    <TouchableOpacity style={styles.monthBox}>
+    <TouchableOpacity style={styles.monthBox} onPress={onPress}>
       <Text style={styles.monthTitle}>{months[month]}</Text>
       <View style={{ flex: 1 }}>
         <DayRow
@@ -329,10 +401,8 @@ const styles = StyleSheet.create({
   },
   yearCalendarBox: {
     flex: 1,
-    width: "100%",
     padding: 8,
     paddingTop: 0,
-    backgroundColor: "#a1a1a1",
     borderRadius: 20,
   },
   contentContainer: {
@@ -393,5 +463,15 @@ const styles = StyleSheet.create({
   },
   dayText: {
     textAlign: "center",
+  },
+  addButton: {
+    position: "absolute",
+    right: -5,
+    bottom: -5,
+    zIndex: 1,
+    height: 40,
+    width: 40,
+    borderRadius: 50,
+    backgroundColor: "white",
   },
 });
