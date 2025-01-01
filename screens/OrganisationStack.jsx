@@ -15,51 +15,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
 import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
-import { calculateHolidayAPIDates } from "../externMethods/calculateHolidayAPIDates";
+import YearCalendarScreen from "./OrganisationSubScreens/YearCalendarScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
-const { startDate, targetDate } = calculateHolidayAPIDates();
-let holidayData;
-
 let hwGenericScreenTitle = "Mathe";
 
 const OrganisationStack = function ({ navigation }) {
-  const [publicHolidays, setHolidayDays] = useState(null);
-  const [schoolHolidays, setHolidayPeriods] = useState(null);
-
   useEffect(() => {
-    const fetchHolidays = async () => {
-      try {
-        const schoolHolidaysResponse = await fetch(
-          `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
-        );
-        const schoolHolidaysData = await schoolHolidaysResponse.json();
-        setHolidayPeriods(schoolHolidaysData);
-        const publicHolidaysResponse = await fetch(
-          `https://openholidaysapi.org/PublicHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
-        );
-        const publicHolidaysData = await publicHolidaysResponse.json();
-        setHolidayDays(publicHolidaysData);
-      } catch (error) {
-        console.error("Fehler beim Abrufen der Daten:", error);
-      }
-    };
     const unsubscribe = navigation.addListener("tabPress", (e) => {
       navigation.navigate("TimeTableScreen");
     });
-    fetchHolidays();
+
     return unsubscribe;
   }, []);
-  useEffect(() => {
-    if (publicHolidays && schoolHolidays) {
-      holidayData = [
-        { name: "Feiertage", data: publicHolidays },
-        { name: "Ferien", data: schoolHolidays },
-      ];
-    }
-  }, [publicHolidays, schoolHolidays]);
 
   insets = useSafeAreaInsets();
 
@@ -114,8 +84,8 @@ const MaterialTopTabs = function () {
         }}
       />
       <Tab.Screen
-        name="YearTimeTableScreen"
-        component={YearTimeTableScreen}
+        name="YearCalendarScreen"
+        component={YearCalendarScreen}
         options={{
           tabBarLabel: "Jahreskalendar",
         }}
@@ -143,6 +113,11 @@ const generateWeeks = (startWeek, count) =>
   });
 
 const TimeTableScreen = function ({ navigation }) {
+  const flatListRef = useRef();
+
+  const [weeks, setWeeks] = useState(generateWeeks(-10, 21));
+  const [currentIndex, setCurrentIndex] = useState(10);
+
   const [currentDate, setCurrentDate] = useState(
     new Date().toLocaleString("de-DE", {
       day: "2-digit",
@@ -170,18 +145,13 @@ const TimeTableScreen = function ({ navigation }) {
     return () => clearInterval(timer);
   }, []);
 
-  const flatListRef = useRef();
-
-  const [weeks, setWeeks] = useState(generateWeeks(-10, 21));
-  const [currentIndex, setCurrentIndex] = useState(10);
-
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.floor(contentOffsetX / screenWidth);
 
     if (index < 3) {
       const firstWeek = weeks[0].index;
-      const newWeeks = generateWeeks(firstWeek - 10, 10);
+      const newWeeks = generateWeeks(firstWeek - 10, 3);
       setWeeks((prev) => [...newWeeks, ...prev]);
       flatListRef.current.scrollToIndex({
         index: index + 10,
@@ -267,17 +237,6 @@ const TimeTableScreen = function ({ navigation }) {
   );
 };
 
-const YearTimeTableScreen = function ({ navigation }) {
-  return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <SafeAreaView style={styles.screen}>
-        <View style={styles.containerTimeTable}>
-          <View style={styles.timetableBox}></View>
-        </View>
-      </SafeAreaView>
-    </View>
-  );
-};
 
 const GenericScreen = function ({ navigation }) {
   useLayoutEffect(() => {

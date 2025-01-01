@@ -243,9 +243,17 @@ const OnSearchAbbrevation = async function (
   setAlreadySearched
 ) {
   const queryResult = await db.getAllAsync(
-    "SELECT * FROM teacherList WHERE teacherLastname LIKE ? ORDER BY teacherLastname",
-    [`${searchValue}%`]
+    `
+    SELECT * FROM teacherList 
+    WHERE teacherLastname LIKE ? 
+    UNION 
+    SELECT * FROM teacherList 
+    WHERE teacherAbbrevation LIKE ? 
+    ORDER BY teacherLastname
+    `,
+    [`${searchValue}%`, `${searchValue}%`]
   );
+
   setResult(queryResult);
   setAlreadySearched(true);
 };
@@ -457,6 +465,3 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
 });
-
-
-

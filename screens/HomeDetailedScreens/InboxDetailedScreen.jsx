@@ -114,9 +114,7 @@ const InboxDetailedScreen = ({ data, index }) => {
       <EmailModal
         visible={isModalVisible}
         email={currentEmail}
-        onClose={() => {
-          setIsModalVisible(false);
-        }}
+        onClose={() => setIsModalVisible(false)}
       />
     </View>
   );
@@ -133,7 +131,7 @@ const EmailModal = ({ visible, email, onClose }) => {
                 <Icon.Ionicons
                   name="close-circle-sharp"
                   size={32}
-                  color="#404040"
+                  color="#333"
                 />
               </TouchableOpacity>
               <View style={styles.emailHeader}>
