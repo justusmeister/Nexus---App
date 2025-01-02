@@ -409,12 +409,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "white",
     fontSize: 16,
+    fontWeight: "600",
     padding: 15,
   },
   calculatorIcon: {
     marginLeft: 15,
   },
-
   backgroundOverlay: {
     flex: 1,
   },

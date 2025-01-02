@@ -6,7 +6,6 @@ import {
   Dimensions,
   StyleSheet,
   InteractionManager,
-  Pressable,
   Modal,
   TouchableWithoutFeedback,
   TouchableOpacity,
@@ -383,8 +382,9 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
       ) : (
         data.map((item, index) => (
           <View key={index} style={[styles.cell, { height: cellHeight }]}>
-            <Pressable
+            <TouchableOpacity
               style={styles.lessonBox}
+              activeOpacity={0.4}
               onPress={() => {
                 setCurrentLessonData(data[index]);
                 setIsModalVisible(true);
@@ -393,7 +393,7 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
               <Text style={styles.lessonText}>{data[index]?.fach}</Text>
               <Text style={styles.lessonText}>{data[index]?.raum}</Text>
               <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         ))
       )}

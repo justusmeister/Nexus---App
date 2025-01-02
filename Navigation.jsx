@@ -12,6 +12,7 @@ import SearchStack from "./screens/SearchStack";
 import { calculateHolidayAPIDates } from "./externMethods/calculateHolidayAPIDates";
 import { useHolidayData } from "./contexts/HolidayDataContext";
 import { createAdjustedHolidayDataMap } from "./externMethods/createAdjustedHolidayDataMap";
+import LoginScreen from "./screens/LoginScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -52,7 +53,12 @@ const Navigation = function () {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Tabs">
+      <Stack.Navigator initialRouteName="LoginScreen">
+        <Stack.Screen
+          name="LoginScreen"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="SettingsScreen"
           component={SettingsScreen}
