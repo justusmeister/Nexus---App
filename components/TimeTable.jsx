@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -13,271 +13,7 @@ import {
 import * as Icon from "@expo/vector-icons";
 import { useHolidayData } from "../contexts/HolidayDataContext";
 
-const dummyStundenplan = [
-  {
-    tag: "Montag",
-    stunden: [
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Deutsch",
-        lehrer: "DEF",
-        raum: "102",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Chemie",
-        lehrer: "JKL",
-        raum: "104",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Sport",
-        lehrer: "MNO",
-        raum: "DSH-1",
-        vertretung: { lehrer: "PQR", raum: "DSH-1" },
-        entfall: false,
-      },
-      {
-        fach: "Geschichte",
-        lehrer: "STU",
-        raum: "105",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Dienstag",
-    stunden: [
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Informatik",
-        lehrer: "VWX",
-        raum: "106",
-        vertretung: { lehrer: null, raum: null },
-        entfall: true,
-      },
-      {
-        fach: "Biologie",
-        lehrer: "YZA",
-        raum: "107",
-        vertretung: { lehrer: "BCD", raum: "107" },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Kunst",
-        lehrer: "EFG",
-        raum: "109",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Musik",
-        lehrer: "HIJ",
-        raum: "110",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Erdkunde",
-        lehrer: "KLM",
-        raum: "111",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Mittwoch",
-    stunden: [
-      {
-        fach: "Geschichte",
-        lehrer: "STU",
-        raum: "105",
-        vertretung: { lehrer: "NOP", raum: "105" },
-        entfall: false,
-      },
-      {
-        fach: "Physik",
-        lehrer: "QRS",
-        raum: "113",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Chemie",
-        lehrer: "JKL",
-        raum: "104",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Deutsch",
-        lehrer: "DEF",
-        raum: "102",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Sport",
-        lehrer: "MNO",
-        raum: "DSH-1",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Ethik",
-        lehrer: "TUV",
-        raum: "114",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Donnerstag",
-    stunden: [
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Informatik",
-        lehrer: "VWX",
-        raum: "106",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Biologie",
-        lehrer: "YZA",
-        raum: "107",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Chemie",
-        lehrer: "JKL",
-        raum: "104",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Geschichte",
-        lehrer: "STU",
-        raum: "105",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Freitag",
-    stunden: [
-      {
-        fach: "Erdkunde",
-        lehrer: "KLM",
-        raum: "111",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Physik",
-        lehrer: "QRS",
-        raum: "113",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Kunst",
-        lehrer: "EFG",
-        raum: "109",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Deutsch",
-        lehrer: "DEF",
-        raum: "102",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Musik",
-        lehrer: "HIJ",
-        raum: "110",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Sport",
-        lehrer: "MNO",
-        raum: "DSH-1",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: "OPQ", raum: "101" },
-        entfall: false,
-      },
-    ],
-  },
-];
+const dummyStundenplan = [];
 
 const lessonStartTime = [
   "07:50",
@@ -341,7 +77,7 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
   const { holidayData } = useHolidayData();
 
   const emptyCells = Array.from(
-    { length: 10 - data.length },
+    { length: 10 - data?.length || 0 },
     (_, index) => index
   );
 
@@ -380,7 +116,7 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
           ))}
         </View>
       ) : (
-        data.map((item, index) => (
+        data?.map((item, index) => (
           <View key={index} style={[styles.cell, { height: cellHeight }]}>
             <TouchableOpacity
               style={styles.lessonBox}
@@ -397,7 +133,7 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
           </View>
         ))
       )}
-      {!isHoliday(columnDay) && data.length < 10
+      {(!isHoliday(columnDay) && data?.length) || 0 < 10
         ? emptyCells.map((item, index) => (
             <View
               key={index}
@@ -450,46 +186,41 @@ const createWeekDate = (currentWeek) => {
 };
 
 const TimeTable = ({ currentWeek }) => {
-  const [currentDate, setCurrentDate] = useState(createWeekDate(currentWeek));
-  useEffect(() => {
-    const updateCurrentTime = () => {
-      InteractionManager.runAfterInteractions(() => {
-        setCurrentDate(createWeekDate(currentWeek));
-      });
-    };
-    const timer = setInterval(updateCurrentTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const currentDate = useMemo(() => createWeekDate(currentWeek), [currentWeek]);
 
-  let monthAlreadyDisplayed = false;
+  const distanceToCurrentWeekMonday = useMemo(() => {
+    return (currentDate.getDay() + 6) % 7;
+  }, [currentDate]);
 
-  const distanceToCurrentWeekMonday = (currentDate.getDay() + 6) % 7;
-  let currentWeekMonday = new Date(currentDate);
-  currentWeekMonday.setDate(
-    currentWeekMonday.getDate() - distanceToCurrentWeekMonday
-  );
+  const currentWeekMonday = useMemo(() => {
+    const monday = new Date(currentDate);
+    monday.setDate(monday.getDate() - distanceToCurrentWeekMonday);
+    return monday;
+  }, [currentDate, distanceToCurrentWeekMonday]);
+
+  const monthDisplayed = useRef(false);
 
   const checkDateMonth = (mondayDate, dayDate) => {
     if (mondayDate.getMonth() === dayDate.getMonth()) {
-      return 12;
+      return 12; 
+    } else if (!monthDisplayed.current) {
+      monthDisplayed.current = true;
+      return dayDate.getMonth();
     } else {
-      if (!monthAlreadyDisplayed) {
-        monthAlreadyDisplayed = true;
-        return dayDate.getMonth();
-      } else return 12;
+      return 12; 
     }
   };
 
   return (
     <View style={styles.container}>
-      {currentWeek === 0 ? (
+      {currentWeek === 0 && (
         <Icon.FontAwesome
           name="circle"
           size={13}
           color={"#d17002"}
           style={{ position: "absolute", top: 15, left: 15 }}
         />
-      ) : null}
+      )}
       <View style={styles.daysInfoBox}>
         {["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"].map(
           (day, index) => (
@@ -542,7 +273,7 @@ const TimeTable = ({ currentWeek }) => {
         {[0, 1, 2, 3, 4].map((dayIndex) => (
           <Column
             key={dayIndex}
-            data={dummyStundenplan[dayIndex].stunden}
+            data={dummyStundenplan[dayIndex]?.stunden}
             indexColumn={dayIndex}
             currentWeekMonday={currentWeekMonday}
           />
@@ -551,6 +282,7 @@ const TimeTable = ({ currentWeek }) => {
     </View>
   );
 };
+
 
 const LessonInfoModal = ({ visible, data, onClose }) => {
   return (
@@ -706,4 +438,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TimeTable;
+export default memo(TimeTable);

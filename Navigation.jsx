@@ -13,6 +13,7 @@ import { calculateHolidayAPIDates } from "./externMethods/calculateHolidayAPIDat
 import { useHolidayData } from "./contexts/HolidayDataContext";
 import { createAdjustedHolidayDataMap } from "./externMethods/createAdjustedHolidayDataMap";
 import LoginScreen from "./screens/LoginScreen";
+import SplashScreen from "./screens/SplashScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -31,6 +32,7 @@ const Navigation = function () {
         const schoolHolidaysResponse = await fetch(
           `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
         );
+
         const schoolHolidaysData = await schoolHolidaysResponse.json();
         setHolidayPeriods(createAdjustedHolidayDataMap(schoolHolidaysData));
         const publicHolidaysResponse = await fetch(
@@ -53,11 +55,16 @@ const Navigation = function () {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen">
+      <Stack.Navigator initialRouteName="SplashScreen">
+        <Stack.Screen
+          name="SplashScreen"
+          component={SplashScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="LoginScreen"
           component={LoginScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, gestureEnabled: false }}
         />
         <Stack.Screen
           name="SettingsScreen"
@@ -67,7 +74,7 @@ const Navigation = function () {
         <Stack.Screen
           name="Tabs"
           component={Tabs}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, gestureEnabled: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -100,7 +107,16 @@ const Tabs = function () {
         return <Family name={icon} size={size} color={color} />;
       },
       tabBarActiveTintColor: "black",
-      tabBarStyle: { position: "absolute" },
+      tabBarStyle: {
+        position: "absolute",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        overflow: "hidden",
+        elevation: 0,
+        shadowOpacity: 0,
+        borderTopWidth: 0,
+        backgroundColor: "transparent"
+      },
       tabBarBackground: () => (
         <BlurView
           tint="light"

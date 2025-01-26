@@ -1,3 +1,4 @@
+import { WebView } from "react-native-webview";
 import { useState, useEffect } from "react";
 import {
   View,
@@ -12,7 +13,6 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
-import { WebView } from "react-native-webview";
 
 const InboxDetailedScreen = ({ data, index }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -102,7 +102,7 @@ const InboxDetailedScreen = ({ data, index }) => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingBottom: 80 }}>
       <FlatList
         data={data}
         renderItem={resultBox}
@@ -116,6 +116,23 @@ const InboxDetailedScreen = ({ data, index }) => {
       />
     </View>
   );
+};
+
+const emailPlainText = {
+  author: "noreply@iserv.de",
+  title: "iServ Benachrichtigung",
+  date: "24. Januar 2025",
+  isPlainText: true,
+  content: `Hallo Justus,
+
+Dies ist eine E-Mail in Plaintext. Keine Formatierung, nur reiner Text.
+Ich schreibe diese Email um ihnen einen guten Eindruck zu vermitteln wie eine 
+Email in dieser App aussehen könnte. Wenn sie die komplette Seite Scrollen möchten muss der Inhalt länger sein als die Höhe der ScrollView.
+
+Vielen Dank für ihr Verständnis und einen schönen Tag noch.
+
+Beste Grüße,
+Dein iServ Team`,
 };
 
 const EmailModal = ({ visible, email, onClose }) => {
@@ -138,15 +155,38 @@ const EmailModal = ({ visible, email, onClose }) => {
                 <Text style={styles.date}>{email?.date}</Text>
               </View>
               <View style={styles.divider} />
-              <ScrollView style={styles.bodyContainer}>
-                <WebView
-                  originWhitelist={["*"]}
-                  source={{
-                    html: "<p>No Content Available</p>",
-                  }}
-                  style={styles.webView}
-                />
-              </ScrollView>
+              <View style={styles.bodyContainer}>
+                {1 === 0 ? (
+                  <ScrollView>
+                    <Text style={styles.emailContentText}>
+                      {emailPlainText.content}
+                    </Text>
+                  </ScrollView>
+                ) : (
+                  <TouchableWithoutFeedback>
+                    <WebView
+                      style={styles.webView}
+                      originWhitelist={["-"]}
+                      source={{
+                        html: `<!DOCTYPE html>
+                  <html>
+                  <head>
+                      <meta charset="UTF-8">
+                      <title>Beispiel E-Mail</title>
+                  </head>
+                  <body>
+                      <p>Hallo <strong>Justus</strong>,</p>
+                      <p>Dies ist eine HTML-E-Mail mit <b>Fettschrift</b> und einem Link.</p>
+                      <p><a href="https://example.com">Klicke hier</a>, um mehr zu erfahren.</p>
+                  </body>
+                  </html>`,
+                      }}
+                      javaScriptEnabled={false}
+                      scalesPageToFit={false}
+                    />
+                  </TouchableWithoutFeedback>
+                )}
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -163,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContainer: {
-    width: "87%",
+    width: "95%",
     height: "70%",
     backgroundColor: "#fff",
     borderRadius: 14,
@@ -214,7 +254,6 @@ const styles = StyleSheet.create({
   },
   webView: {
     flex: 1,
-    borderRadius: 10,
   },
   newsBoxContainer: {
     marginVertical: 6,
@@ -246,6 +285,11 @@ const styles = StyleSheet.create({
   newsBoxDate: {
     fontSize: 12,
     color: "#999",
+  },
+  emailContentText: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#333",
   },
 });
 

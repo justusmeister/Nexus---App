@@ -10,6 +10,7 @@ import {
   ScrollView,
   Image,
 } from "react-native";
+import { firebaseAuth } from "../firebaseConfig";
 
 const SettingsScreen = function ({ navigation }) {
   useLayoutEffect(() => {
@@ -17,7 +18,7 @@ const SettingsScreen = function ({ navigation }) {
       headerRight: () =>
         Platform.OS === "ios" ? (
           <TouchableOpacity onPress={({}) => navigation.goBack()}>
-            <Icon.Ionicons name="close-circle" size={33} color="grey" />
+            <Icon.Ionicons name="close-circle" size={34} color="grey" />
           </TouchableOpacity>
         ) : null,
     });
@@ -38,7 +39,7 @@ const SettingsScreen = function ({ navigation }) {
                 {
                   borderBottomWidth: 0.5,
                   borderColor: "white",
-                  backgroundColor: "#596270",
+                  backgroundColor: "#525252",
                   borderTopLeftRadius: 15,
                   borderTopRightRadius: 15,
                 },
@@ -48,9 +49,9 @@ const SettingsScreen = function ({ navigation }) {
             >
               <Icon.MaterialIcons
                 name="account-circle"
-                size={26}
+                size={24}
                 color={"white"}
-                style={styles.buttonIcon}
+                style={[styles.buttonIcon, { backgroundColor: "#8a8a8a" }]}
               />
               <Text style={styles.buttonText}>Accountverwaltung</Text>
             </TouchableOpacity>
@@ -59,7 +60,7 @@ const SettingsScreen = function ({ navigation }) {
               style={[
                 styles.pressable,
                 {
-                  backgroundColor: "#f5a002",
+                  backgroundColor: "#525252",
                   borderBottomLeftRadius: 15,
                   borderBottomRightRadius: 15,
                 },
@@ -71,9 +72,9 @@ const SettingsScreen = function ({ navigation }) {
             >
               <Icon.MaterialIcons
                 name="delete-forever"
-                size={26}
+                size={24}
                 color={"white"}
-                style={styles.buttonIcon}
+                style={[styles.buttonIcon, { backgroundColor: "#d9534f" }]}
               />
               <Text style={styles.buttonText}>Account löschen</Text>
             </TouchableOpacity>
@@ -88,7 +89,7 @@ const SettingsScreen = function ({ navigation }) {
                 {
                   borderBottomWidth: 0.5,
                   borderColor: "white",
-                  backgroundColor: "#596270",
+                  backgroundColor: "#525252",
                   borderTopLeftRadius: 15,
                   borderTopRightRadius: 15,
                 },
@@ -98,9 +99,9 @@ const SettingsScreen = function ({ navigation }) {
             >
               <Icon.MaterialIcons
                 name="nightlight"
-                size={26}
+                size={24}
                 color={"white"}
-                style={styles.buttonIcon}
+                style={[styles.buttonIcon, { backgroundColor: "#47b334" }]}
               />
               <Text style={styles.buttonText}>Appdarstellung</Text>
             </TouchableOpacity>
@@ -109,7 +110,7 @@ const SettingsScreen = function ({ navigation }) {
               style={[
                 styles.pressable,
                 {
-                  backgroundColor: "#f5a002",
+                  backgroundColor: "#525252",
                   borderBottomLeftRadius: 15,
                   borderBottomRightRadius: 15,
                 },
@@ -121,9 +122,9 @@ const SettingsScreen = function ({ navigation }) {
             >
               <Icon.MaterialIcons
                 name="notifications"
-                size={26}
+                size={24}
                 color={"white"}
-                style={styles.buttonIcon}
+                style={[styles.buttonIcon, { backgroundColor: "#cf4f36" }]}
               />
               <Text style={styles.buttonText}>Mitteilungsverwaltung</Text>
             </TouchableOpacity>
@@ -137,7 +138,7 @@ const SettingsScreen = function ({ navigation }) {
                 styles.pressable,
                 {
                   borderColor: "white",
-                  backgroundColor: "#596270",
+                  backgroundColor: "#525252",
                   borderRadius: 15,
                 },
               ]}
@@ -146,14 +147,37 @@ const SettingsScreen = function ({ navigation }) {
             >
               <Icon.MaterialIcons
                 name="info-outline"
-                size={26}
+                size={24}
                 color={"white"}
-                style={styles.buttonIcon}
+                style={[styles.buttonIcon, { backgroundColor: "#8a8a8a" }]}
               />
               <Text style={styles.buttonText}>Lizenzen</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={[styles.pressable, styles.logoutButton]}
+          activeOpacity={0.6}
+          onPress={() => {
+            try {
+              firebaseAuth.signOut();
+            } catch (e) {
+              console.error(`Error:${e}`);
+            } finally {
+              navigation.navigate("SplashScreen");
+              console.log("Erfolgreich ausgeloggt!");
+            }
+          }}
+        >
+          <Icon.MaterialIcons
+            name="logout"
+            size={20}
+            color={"white"}
+            style={{ marginLeft: 15 }}
+          />
+          <Text style={[styles.buttonText, { padding: 11 }]}>Ausloggen</Text>
+        </TouchableOpacity>
 
         <View style={styles.footer}>
           <Text style={styles.copyrightText}>© 2025 - Nexus</Text>
@@ -178,10 +202,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     marginTop: -10,
-    backgroundColor: "#EFEEF6",
   },
   scrollView: {
     flex: 1,
+    backgroundColor: "#EFEEF6",
   },
   section: {
     width: "100%",
@@ -221,6 +245,9 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     marginLeft: 15,
+    padding: 5,
+    backgroundColor: "black",
+    borderRadius: 10,
   },
   footer: {
     flexDirection: "row",
@@ -238,5 +265,21 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     width: 30,
     height: 30,
+  },
+  logoutButton: {
+    marginTop: 35,
+    alignSelf: "center",
+    paddingVertical: 6,
+    width: "70%",
+    borderRadius: 12,
+    backgroundColor: "#d9534f",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4.65,
+    elevation: 7,
   },
 });

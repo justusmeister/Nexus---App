@@ -17,10 +17,11 @@ import MessageBox from "../components/MessageBox";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Icon from "@expo/vector-icons";
 import Checkbox from "../components/Checkbox";
-import InboxDetailedScreen from "./HomeDetailedScreens/InboxDetailedScreen";
-import NewsDetailedScreen from "./HomeDetailedScreens/NewsDetailedScreen";
+import InboxDetailedScreen from "./HomeSubScreens/InboxDetailedScreen";
+import NewsDetailedScreen from "./HomeSubScreens/NewsDetailedScreen";
 import { useRoute } from "@react-navigation/native";
 import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+import Toast from "react-native-toast-message";
 
 const DeadlinesContext = createContext();
 
@@ -166,6 +167,15 @@ const deadlinesDummyData = [
   { subject: "Sport", task: "5 Runden laufen", dueDate: "03.06.25" },
 ];
 
+const showToast = () => {
+  Toast.show({
+    type: "success",
+    text1: "Glückwunsch! 🎉",
+    text2: "Du hast eine weitere Frist erledigt!",
+    visibilityTime: 4000,
+  });
+};
+
 const HomeStack = function ({ navigation }) {
   const [deadlinesData, setDeadlinesData] = useState(deadlinesDummyData);
 
@@ -251,7 +261,7 @@ const InboxScreen = function ({ navigation }) {
   let index = route.params?.emailId !== null ? route.params?.emailId : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 80 }}>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <InboxDetailedScreen data={iServInboxDummyData} index={index} />
     </View>
   );
@@ -360,7 +370,7 @@ const DeadlineDetailedScreen = function () {
             color: "#8E8E93",
           }}
         >
-          Alle Fristen abgeschlossen! 💪
+          Alle Fristen erledigt! 💪
         </Text>
       </ScrollView>
     );
@@ -445,6 +455,7 @@ const DeadlineDetailedScreen = function () {
                 (_, objIndex) => objIndex !== index
               );
               changeData(updatedDeadlines);
+              showToast();
             }}
           />
         </Pressable>
@@ -453,7 +464,7 @@ const DeadlineDetailedScreen = function () {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingBottom: 80 }}>
       <FlatList
         data={deadlinesData}
         renderItem={renderDeadline}
@@ -465,10 +476,15 @@ const DeadlineDetailedScreen = function () {
         task={currentTask}
         onClose={() => setIsModalVisible(false)}
         onConfirm={() => {
+          const currentIndex = deadlinesData.findIndex(
+            (item) => item === currentTask
+          );
           const updatedDeadlines = deadlinesData.filter(
-            (_, objIndex) => objIndex !== index
+            (_, objIndex) => objIndex !== currentIndex
           );
           changeData(updatedDeadlines);
+          setIsModalVisible(false);
+          showToast();
         }}
       />
     </View>
@@ -477,7 +493,7 @@ const DeadlineDetailedScreen = function () {
 
 export const DeadlineScreen = function ({ navigation }) {
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 79 }}>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <DeadlineDetailedScreen />
     </View>
   );
@@ -582,6 +598,7 @@ export const HomeScreen = function ({ navigation }) {
           } else {
             changeData([]);
           }
+          showToast();
         }}
       />
     </TouchableOpacity>

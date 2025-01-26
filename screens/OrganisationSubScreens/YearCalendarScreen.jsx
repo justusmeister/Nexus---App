@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   SafeAreaView,
@@ -6,9 +6,29 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  TextInput,
+  Switch,
+  Pressable,
+  Keyboard,
+  Platform,
 } from "react-native";
 import { useHolidayData } from "../../contexts/HolidayDataContext";
 import * as Icon from "@expo/vector-icons";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import BottomSheet, {
+  BottomSheetScrollView,
+  BottomSheetTextInput,
+  BottomSheetBackdrop,
+} from "@gorhom/bottom-sheet";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+} from "react-native-reanimated";
+import { useNavigation } from "@react-navigation/native";
+import { SegmentedControl } from "../../components/SegmentedControl";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const months = [
   "Januar",
@@ -48,7 +68,7 @@ const dummyEvents = {
       name: "Konzert der Schulband",
     },
     {
-      day: "2025-06-14",
+      day: "2025-06-15",
       eventType: 0,
       name: "Schulfest",
     },
@@ -64,14 +84,120 @@ const dummyEvents = {
       endDay: "2025-05-05",
       name: "Praktikum",
     },
+    {
+      startDay: "2025-07-15",
+      endDay: "2025-07-23",
+      name: "Praktikum",
+    },
   ],
 };
+
+function createEventMap(dummyEvents) {
+  const eventMap = new Map();
+
+  dummyEvents.singleEvents.forEach((event) => {
+    const singleEvent = {
+      day: event.day,
+      eventType: 1,
+      name: event.name,
+      eventCategory: 1,
+    };
+
+    if (eventMap.has(event.day)) {
+      eventMap.get(event.day).push(singleEvent);
+    } else {
+      eventMap.set(event.day, [singleEvent]);
+    }
+  });
+
+  dummyEvents.eventPeriods.forEach((period) => {
+    let currentDate = new Date(period.startDay);
+    const endDate = new Date(period.endDay);
+
+    while (currentDate <= endDate) {
+      const formattedDate = currentDate.toISOString().split("T")[0];
+
+      const periodEvent = {
+        day: formattedDate,
+        eventType: 2,
+        name: period.name,
+        eventCategory: 2,
+      };
+
+      if (eventMap.has(formattedDate)) {
+        eventMap.get(formattedDate).push(periodEvent);
+      } else {
+        eventMap.set(formattedDate, [periodEvent]);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  });
+
+  return eventMap;
+}
+
+const eventMap = createEventMap(dummyEvents);
 
 const YearCalendarScreen = function ({ navigation }) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const flatListRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
+  const [isFilterMenuVisible, setIsFilterMenuVisible] = useState(false);
+  const [filter, setFilter] = useState(0);
+  const [selectedOption, setSelectedOption] = useState("Event");
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [description, setDescription] = useState("");
+  const height = useSharedValue(0);
+  const width = useSharedValue(0);
+  const opacity = useSharedValue(0);
   const containerRef = useRef(null);
+  const sheetRef = useRef(null);
+
+  const toggleDropdown = () => {
+    if (!isFilterMenuVisible) {
+      width.value = withTiming(250, { duration: 170 });
+      height.value = withTiming(150, { duration: 170 });
+      opacity.value = withTiming(1);
+    } else {
+      width.value = withTiming(50, { duration: 170 });
+      height.value = withTiming(0, { duration: 170 });
+      opacity.value = withTiming(0);
+    }
+    setIsFilterMenuVisible((prev) => !prev);
+  };
+
+  const animatedDropdownStyle = useAnimatedStyle(() => {
+    return {
+      width: width.value,
+      height: height.value,
+      opacity: interpolate(height.value, [0, 150], [0, 1]),
+    };
+  });
+
+  const snapPoints = ["95%"];
+
+  const handleOpen = () => {
+    sheetRef.current?.snapToIndex(0);
+  };
+
+  const handleClose = () => {
+    Keyboard.dismiss();
+    sheetRef.current?.close();
+  };
+
+  const renderBackdrop = useCallback(
+    (props) => (
+      <BottomSheetBackdrop
+        appearsOnIndex={1}
+        disappearsOnIndex={-1}
+        {...props}
+      />
+    ),
+    []
+  );
 
   const years = [
     new Date().getMonth() < 4 ? currentYear - 1 : currentYear,
@@ -115,55 +241,190 @@ const YearCalendarScreen = function ({ navigation }) {
           </Text>
         </View>
         <View style={styles.yearBox}>
-          <MonthRow
-            rowIndex={0}
-            year={item}
-            onPress={() => navigation.navigate("YearDetailedScreen")}
-          />
-          <MonthRow
-            rowIndex={1}
-            year={item}
-            onPress={() => navigation.navigate("YearDetailedScreen")}
-          />
-          <MonthRow
-            rowIndex={2}
-            year={item}
-            onPress={() => navigation.navigate("YearDetailedScreen")}
-          />
-          <MonthRow
-            rowIndex={3}
-            year={item}
-            onPress={() => navigation.navigate("YearDetailedScreen")}
-          />
+          {[0, 1, 2, 3].map((index) => (
+            <MonthRow
+              key={index}
+              rowIndex={index}
+              year={item}
+              filter={filter}
+            />
+          ))}
         </View>
       </View>
     </View>
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <SafeAreaView style={styles.screen}>
-        <View ref={containerRef} style={styles.containerYearCalendar}>
-          <FlatList
-            ref={flatListRef}
-            data={years}
-            keyExtractor={(item) => item.toString()}
-            renderItem={renderItem}
-            showsVerticalScrollIndicator={false}
-            getItemLayout={getItemLayout}
+    <GestureHandlerRootView>
+      <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+        <SafeAreaView style={styles.screen}>
+          {isFilterMenuVisible && (
+            <Pressable style={styles.overlay} onPress={toggleDropdown} />
+          )}
+          <View ref={containerRef} style={styles.containerYearCalendar}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                { opacity: isFilterMenuVisible ? 0.6 : 1 },
+              ]}
+              activeOpacity={0.4}
+              onPress={() => toggleDropdown()}
+            >
+              <Icon.MaterialIcons
+                name={filter === 0 ? "filter-list-off" : "filter-list"}
+                size={30}
+                color="#333"
+              />
+            </TouchableOpacity>
+            <Animated.View style={[styles.dropdown, animatedDropdownStyle]}>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDropdown();
+                  setFilter(0);
+                }}
+              >
+                <Text style={styles.item}>keine Filter</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDropdown();
+                  setFilter(1);
+                }}
+              >
+                <Text style={styles.item}>Ferien</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDropdown();
+                  setFilter(2);
+                }}
+              >
+                <Text style={styles.item}>Termine</Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+            <FlatList
+              ref={flatListRef}
+              data={years}
+              index={-1}
+              keyExtractor={(item) => item.toString()}
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              getItemLayout={getItemLayout}
+            />
+            <TouchableOpacity style={styles.addButton} onPress={handleOpen}>
+              <Icon.AntDesign name="pluscircle" size={40} color="#3a5f8a" />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </View>
+
+      <BottomSheet
+        ref={sheetRef}
+        snapPoints={snapPoints}
+        index={-1}
+        enablePanDownToClose={true}
+        backgroundStyle={{ backgroundColor: "white" }}
+        handleIndicatorStyle={{ backgroundColor: "gray" }}
+        enableDynamicSizing={false}
+        backdropComponent={renderBackdrop}
+      >
+        <BottomSheetScrollView
+          contentContainerStyle={styles.sheetContainer}
+          keyboardShouldPersistTaps="handled"
+          onScroll={() => Keyboard.dismiss()}
+        >
+          <SegmentedControl
+            options={["Zeitraum", "Event", "Frist"]}
+            selectedOption={selectedOption}
+            onOptionPress={setSelectedOption}
+            style={styles.segmentedControl}
           />
-          <TouchableOpacity style={styles.addButton}>
-            <Icon.AntDesign name="pluscircle" size={40} color="#3a5f8a" />
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Name des Faches/Events:</Text>
+            <BottomSheetTextInput
+              style={styles.inputField}
+              placeholder="Name des Faches/Events"
+            />
+          </View>
+
+          {selectedOption !== "Zeitraum" && (
+            <View style={styles.switchContainer}>
+              <Text style={styles.label}>Ganztägig:</Text>
+              <Switch value={isAllDay} onValueChange={setIsAllDay} />
+            </View>
+          )}
+
+          <View style={styles.dateTimeContainer}>
+            <Text style={styles.label}>Startdatum:</Text>
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display="default"
+              onChange={(event, date) => date && setStartDate(date)}
+            />
+          </View>
+
+          {!isAllDay && (
+            <View style={styles.dateTimeContainer}>
+              <Text style={styles.label}>Startzeit:</Text>
+              <DateTimePicker
+                value={startDate}
+                mode="time"
+                display="default"
+                onChange={(event, date) => date && setStartDate(date)}
+              />
+            </View>
+          )}
+
+          <View style={styles.dateTimeContainer}>
+            <Text style={styles.label}>Enddatum:</Text>
+            <DateTimePicker
+              value={endDate}
+              mode="date"
+              display="default"
+              onChange={(event, date) => date && setEndDate(date)}
+            />
+          </View>
+
+          {!isAllDay && selectedOption === "normale Frist" && (
+            <View style={styles.dateTimeContainer}>
+              <Text style={styles.label}>Endzeit:</Text>
+              <DateTimePicker
+                value={endDate}
+                mode="time"
+                display="default"
+                onChange={(event, date) => date && setEndDate(date)}
+              />
+            </View>
+          )}
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Beschreibung (optional):</Text>
+            <TextInput
+              style={styles.descriptionField}
+              placeholder="Beschreibung hinzufügen..."
+              multiline
+              numberOfLines={3}
+              value={description}
+              onChangeText={setDescription}
+            />
+          </View>
+
+          <Pressable style={styles.confirmButton} onPress={handleClose}>
+            <Text style={styles.buttonText}>Speichern</Text>
+          </Pressable>
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </GestureHandlerRootView>
   );
 };
 
 export default YearCalendarScreen;
 
-const MonthRow = ({ rowIndex, year, onPress }) => {
+const MonthRow = ({ rowIndex, year, filter }) => {
+  const navigation = useNavigation();
   const firstMonthIndex = rowIndex * 3;
   const calcFirstDayDate = (monthIndex) => {
     const adjustedYear = monthIndex < 2 ? year - 1 : year;
@@ -186,29 +447,25 @@ const MonthRow = ({ rowIndex, year, onPress }) => {
 
   return (
     <View style={styles.rowBox}>
-      <MonthBox
-        firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex)}
-        month={firstMonthIndex}
-        year={year}
-        onPress={onPress}
-      />
-      <MonthBox
-        firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex + 1)}
-        month={firstMonthIndex + 1}
-        year={year}
-        onPress={onPress}
-      />
-      <MonthBox
-        firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex + 2)}
-        month={firstMonthIndex + 2}
-        year={year}
-        onPress={onPress}
-      />
+      {[0, 1, 2].map((index) => (
+        <MonthBox
+          key={index}
+          firstMonthDayWeekDay={calcFirstDayDate(firstMonthIndex + index)}
+          month={firstMonthIndex + index}
+          year={year}
+          filter={filter}
+          onPress={() =>
+            navigation.navigate("YearDetailedScreen", {
+              month: months[firstMonthIndex + index],
+            })
+          }
+        />
+      ))}
     </View>
   );
 };
 
-const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
+const MonthBox = ({ firstMonthDayWeekDay, month, year, filter, onPress }) => {
   const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   const monthLength = () => {
     if (month === 1) return isLeapYear ? 29 : 28;
@@ -240,6 +497,7 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
           endDay={lastDayOfMonth}
           month={month}
           year={year}
+          filter={filter}
         />
         <DayRow
           distance={0}
@@ -247,6 +505,7 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
           endDay={lastDayOfMonth}
           month={month}
           year={year}
+          filter={filter}
         />
         <DayRow
           distance={0}
@@ -254,6 +513,7 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
           endDay={lastDayOfMonth}
           month={month}
           year={year}
+          filter={filter}
         />
         <DayRow
           distance={0}
@@ -261,6 +521,7 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
           endDay={lastDayOfMonth}
           month={month}
           year={year}
+          filter={filter}
         />
         <DayRow
           distance={0}
@@ -268,6 +529,7 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
           endDay={lastDayOfMonth}
           month={month}
           year={year}
+          filter={filter}
         />
         <DayRow
           distance={0}
@@ -275,13 +537,14 @@ const MonthBox = ({ firstMonthDayWeekDay, month, year, onPress }) => {
           endDay={lastDayOfMonth}
           month={month}
           year={year}
+          filter={filter}
         />
       </View>
     </TouchableOpacity>
   );
 };
 
-const DayRow = ({ distance, startDay, endDay, month, year }) => {
+const DayRow = ({ distance, startDay, endDay, month, year, filter }) => {
   const { holidayData } = useHolidayData();
 
   const isToday = (d, m, y) => {
@@ -299,6 +562,21 @@ const DayRow = ({ distance, startDay, endDay, month, year }) => {
     }`;
     return holidayData[0].data.has(date) || holidayData[1].data.has(date);
   };
+
+  const isEvent = (day, month, year) => {
+    const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
+      day < 10 ? `0${day}` : day
+    }`;
+
+    if (eventMap.has(date)) {
+      const events = eventMap.get(date);
+      for (const event of events) {
+        if (event.eventType === 1) return 1;
+      }
+      return 2;
+    } else return 0;
+  };
+
   const getBorderRadius = (
     day,
     month,
@@ -306,27 +584,176 @@ const DayRow = ({ distance, startDay, endDay, month, year }) => {
     index,
     isHoliday,
     startDay,
-    endDay
+    endDay,
+    filter
   ) => {
+    const isClasstest = isEvent(day, month, year) === 1;
+    const isClasstestBefore = isEvent(day - 1, month, year) === 1;
+    const isClasstestNext = isEvent(day + 1, month, year) === 1;
+
+    const isEventStart =
+      isEvent(day, month, year) === 2 &&
+      (!isEvent(day - 1, month, year) || isClasstestBefore || day === startDay);
+
+    const isEventEnd =
+      isEvent(day, month, year) === 2 &&
+      (!isEvent(day + 1, month, year) ||
+        isClasstestNext ||
+        index === 4 ||
+        day === endDay);
+
     const isWeekendStart = index === 5 || (index === 6 && day === 1);
     const isWeekendEnd = index === 6 || (index === 5 && day === endDay);
 
-    const isHolidayStart =
-      isHoliday(day, month, year) &&
-      (!isHoliday(day - 1, month, year) || day === startDay);
-    const isHolidayEnd =
-      (isHoliday(day, month, year) &&
-        (!isHoliday(day + 1, month, year) || day === endDay)) ||
-      index === 4;
-
-    return {
-      borderTopLeftRadius: isWeekendStart || isHolidayStart ? 50 : 0,
-      borderBottomLeftRadius: isWeekendStart || isHolidayStart ? 50 : 0,
-      borderTopRightRadius:
-        isWeekendEnd || (isHolidayEnd && index !== 5) ? 50 : 0,
-      borderBottomRightRadius:
-        isWeekendEnd || (isHolidayEnd && index !== 5) ? 50 : 0,
+    const isHolidayStart = (extraArgument) => {
+      return (
+        isHoliday(day, month, year) &&
+        (!isHoliday(day - 1, month, year) || extraArgument || day === startDay)
+      );
     };
+    const isHolidayEnd = (extraArgument) => {
+      return (
+        (isHoliday(day, month, year) &&
+          (!isHoliday(day + 1, month, year) ||
+            extraArgument ||
+            day === endDay)) ||
+        index === 4
+      );
+    };
+
+    if (filter === 0 || !filter || filter === null)
+      return {
+        borderTopLeftRadius:
+          isClasstest && !isWeekendEnd
+            ? 50
+            : isWeekendStart ||
+              isHolidayStart(
+                isClasstestBefore ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day - 1, month, year) === 2)
+              ) ||
+              isEventStart
+            ? 50
+            : 0,
+        borderBottomLeftRadius:
+          isClasstest && !isWeekendEnd
+            ? 50
+            : isWeekendStart ||
+              isHolidayStart(
+                isClasstestBefore ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day - 1, month, year) === 2)
+              ) ||
+              isEventStart
+            ? 50
+            : 0,
+        borderTopRightRadius:
+          isClasstest && !isWeekendStart
+            ? 50
+            : isWeekendEnd ||
+              (isHolidayEnd(
+                isClasstestNext ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day + 1, month, year) === 2)
+              ) &&
+                index !== 5) ||
+              (isEventEnd && index !== 5)
+            ? 50
+            : 0,
+        borderBottomRightRadius:
+          isClasstest && !isWeekendStart
+            ? 50
+            : isWeekendEnd ||
+              (isHolidayEnd(
+                isClasstestNext ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day + 1, month, year) === 2)
+              ) &&
+                index !== 5) ||
+              (isEventEnd && index !== 5)
+            ? 50
+            : 0,
+      };
+    else if (filter === 1)
+      return {
+        borderTopLeftRadius: isWeekendStart || isHolidayStart() ? 50 : 0,
+        borderBottomLeftRadius: isWeekendStart || isHolidayStart() ? 50 : 0,
+        borderTopRightRadius:
+          isWeekendEnd || (isHolidayEnd() && index !== 5) ? 50 : 0,
+        borderBottomRightRadius:
+          isWeekendEnd || (isHolidayEnd() && index !== 5) ? 50 : 0,
+      };
+    else if (filter === 2)
+      return {
+        borderTopLeftRadius:
+          isClasstest && !isWeekendEnd
+            ? 50
+            : isWeekendStart || isEventStart
+            ? 50
+            : 0,
+        borderBottomLeftRadius:
+          isClasstest && !isWeekendEnd
+            ? 50
+            : isWeekendStart || isEventStart
+            ? 50
+            : 0,
+        borderTopRightRadius:
+          isClasstest && !isWeekendStart
+            ? 50
+            : isWeekendEnd || (isEventEnd && index !== 5)
+            ? 50
+            : 0,
+        borderBottomRightRadius:
+          isClasstest && !isWeekendStart
+            ? 50
+            : isWeekendEnd || (isEventEnd && index !== 5)
+            ? 50
+            : 0,
+      };
+  };
+  const getDayColors = (
+    day,
+    month,
+    year,
+    index,
+    isHoliday,
+    startDay,
+    endDay,
+    filter
+  ) => {
+    if (filter === 0 || !filter || filter === null)
+      return {
+        backgroundColor:
+          isEvent(day, month, year) !== 0
+            ? isEvent(day, month, year) === 1
+              ? "#fcd968"
+              : "#9f65f0"
+            : index === 5 || index === 6
+            ? "#c4c4c4"
+            : isHoliday(day, month, year)
+            ? "#b4d3ed"
+            : null,
+      };
+    else if (filter === 1)
+      return {
+        backgroundColor:
+          index === 5 || index === 6
+            ? "#c4c4c4"
+            : isHoliday(day, month, year)
+            ? "#b4d3ed"
+            : null,
+      };
+    else if (filter === 2)
+      return {
+        backgroundColor:
+          isEvent(day, month, year) !== 0
+            ? isEvent(day, month, year) === 1
+              ? "#fcd968"
+              : "#9f65f0"
+            : index === 5 || index === 6
+            ? "#c4c4c4"
+            : null,
+      };
   };
   return (
     <View style={styles.dayRowBox}>
@@ -340,12 +767,16 @@ const DayRow = ({ distance, startDay, endDay, month, year }) => {
             style={[
               styles.dayBox,
               {
-                backgroundColor:
-                  index === 5 || index === 6
-                    ? "#c4c4c4"
-                    : isHoliday(day, month, year)
-                    ? "#b4d3ed"
-                    : null,
+                ...getDayColors(
+                  day,
+                  month,
+                  year,
+                  index,
+                  isHoliday,
+                  startDay,
+                  endDay,
+                  filter
+                ),
                 ...getBorderRadius(
                   day,
                   month,
@@ -353,7 +784,8 @@ const DayRow = ({ distance, startDay, endDay, month, year }) => {
                   index,
                   isHoliday,
                   startDay,
-                  endDay
+                  endDay,
+                  filter
                 ),
               },
             ]}
@@ -473,5 +905,123 @@ const styles = StyleSheet.create({
     width: 40,
     borderRadius: 50,
     backgroundColor: "white",
+    elevation: 3,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  filterButton: {
+    position: "absolute",
+    right: -5,
+    top: -5,
+    zIndex: 2,
+    height: 40,
+    width: 40,
+    borderRadius: 50,
+    backgroundColor: "#d1d1d1",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  dropdown: {
+    position: "absolute",
+    top: 40,
+    right: 10,
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    elevation: 5,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    overflow: "hidden",
+    zIndex: 2,
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+
+  item: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    fontSize: 16,
+  },
+  sheetContainer: {
+    paddingBottom: 79,
+    padding: 16,
+    alignItems: "center",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  segmentedControl: {
+    marginBottom: 20,
+    width: "100%",
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#333",
+    marginBottom: 5,
+  },
+  inputField: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 12,
+    fontSize: 16,
+  },
+  descriptionField: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 12,
+    fontSize: 16,
+    textAlignVertical: "top",
+  },
+  switchContainer: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 15,
+  },
+  dateTimeContainer: {
+    width: "100%",
+    marginBottom: 15,
+  },
+  confirmButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
+    width: "100%",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

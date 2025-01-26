@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"
+import { getFirestore } from "firebase/firestore";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
@@ -10,7 +10,7 @@ const firebaseConfig = {
     storageBucket: "nexus-3c6c3.firebasestorage.app",
     messagingSenderId: "148853647647",
     appId: "1:148853647647:web:08adfe800bf6e2f14fa82a",
-    measurementId: "G-9SEQYRL9SF"
+    measurementId: "G-9SEQYRL9SF",
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);

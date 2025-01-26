@@ -351,7 +351,7 @@ const OpenedSearchScreen = function ({ navigation }) {
 const PointsScreen = function () {
   return (
     <View>
-      <Text>Moin</Text>
+      <Text>coming soon...</Text>
     </View>
   );
 };
@@ -359,7 +359,7 @@ const PointsScreen = function () {
 const GradesScreen = function () {
   return (
     <View>
-      <Text>Moin</Text>
+      <Text>coming soon...</Text>
     </View>
   );
 };

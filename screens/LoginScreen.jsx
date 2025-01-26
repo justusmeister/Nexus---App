@@ -7,6 +7,7 @@ import {
   TextInput,
   Image,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import {
@@ -24,28 +25,28 @@ const LoginScreen = function ({ navigation }) {
   const signIn = async () => {
     setLoading(true);
     try {
-      const response = await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.log(error);
+      const user = await signInWithEmailAndPassword(auth, email, password);
+      if (user) {
+        navigation.navigate("Tabs");
+        setEmail("");
+        setPassword("");
+      }
+    } catch (nativeErrorCode) {
+      console.log(nativeErrorCode);
     } finally {
       setLoading(false);
-      navigation.navigate("Tabs");
     }
   };
 
   const signUp = async () => {
     setLoading(true);
     try {
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-    } catch (error) {
-      console.log(error);
+      const user = await createUserWithEmailAndPassword(auth, email, password);
+      if (user) navigation.navigate("Tabs");
+    } catch (nativeErrorCode) {
+      console.log(nativeErrorCode);
     } finally {
       setLoading(false);
-      navigation.navigate("Tabs");
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   InteractionManager,
+  ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
@@ -16,11 +18,12 @@ import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
 import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
 import YearCalendarScreen from "./OrganisationSubScreens/YearCalendarScreen";
+import GenericScreen from "./OrganisationSubScreens/GenericScreen";
+import YearDetailedScreen from "./OrganisationSubScreens/YearDetailedScreen";
+import { FlashList } from "@shopify/flash-list";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
-
-let hwGenericScreenTitle = "Mathe";
 
 const OrganisationStack = function ({ navigation }) {
   useEffect(() => {
@@ -44,7 +47,7 @@ const OrganisationStack = function ({ navigation }) {
         name="GenericScreen"
         component={GenericScreen}
         options={{
-          title: hwGenericScreenTitle,
+          title: "Fach",
           headerBackTitle: "Zurück",
           headerTintColor: "black",
         }}
@@ -69,6 +72,23 @@ const MaterialTopTabs = function () {
     <Tab.Navigator
       initialRouteName="TimeTableScreen"
       screenOptions={{
+        tabBarScrollEnabled: true,
+        tabBarItemStyle: { width: 120 },
+        lazy: true,
+        lazyPlaceholder: () => {
+          return (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#EFEEF6",
+              }}
+            >
+              <ActivityIndicator size={"large"} color={"#333"} />
+            </View>
+          );
+        },
         tabBarActiveTintColor: "#333",
         tabBarInactiveTintColor: "#888",
         tabBarLabelStyle: {
@@ -117,14 +137,14 @@ const generateWeeks = (startWeek, count) =>
     const weekNumber = startWeek + i;
     return {
       index: weekNumber,
-      display: weekNumber < -4 || weekNumber > 4 ? "" : `Woche ${weekNumber}`,
+      id: `week-${weekNumber}`,
     };
   });
 
 const TimeTableScreen = function ({ navigation }) {
-  const flatListRef = useRef();
+  const flashListRef = useRef();
 
-  const [weeks, setWeeks] = useState(generateWeeks(-10, 21));
+  const [weeks, setWeeks] = useState(generateWeeks(-10, 15));
   const [currentIndex, setCurrentIndex] = useState(10);
 
   const [currentDate, setCurrentDate] = useState(
@@ -154,24 +174,33 @@ const TimeTableScreen = function ({ navigation }) {
     return () => clearInterval(timer);
   }, []);
 
+  let isGeneratingWeeks = false;
+
   const handleScroll = (event) => {
+    if (isGeneratingWeeks) return;
+
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.floor(contentOffsetX / screenWidth);
 
     if (index < 3) {
+      isGeneratingWeeks = true;
       const firstWeek = weeks[0].index;
       const newWeeks = generateWeeks(firstWeek - 10, 3);
       setWeeks((prev) => [...newWeeks, ...prev]);
-      flatListRef.current.scrollToIndex({
-        index: index + 10,
+      flashListRef.current.scrollToIndex({
+        index: index + 3,
         animated: false,
       });
+      setCurrentIndex((prev) => prev + 3);
+      isGeneratingWeeks = false;
     }
 
     if (index > weeks.length - 4) {
+      isGeneratingWeeks = true;
       const lastWeek = weeks[weeks.length - 1].index;
-      const newWeeks = generateWeeks(lastWeek + 1, 10);
+      const newWeeks = generateWeeks(lastWeek + 1, 3);
       setWeeks((prev) => [...prev, ...newWeeks]);
+      isGeneratingWeeks = false;
     }
   };
 
@@ -179,11 +208,12 @@ const TimeTableScreen = function ({ navigation }) {
     const timeTableWeekIndex = item.index;
     return <TimeTable currentWeek={timeTableWeekIndex} />;
   };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <SafeAreaView style={styles.screen}>
         <View style={styles.containerTimeTable}>
-          <View
+          <TouchableOpacity
             style={{
               paddingRight: 10,
               height: 43,
@@ -204,6 +234,12 @@ const TimeTableScreen = function ({ navigation }) {
               alignItems: "center",
               backgroundColor: "lightgrey",
             }}
+            onPress={() =>
+              flashListRef.current.scrollToIndex({
+                index: currentIndex,
+                animated: true,
+              })
+            }
           >
             <Icon.FontAwesome
               name="bookmark"
@@ -220,17 +256,18 @@ const TimeTableScreen = function ({ navigation }) {
                 {currentDate}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.timetableBox}>
-            <FlatList
-              ref={flatListRef}
+            <FlashList
+              ref={flashListRef}
               data={weeks}
               renderItem={renderItem}
               horizontal
               pagingEnabled
+              estimatedItemSize={screenWidth}
               showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.index.toString()}
+              keyExtractor={(item) => item.id}
               onMomentumScrollEnd={handleScroll}
               initialScrollIndex={currentIndex}
               getItemLayout={(_, index) => ({
@@ -244,32 +281,6 @@ const TimeTableScreen = function ({ navigation }) {
       </SafeAreaView>
     </View>
   );
-};
-
-const GenericScreen = function ({ navigation }) {
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity style={styles.addButton}>
-          <Icon.AntDesign name="pluscircle" size={35} color="#3a5f8a" />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
-  return <Text>teacherSearchInput</Text>;
-};
-
-const YearDetailedScreen = function ({ navigation }) {
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity style={styles.addButton}>
-          <Icon.AntDesign name="pluscircle" size={35} color="#3a5f8a" />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
-  return <Text>teacherSearchInput</Text>;
 };
 
 const styles = StyleSheet.create({
