@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -9,14 +9,63 @@ import * as Icon from "@expo/vector-icons";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
 import SearchStack from "./screens/SearchStack";
+import { calculateHolidayAPIDates } from "./externMethods/calculateHolidayAPIDates";
+import { useHolidayData } from "./contexts/HolidayDataContext";
+import { createAdjustedHolidayDataMap } from "./externMethods/createAdjustedHolidayDataMap";
+import LoginScreen from "./screens/LoginScreen";
+import SplashScreen from "./screens/SplashScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const { startDate, targetDate } = calculateHolidayAPIDates();
+
 const Navigation = function () {
+  const [publicHolidays, setHolidayDays] = useState(null);
+  const [schoolHolidays, setHolidayPeriods] = useState(null);
+
+  const { holidayData, setHolidayData } = useHolidayData();
+
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const schoolHolidaysResponse = await fetch(
+          `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
+        );
+
+        const schoolHolidaysData = await schoolHolidaysResponse.json();
+        setHolidayPeriods(createAdjustedHolidayDataMap(schoolHolidaysData));
+        const publicHolidaysResponse = await fetch(
+          `https://openholidaysapi.org/PublicHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
+        );
+        const publicHolidaysData = await publicHolidaysResponse.json();
+        setHolidayDays(createAdjustedHolidayDataMap(publicHolidaysData));
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Daten:", error);
+      }
+    };
+    fetchHolidays();
+  }, []);
+
+  useEffect(() => {
+    if (publicHolidays && schoolHolidays) {
+      setHolidayData([{ data: publicHolidays }, { data: schoolHolidays }]);
+    }
+  }, [publicHolidays, schoolHolidays]);
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Tabs">
+      <Stack.Navigator initialRouteName="SplashScreen">
+        <Stack.Screen
+          name="SplashScreen"
+          component={SplashScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="LoginScreen"
+          component={LoginScreen}
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
         <Stack.Screen
           name="SettingsScreen"
           component={SettingsScreen}
@@ -25,7 +74,7 @@ const Navigation = function () {
         <Stack.Screen
           name="Tabs"
           component={Tabs}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, gestureEnabled: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -58,7 +107,16 @@ const Tabs = function () {
         return <Family name={icon} size={size} color={color} />;
       },
       tabBarActiveTintColor: "black",
-      tabBarStyle: { position: "absolute" },
+      tabBarStyle: {
+        position: "absolute",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        overflow: "hidden",
+        elevation: 0,
+        shadowOpacity: 0,
+        borderTopWidth: 0,
+        backgroundColor: "transparent"
+      },
       tabBarBackground: () => (
         <BlurView
           tint="light"

@@ -1,8 +1,24 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, ScrollView } from "react-native";
 import * as Icon from "@expo/vector-icons";
 
 const NewsDetailedScreen = function ({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "500",
+            color: "#8E8E93",
+          }}
+        >
+          Aktuell gbit es keine Neuigkeiten!
+        </Text>
+      </ScrollView>
+    );
+  }
+
   const resultBox = ({ item, index }) => (
     <View style={styles.deadlineResult}>
       <Icon.FontAwesome name="exclamation-circle" size={24} color={"#FF6F61"} />

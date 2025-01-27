@@ -1,4 +1,4 @@
-import { StyleSheet, View, Pressable, Text } from "react-native";
+import { StyleSheet, View, TouchableOpacity, Text } from "react-native";
 import * as Icon from "@expo/vector-icons";
 
 const MessageBox = function ({
@@ -10,7 +10,11 @@ const MessageBox = function ({
   content = [{}],
 }) {
   return (
-    <Pressable style={[styles.boxSize, style]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.boxSize, style]}
+      activeOpacity={0.4}
+      onPress={onPress}
+    >
       <View style={[styles.titleBox, titleStyle]}>
         <View style={styles.title}>
           <Icon.FontAwesome
@@ -44,7 +48,7 @@ const MessageBox = function ({
           </View>
         ))}
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

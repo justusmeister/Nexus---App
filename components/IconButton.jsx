@@ -1,8 +1,8 @@
-import { StyleSheet, Pressable } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 
 const IconButton = function ({ style, onPress }) {
   return (
-    <Pressable onPress={onPress} style={[styles.boxSize, style]}></Pressable>
+    <TouchableOpacity onPress={onPress} style={[styles.boxSize, style]}></TouchableOpacity>
   );
 };
 

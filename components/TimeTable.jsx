@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -6,274 +6,14 @@ import {
   Dimensions,
   StyleSheet,
   InteractionManager,
+  Modal,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { useHolidayData } from "../contexts/HolidayDataContext";
 
-const dummyStundenplan = [
-  {
-    tag: "Montag",
-    stunden: [
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Deutsch",
-        lehrer: "DEF",
-        raum: "102",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Chemie",
-        lehrer: "JKL",
-        raum: "104",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Sport",
-        lehrer: "MNO",
-        raum: "DSH-1",
-        vertretung: { lehrer: "PQR", raum: "DSH-1" },
-        entfall: false,
-      },
-      {
-        fach: "Geschichte",
-        lehrer: "STU",
-        raum: "105",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Dienstag",
-    stunden: [
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Informatik",
-        lehrer: "VWX",
-        raum: "106",
-        vertretung: { lehrer: null, raum: null },
-        entfall: true,
-      },
-      {
-        fach: "Biologie",
-        lehrer: "YZA",
-        raum: "107",
-        vertretung: { lehrer: "BCD", raum: "107" },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Kunst",
-        lehrer: "EFG",
-        raum: "109",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Musik",
-        lehrer: "HIJ",
-        raum: "110",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Erdkunde",
-        lehrer: "KLM",
-        raum: "111",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Mittwoch",
-    stunden: [
-      {
-        fach: "Geschichte",
-        lehrer: "STU",
-        raum: "105",
-        vertretung: { lehrer: "NOP", raum: "105" },
-        entfall: false,
-      },
-      {
-        fach: "Physik",
-        lehrer: "QRS",
-        raum: "113",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Chemie",
-        lehrer: "JKL",
-        raum: "104",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Deutsch",
-        lehrer: "DEF",
-        raum: "102",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Sport",
-        lehrer: "MNO",
-        raum: "DSH-1",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Ethik",
-        lehrer: "TUV",
-        raum: "114",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Donnerstag",
-    stunden: [
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Informatik",
-        lehrer: "VWX",
-        raum: "106",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Biologie",
-        lehrer: "YZA",
-        raum: "107",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Englisch",
-        lehrer: "GHI",
-        raum: "103",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Chemie",
-        lehrer: "JKL",
-        raum: "104",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Geschichte",
-        lehrer: "STU",
-        raum: "105",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-    ],
-  },
-  {
-    tag: "Freitag",
-    stunden: [
-      {
-        fach: "Erdkunde",
-        lehrer: "KLM",
-        raum: "111",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Physik",
-        lehrer: "QRS",
-        raum: "113",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Kunst",
-        lehrer: "EFG",
-        raum: "109",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Deutsch",
-        lehrer: "DEF",
-        raum: "102",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Musik",
-        lehrer: "HIJ",
-        raum: "110",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Sport",
-        lehrer: "MNO",
-        raum: "DSH-1",
-        vertretung: { lehrer: null, raum: null },
-        entfall: false,
-      },
-      {
-        fach: "Mathe",
-        lehrer: "ABC",
-        raum: "101",
-        vertretung: { lehrer: "OPQ", raum: "101" },
-        entfall: false,
-      },
-    ],
-  },
-];
+const dummyStundenplan = [];
 
 const lessonStartTime = [
   "07:50",
@@ -318,22 +58,82 @@ const screenWidth = Dimensions.get("window").width - 44;
 const { height: screenHeight } = Dimensions.get("window");
 const cellHeight = screenHeight * 0.0635;
 
-const Column = ({ data, indexColumn }) => {
+const setDayDate = (date, daysAmount) => {
+  newDate = new Date(date);
+  newDate.setDate(newDate.getDate() + daysAmount);
+  return newDate;
+};
+
+const convertToISOTime = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentLessonData, setCurrentLessonData] = useState();
+  const { holidayData } = useHolidayData();
+
   const emptyCells = Array.from(
-    { length: 10 - data.length },
+    { length: 10 - data?.length || 0 },
     (_, index) => index
   );
+
+  const isHoliday = (day) =>
+    holidayData[0].data.has(day) || holidayData[1].data.has(day);
+
+  const columnDay = convertToISOTime(
+    setDayDate(currentWeekMonday, indexColumn)
+  );
+
+  const holidayName =
+    holidayData[1].data.get(columnDay)?.name ||
+    holidayData[0].data.get(columnDay)?.name ||
+    "";
 
   return (
     <View
       style={[styles.column, { borderRightWidth: indexColumn !== 4 ? 1 : 0 }]}
     >
-      {data.map((item, index) => (
-        <View key={index} style={[styles.cell, { height: cellHeight }]}>
-          <View style={styles.lessonBox}></View>
+      {isHoliday(columnDay) ? (
+        <View
+          style={{
+            height: cellHeight * 10,
+            backgroundColor: "#3a5f8a",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {holidayName.split("").map((char, index) => (
+            <Text
+              key={index}
+              style={{ fontSize: 15, fontWeight: "500", color: "white" }}
+            >
+              {char}
+            </Text>
+          ))}
         </View>
-      ))}
-      {data.length < 10
+      ) : (
+        data?.map((item, index) => (
+          <View key={index} style={[styles.cell, { height: cellHeight }]}>
+            <TouchableOpacity
+              style={styles.lessonBox}
+              activeOpacity={0.4}
+              onPress={() => {
+                setCurrentLessonData(data[index]);
+                setIsModalVisible(true);
+              }}
+            >
+              <Text style={styles.lessonText}>{data[index]?.fach}</Text>
+              <Text style={styles.lessonText}>{data[index]?.raum}</Text>
+              <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+      {(!isHoliday(columnDay) && data?.length) || 0 < 10
         ? emptyCells.map((item, index) => (
             <View
               key={index}
@@ -347,6 +147,11 @@ const Column = ({ data, indexColumn }) => {
             ></View>
           ))
         : null}
+      <LessonInfoModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        data={currentLessonData}
+      />
     </View>
   );
 };
@@ -376,57 +181,46 @@ const TimeColumn = ({ content }) => {
   );
 };
 
-const setDayDate = (date, daysAmount) => {
-  newDate = new Date(date);
-  newDate.setDate(newDate.getDate() + daysAmount);
-  return newDate;
-};
-
 const createWeekDate = (currentWeek) => {
   return new Date(new Date().setDate(new Date().getDate() + 7 * currentWeek));
 };
 
-const TimeTable = ({ currentWeek, holidayData }) => {
-  const [currentDate, setCurrentDate] = useState(createWeekDate(currentWeek));
-  useEffect(() => {
-    const updateCurrentTime = () => {
-      InteractionManager.runAfterInteractions(() => {
-        setCurrentDate(createWeekDate(currentWeek));
-      });
-    };
-    const timer = setInterval(updateCurrentTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
+const TimeTable = ({ currentWeek }) => {
+  const currentDate = useMemo(() => createWeekDate(currentWeek), [currentWeek]);
 
-  let monthAlreadyDisplayed = false;
+  const distanceToCurrentWeekMonday = useMemo(() => {
+    return (currentDate.getDay() + 6) % 7;
+  }, [currentDate]);
 
-  const distanceToCurrentWeekMonday = (currentDate.getDay() + 6) % 7;
-  let currentWeekMonday = new Date(currentDate);
-  currentWeekMonday.setDate(
-    currentWeekMonday.getDate() - distanceToCurrentWeekMonday
-  );
+  const currentWeekMonday = useMemo(() => {
+    const monday = new Date(currentDate);
+    monday.setDate(monday.getDate() - distanceToCurrentWeekMonday);
+    return monday;
+  }, [currentDate, distanceToCurrentWeekMonday]);
+
+  const monthDisplayed = useRef(false);
 
   const checkDateMonth = (mondayDate, dayDate) => {
     if (mondayDate.getMonth() === dayDate.getMonth()) {
-      return 12;
+      return 12; 
+    } else if (!monthDisplayed.current) {
+      monthDisplayed.current = true;
+      return dayDate.getMonth();
     } else {
-      if (!monthAlreadyDisplayed) {
-        monthAlreadyDisplayed = true;
-        return dayDate.getMonth();
-      } else return 12;
+      return 12; 
     }
   };
 
   return (
     <View style={styles.container}>
-      {currentWeek === 0 ? (
+      {currentWeek === 0 && (
         <Icon.FontAwesome
           name="circle"
           size={13}
           color={"#d17002"}
           style={{ position: "absolute", top: 15, left: 15 }}
         />
-      ) : null}
+      )}
       <View style={styles.daysInfoBox}>
         {["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"].map(
           (day, index) => (
@@ -479,12 +273,43 @@ const TimeTable = ({ currentWeek, holidayData }) => {
         {[0, 1, 2, 3, 4].map((dayIndex) => (
           <Column
             key={dayIndex}
-            data={dummyStundenplan[dayIndex].stunden}
+            data={dummyStundenplan[dayIndex]?.stunden}
             indexColumn={dayIndex}
+            currentWeekMonday={currentWeekMonday}
           />
         ))}
       </ScrollView>
     </View>
+  );
+};
+
+
+const LessonInfoModal = ({ visible, data, onClose }) => {
+  return (
+    <Modal visible={visible} transparent={true} animationType="fade">
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.modalContainer}>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Icon.Ionicons
+                  name="close-circle-sharp"
+                  size={32}
+                  color="#333"
+                />
+              </TouchableOpacity>
+              <View style={styles.modalHeader}>
+                <Text style={styles.subject}>{data?.fach}</Text>
+                <Text style={styles.teacher}>{data?.lehrer}</Text>
+                <Text style={styles.room}>{data?.raum}</Text>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.homeworkContainer}></View>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
   );
 };
 
@@ -536,7 +361,9 @@ const styles = StyleSheet.create({
     width: "97%",
     height: "97%",
     borderRadius: 5,
-    backgroundColor: "green",
+    backgroundColor: "#1d6fc2",
+    justifyContent: "center",
+    alignItems: "center",
   },
   timeText: {
     fontSize: 10,
@@ -548,6 +375,67 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#4d4d4d",
   },
+  lessonText: {
+    fontSize: 8,
+    fontWeight: "500",
+    color: "white",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "85%",
+    height: "60%",
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 15,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 7,
+    right: 7,
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: "#4A90E2",
+  },
+  modalHeader: {
+    marginBottom: 10,
+    backgroundColor: "#f1f5f9",
+    padding: 10,
+    borderRadius: 8,
+  },
+  subject: {
+    fontWeight: "600",
+    fontSize: 16,
+    color: "#4A90E2",
+  },
+  teacher: {
+    fontSize: 14,
+    color: "#333",
+  },
+  room: {
+    fontSize: 12,
+    color: "#666",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginVertical: 10,
+  },
+  homeworkContainer: {
+    flex: 1,
+  },
 });
 
-export default TimeTable;
+export default memo(TimeTable);
