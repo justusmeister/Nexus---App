@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, memo } from "react";
 import {
   StyleSheet,
   View,
@@ -10,6 +10,7 @@ import {
   InteractionManager,
   ActivityIndicator,
   Pressable,
+  Platform,
 } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
@@ -19,6 +20,8 @@ import TimeTable from "../components/TimeTable";
 import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
 import YearCalendarScreen from "./OrganisationSubScreens/YearCalendarScreen";
 import GenericScreen from "./OrganisationSubScreens/GenericScreen";
+import NotesScreen from "./OrganisationSubScreens/NotesScreen";
+import NotesInputScreen from "./OrganisationSubScreens/NotesInputScreen";
 import YearDetailedScreen from "./OrganisationSubScreens/YearDetailedScreen";
 import { FlashList } from "@shopify/flash-list";
 
@@ -26,14 +29,6 @@ const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
 const OrganisationStack = function ({ navigation }) {
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("tabPress", (e) => {
-      navigation.navigate("TimeTableScreen");
-    });
-
-    return unsubscribe;
-  }, []);
-
   insets = useSafeAreaInsets();
 
   return (
@@ -53,6 +48,27 @@ const OrganisationStack = function ({ navigation }) {
         }}
       />
       <Stack.Screen
+        name="NotesScreen"
+        component={NotesScreen}
+        options={{
+          title: "allgemeine Notizen",
+          headerBackTitle: "Zurück",
+          headerTintColor: "black",
+        }}
+      />
+      <Stack.Screen
+        name="NotesInputScreen"
+        component={NotesInputScreen}
+        options={{
+          title: "Notizen",
+          headerShadowVisible: false,
+          presentation: Platform.OS === "ios" ? "modal" : "fullScreenModal",
+          headerStyle: {
+            backgroundColor: "#EFEEF6",
+          },
+        }}
+      />
+      <Stack.Screen
         name="YearDetailedScreen"
         component={YearDetailedScreen}
         options={{
@@ -69,64 +85,67 @@ export default OrganisationStack;
 
 const MaterialTopTabs = function () {
   return (
-    <Tab.Navigator
-      initialRouteName="TimeTableScreen"
-      screenOptions={{
-        tabBarScrollEnabled: true,
-        tabBarItemStyle: { width: 120 },
-        lazy: true,
-        lazyPlaceholder: () => {
-          return (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#EFEEF6",
-              }}
-            >
-              <ActivityIndicator size={"large"} color={"#333"} />
-            </View>
-          );
-        },
-        tabBarActiveTintColor: "#333",
-        tabBarInactiveTintColor: "#888",
-        tabBarLabelStyle: {
-          fontSize: 9,
-          fontWeight: "600",
-        },
-        tabBarStyle: {
-          backgroundColor: "#EFEEF6",
-          marginTop: insets.top,
-        },
-        tabBarIndicatorStyle: {
-          backgroundColor: "#333",
-          height: 3,
-        },
-      }}
+    <View
+      style={{ flex: 1, backgroundColor: "#EFEEF6", paddingTop: insets.top }}
     >
-      <Tab.Screen
-        name="TimeTableScreen"
-        component={TimeTableScreen}
-        options={{
-          tabBarLatitlbel: "Stundenplan",
+      <Tab.Navigator
+        initialRouteName="TimeTableScreen"
+        screenOptions={{
+          lazy: true,
+          lazyPlaceholder: () => {
+            return (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "#EFEEF6",
+                }}
+              >
+                <ActivityIndicator size={"small"} color={"#333"} />
+              </View>
+            );
+          },
+          tabBarActiveTintColor: "#333",
+          tabBarInactiveTintColor: "#888",
+          tabBarLabelStyle: {
+            fontSize: 13,
+            fontWeight: "600",
+          },
+          tabBarStyle: {
+            backgroundColor: "#EFEEF6",
+            height: 48,
+          },
+          tabBarIndicatorStyle: {
+            backgroundColor: "#333",
+            height: 3,
+          },
+          tabBarScrollEnabled: true,
         }}
-      />
-      <Tab.Screen
-        name="YearCalendarScreen"
-        component={YearCalendarScreen}
-        options={{
-          tabBarLabel: "Jahreskalendar",
-        }}
-      />
-      <Tab.Screen
-        name="HomeworkScreen"
-        component={HomeworkScreen}
-        options={{
-          tabBarLabel: "Hausaufgaben",
-        }}
-      />
-    </Tab.Navigator>
+      >
+        <Tab.Screen
+          name="TimeTableScreen"
+          component={TimeTableScreen}
+          options={{
+            tabBarLabel: "Stundenplan",
+          }}
+        />
+        <Tab.Screen
+          name="YearCalendarScreen"
+          component={YearCalendarScreen}
+          options={{
+            tabBarLabel: "Jahreskalender",
+          }}
+        />
+        <Tab.Screen
+          name="HomeworkScreen"
+          component={HomeworkScreen}
+          options={{
+            tabBarLabel: "Hausaufgaben",
+          }}
+        />
+      </Tab.Navigator>
+    </View>
   );
 };
 

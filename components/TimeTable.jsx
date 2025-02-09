@@ -13,8 +13,6 @@ import {
 import * as Icon from "@expo/vector-icons";
 import { useHolidayData } from "../contexts/HolidayDataContext";
 
-const dummyStundenplan = [];
-
 const lessonStartTime = [
   "07:50",
   "08:35",
@@ -43,6 +41,68 @@ const monthList = [
   "Dez.",
   null,
 ];
+
+const dummyStundenplan = [
+  {
+    stunden: [
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
+      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
+      { fach: "Biologie", raum: "103", lehrer: "Herr Braun" },
+      { fach: "Biologie", raum: "103", lehrer: "Herr Braun" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Sport", raum: "105", lehrer: "Herr Schulz" },
+    ],
+  },
+  {
+    stunden: [
+      { fach: "Englisch", raum: "201", lehrer: "Herr Keller" },
+      { fach: "Englisch", raum: "201", lehrer: "Herr Keller" },
+      { fach: "Chemie", raum: "202", lehrer: "Frau Weber" },
+      { fach: "Chemie", raum: "202", lehrer: "Frau Weber" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Chemie", raum: "202", lehrer: "Frau Weber" },
+      { fach: "Französisch", raum: "204", lehrer: "Herr Dupont" },
+      { fach: "Französisch", raum: "204", lehrer: "Herr Dupont" },
+    ],
+  },
+  {
+    stunden: [
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Sport", raum: "301", lehrer: "Herr Schulz" },
+      { fach: "Sport", raum: "301", lehrer: "Herr Schulz" },
+      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
+      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
+    ],
+  },
+  {
+    stunden: [
+      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
+      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
+      { fach: "Erdkunde", raum: "402", lehrer: "Frau Schneider" },
+      { fach: "Französisch", raum: "204", lehrer: "Herr Dupont" },
+      { fach: "Informatik", raum: "403", lehrer: "Herr Hoffmann" },
+      { fach: "Informatik", raum: "403", lehrer: "Herr Hoffmann" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+    ],
+  },
+  {
+    stunden: [
+      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
+      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
+      { fach: "Physik", raum: "501", lehrer: "Herr Müller" },
+      { fach: "Physik", raum: "501", lehrer: "Herr Müller" },
+      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      { fach: "Englisch", raum: "201", lehrer: "Herr Keller" },
+    ],
+  },
+];
+
+
 
 function addTime(timeString, minutesToAdd) {
   const time = new Date(`2024-12-10T${timeString}:00`);
@@ -116,24 +176,66 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
           ))}
         </View>
       ) : (
-        data?.map((item, index) => (
-          <View key={index} style={[styles.cell, { height: cellHeight }]}>
-            <TouchableOpacity
-              style={styles.lessonBox}
-              activeOpacity={0.4}
-              onPress={() => {
-                setCurrentLessonData(data[index]);
-                setIsModalVisible(true);
-              }}
-            >
-              <Text style={styles.lessonText}>{data[index]?.fach}</Text>
-              <Text style={styles.lessonText}>{data[index]?.raum}</Text>
-              <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
-            </TouchableOpacity>
-          </View>
-        ))
+        data?.map((item, index) => {
+          const isDoubleLesson =
+            index < data.length - 1 &&
+            dummyStundenplan[indexColumn].stunden[index]?.fach ===
+              dummyStundenplan[indexColumn].stunden[index + 1]?.fach &&
+            dummyStundenplan[indexColumn].stunden[index]?.raum ===
+              dummyStundenplan[indexColumn].stunden[index + 1]?.raum;
+
+          const isLastDoubleLesson =
+            index > 0 &&
+            dummyStundenplan[indexColumn].stunden[index]?.fach ===
+              dummyStundenplan[indexColumn].stunden[index - 1]?.fach &&
+            dummyStundenplan[indexColumn].stunden[index]?.raum ===
+              dummyStundenplan[indexColumn].stunden[index - 1]?.raum;
+
+          if (isLastDoubleLesson) {
+            return null; 
+          }
+
+          if (isDoubleLesson) {
+            return (
+              <View
+                key={index}
+                style={[styles.cell, { height: cellHeight * 2 }]}
+              >
+                <TouchableOpacity
+                  style={styles.lessonBox}
+                  activeOpacity={0.4}
+                  onPress={() => {
+                    setCurrentLessonData(data[index]);
+                    setIsModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.lessonText}>{data[index]?.fach}</Text>
+                  <Text style={styles.lessonText}>{data[index]?.raum}</Text>
+                  <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          } else {
+            return (
+              <View key={index} style={[styles.cell, { height: cellHeight }]}>
+                <TouchableOpacity
+                  style={styles.lessonBox}
+                  activeOpacity={0.4}
+                  onPress={() => {
+                    setCurrentLessonData(data[index]);
+                    setIsModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.lessonText}>{data[index]?.fach}</Text>
+                  <Text style={styles.lessonText}>{data[index]?.raum}</Text>
+                  <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }
+        })
       )}
-      {(!isHoliday(columnDay) && data?.length) || 0 < 10
+      {!isHoliday(columnDay) && data?.length < 10
         ? emptyCells.map((item, index) => (
             <View
               key={index}
@@ -202,12 +304,12 @@ const TimeTable = ({ currentWeek }) => {
 
   const checkDateMonth = (mondayDate, dayDate) => {
     if (mondayDate.getMonth() === dayDate.getMonth()) {
-      return 12; 
+      return 12;
     } else if (!monthDisplayed.current) {
       monthDisplayed.current = true;
       return dayDate.getMonth();
     } else {
-      return 12; 
+      return 12;
     }
   };
 
@@ -282,7 +384,6 @@ const TimeTable = ({ currentWeek }) => {
     </View>
   );
 };
-
 
 const LessonInfoModal = ({ visible, data, onClose }) => {
   return (

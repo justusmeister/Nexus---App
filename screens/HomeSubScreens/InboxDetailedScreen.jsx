@@ -70,21 +70,9 @@ const InboxDetailedScreen = ({ data, index }) => {
             setCurrentEmail(item);
             setIsModalVisible(true);
           }}
+          style={{ justifyContent: "space-between", flexDirection: "row" }}
         >
           <View style={styles.newsBox}>
-            {item.read ? null : (
-              <Icon.FontAwesome
-                name="circle"
-                size={10}
-                color={"orange"}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  right: 15,
-                  zIndex: 1,
-                }}
-              />
-            )}
             <Text
               style={[
                 styles.newsBoxAuthor,
@@ -95,6 +83,27 @@ const InboxDetailedScreen = ({ data, index }) => {
             </Text>
             <Text style={styles.newsBoxContent}>{item.title}</Text>
             <Text style={styles.newsBoxDate}>{item.date}</Text>
+          </View>
+
+          <View style={styles.inboxSubBox}>
+            {item.read ? null : (
+              <Icon.FontAwesome
+                name="circle"
+                size={10}
+                color={"orange"}
+                style={{
+                  zIndex: 1,
+                }}
+              />
+            )}
+            <Icon.FontAwesome
+              name="paperclip"
+              size={20}
+              color={"black"}
+              style={{
+                zIndex: 1,
+              }}
+            />
           </View>
         </Pressable>
       </Animated.View>
@@ -291,6 +300,11 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: "#333",
   },
+  inboxSubBox: {
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    marginRight: 15,
+  }
 });
 
 export default InboxDetailedScreen;
