@@ -500,14 +500,15 @@ const DayRow = memo(
       const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
         day < 10 ? `0${day}` : day
       }`;
-
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
         for (const event of events) {
           if (event.eventType === 1) return 1;
+          else if (event.eventType === 0) return 0;
         }
         return 2;
-      } else return 0;
+      }
+      return 0;
     };
 
     const getBorderRadius = (
@@ -564,24 +565,26 @@ const DayRow = memo(
             isClasstest && !isWeekendEnd
               ? 50
               : isWeekendStart ||
-                isHolidayStart(
+                (isHolidayStart(
                   isClasstestBefore ||
                     (isEvent(day, month, year) !== 2 &&
                       isEvent(day - 1, month, year) === 2)
-                ) ||
-                isEventStart
+                ) &&
+                  index !== 6) ||
+                (isEventStart && index !== 6)
               ? 50
               : 0,
           borderBottomLeftRadius:
             isClasstest && !isWeekendEnd
               ? 50
               : isWeekendStart ||
-                isHolidayStart(
+                (isHolidayStart(
                   isClasstestBefore ||
                     (isEvent(day, month, year) !== 2 &&
                       isEvent(day - 1, month, year) === 2)
-                ) ||
-                isEventStart
+                ) &&
+                  index !== 6) ||
+                (isEventStart && index !== 6)
               ? 50
               : 0,
           borderTopRightRadius:
@@ -663,21 +666,21 @@ const DayRow = memo(
           backgroundColor:
             isEvent(day, month, year) !== 0
               ? isEvent(day, month, year) === 1
-                ? "#fcd968"
-                : "#9f65f0"
+                ? "#F9D566"
+                : "#C08CFF"
               : index === 5 || index === 6
-              ? "#c4c4c4"
+              ? "#BFBFC4"
               : isHoliday(day, month, year)
-              ? "#b4d3ed"
+              ? "#A4C8FF"
               : null,
         };
       else if (filter === 1)
         return {
           backgroundColor:
             index === 5 || index === 6
-              ? "#c4c4c4"
+              ? "#BFBFC4"
               : isHoliday(day, month, year)
-              ? "#b4d3ed"
+              ? "#A4C8FF"
               : null,
         };
       else if (filter === 2)
@@ -685,10 +688,10 @@ const DayRow = memo(
           backgroundColor:
             isEvent(day, month, year) !== 0
               ? isEvent(day, month, year) === 1
-                ? "#fcd968"
-                : "#9f65f0"
+                ? "#F9D566"
+                : "#C08CFF"
               : index === 5 || index === 6
-              ? "#c4c4c4"
+              ? "#BFBFC4"
               : null,
         };
     };

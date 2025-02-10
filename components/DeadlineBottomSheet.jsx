@@ -99,8 +99,8 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
 
   const appointmentType = useMemo(() => {
     if (selectedOption === "Zeitraum") return 2;
-    if (selectedOption === "Frist") return 2;
-    return eventType === "Klausur" ? 1 : 0;
+    if (selectedOption === "Frist") return 0;
+    return eventType === "Klausur" ? 1 : 2;
   }, [selectedOption, eventType]);
 
   return (
@@ -237,14 +237,20 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
         <Pressable
           style={styles.confirmButton}
           onPress={() => {
-            addAppointment(
-              deadlineTitle,
-              startDate,
-              endDate,
-              appointmentType,
-              description || "-",
-              selectedOption === "Zeitraum" ? false : true
-            );
+            try {
+              addAppointment(
+                deadlineTitle,
+                startDate,
+                endDate,
+                appointmentType,
+                description || "-",
+                selectedOption === "Zeitraum" ? false : true
+              );
+            } 
+            catch (error)
+            {
+              console.log(error)
+            }
             handleClose();
           }}
         >

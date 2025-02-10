@@ -22,6 +22,7 @@ import { getAuth } from "firebase/auth";
 import {
   collection,
   getDocs,
+  addDoc,
   doc,
   query,
   where,
@@ -31,8 +32,10 @@ import {
 } from "firebase/firestore";
 import { FlashList } from "@shopify/flash-list";
 import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
+import Toast from "react-native-toast-message";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
+const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
 
 function createEventMap(events) {
   const eventMap = new Map();
@@ -259,7 +262,12 @@ const YearDetailedScreen = function ({ navigation }) {
             data={deadlinesList}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.deadlineItem}>
+              <TouchableOpacity
+                style={[
+                  styles.deadlineItem,
+                  { borderColor: eventTypeColorList[item.eventType] },
+                ]}
+              >
                 <View style={styles.deadlineContent}>
                   <Text style={styles.deadlineTitle}>{item.name}</Text>
                   <Text style={styles.deadlineCategory}>
@@ -346,10 +354,24 @@ const WeekRow = memo(
         const events = eventMap.get(date);
         for (const event of events) {
           if (event.eventType === 1) return 1;
+          else if (event.eventType === 0) return 0;
         }
         return 2;
       }
       return 0;
+    };
+
+    const isDeadline = (day, month, year) => {
+      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
+        day < 10 ? `0${day}` : day
+      }`;
+      if (eventMap.has(date)) {
+        const events = eventMap.get(date);
+        for (const event of events) {
+          if (event.eventType === 0) return 0;
+        }
+        return 1;
+      }
     };
 
     const getBorderRadius = (
@@ -406,24 +428,26 @@ const WeekRow = memo(
             isClasstest && !isWeekendEnd
               ? 50
               : isWeekendStart ||
-                isHolidayStart(
+                (isHolidayStart(
                   isClasstestBefore ||
                     (isEvent(day, month, year) !== 2 &&
                       isEvent(day - 1, month, year) === 2)
-                ) ||
-                isEventStart
+                ) &&
+                  index !== 6) ||
+                (isEventStart && index !== 6)
               ? 50
               : 0,
           borderBottomLeftRadius:
             isClasstest && !isWeekendEnd
               ? 50
               : isWeekendStart ||
-                isHolidayStart(
+                (isHolidayStart(
                   isClasstestBefore ||
                     (isEvent(day, month, year) !== 2 &&
                       isEvent(day - 1, month, year) === 2)
-                ) ||
-                isEventStart
+                ) &&
+                  index !== 6) ||
+                (isEventStart && index !== 6)
               ? 50
               : 0,
           borderTopRightRadius:
@@ -490,6 +514,7 @@ const WeekRow = memo(
               : 0,
         };
     };
+
     const getDayColors = (
       day,
       month,
@@ -505,21 +530,21 @@ const WeekRow = memo(
           backgroundColor:
             isEvent(day, month, year) !== 0
               ? isEvent(day, month, year) === 1
-                ? "#fcd968"
-                : "#9f65f0"
+                ? "#F9D566"
+                : "#C08CFF"
               : index === 5 || index === 6
-              ? "#c4c4c4"
+              ? "#BFBFC4"
               : isHoliday(day, month, year)
-              ? "#b4d3ed"
+              ? "#A4C8FF"
               : null,
         };
       else if (filter === 1)
         return {
           backgroundColor:
             index === 5 || index === 6
-              ? "#c4c4c4"
+              ? "#BFBFC4"
               : isHoliday(day, month, year)
-              ? "#b4d3ed"
+              ? "#A4C8FF"
               : null,
         };
       else if (filter === 2)
@@ -527,16 +552,16 @@ const WeekRow = memo(
           backgroundColor:
             isEvent(day, month, year) !== 0
               ? isEvent(day, month, year) === 1
-                ? "#fcd968"
-                : "#9f65f0"
+                ? "#F9D566"
+                : "#C08CFF"
               : index === 5 || index === 6
-              ? "#c4c4c4"
+              ? "#BFBFC4"
               : null,
         };
     };
 
     return (
-      <View style={[styles.weekRow, { borderBottomWidth: lastRow ? 0 : 1 }]}>
+      <View style={[styles.weekRow, { borderBottomWidth: lastRow ? 0 : 0.5 }]}>
         {days.map((day, index) => {
           if (day > monthLength || day < 1)
             return <View key={index} style={styles.dayButton} />;
@@ -581,9 +606,12 @@ const WeekRow = memo(
               </Text>
               <Icon.FontAwesome
                 name="circle"
-                size={6}
-                color={"green"}
-                style={{ margin: 2 }}
+                size={5}
+                color={"#656565"}
+                style={{
+                  margin: 2,
+                  opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
+                }}
               />
             </TouchableOpacity>
           );
@@ -628,6 +656,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    borderColor: "#E0E0E0",
   },
   dayButton: {
     width: `${100 / 7}%`,
@@ -657,7 +686,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 3,
-    borderLeftColor: "blue",
     borderLeftWidth: "4",
   },
   deadlineContent: {
