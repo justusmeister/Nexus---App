@@ -21,6 +21,21 @@ import InboxDetailedScreen from "./HomeSubScreens/InboxDetailedScreen";
 import NewsDetailedScreen from "./HomeSubScreens/NewsDetailedScreen";
 import { useRoute } from "@react-navigation/native";
 import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+import { firestoreDB } from "../firebaseConfig";
+import { getAuth } from "firebase/auth";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  Timestamp,
+  orderBy,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import Toast from "react-native-toast-message";
 
 const DeadlinesContext = createContext();
@@ -177,11 +192,52 @@ const showToast = () => {
 };
 
 const HomeStack = function ({ navigation }) {
-  const [deadlinesData, setDeadlinesData] = useState(deadlinesDummyData);
+  const [deadlinesData, setDeadlinesData] = useState(["loading"]);
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    return `${String(date.getDate()).padStart(2, "0")}.${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
+  };
+
+  const fetchDeadlines = async () => {
+    if (!user) return;
+    try {
+      const deadlinesRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+      const deadlinesSnapshot = await getDocs(deadlinesRef);
+
+      const deadlines = deadlinesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        subject: doc.data().name,
+        task: doc.data().description,
+        dueDate: formatTimestamp(doc.data().day),
+      }));
+
+      setDeadlinesData(deadlines);
+    } catch (error) {
+      console.error("Fehler beim Abrufen der Termine:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const changeData = (newData) => {
     setDeadlinesData(newData);
   };
+
+  useEffect(() => {
+    fetchDeadlines();
+  }, []);
 
   return (
     <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
@@ -748,10 +804,11 @@ export const HomeScreen = function ({ navigation }) {
               borderBottomWidth: deadlinesData.length > 0 ? 0 : 1,
               borderBottomColor: "#b3b3ba",
             }}
+            isLoading={deadlinesData[0] === "loading"}
             content={[
               {
                 content:
-                  deadlinesData.length > 0
+                  deadlinesData.length > 0 && deadlinesData[0] !== "loading"
                     ? deadlineTemplate(
                         truncateText(deadlinesData[0].subject, 6),
                         truncateText(deadlinesData[0].task, 10),
@@ -763,14 +820,14 @@ export const HomeScreen = function ({ navigation }) {
                   styles.iservContent,
                   {
                     borderWidth:
-                      deadlinesData.length > 0
+                      deadlinesData.length > 0 && deadlinesData[0] !== "loading"
                         ? checkDeadlineRemainingTime(deadlinesData[0].dueDate)
                             .isWithinTwoDays === 1
                           ? 2.5
                           : 0.5
                         : 0,
                     borderColor:
-                      deadlinesData.length > 0
+                      deadlinesData.length > 0 && deadlinesData[0] !== "loading"
                         ? checkDeadlineRemainingTime(deadlinesData[0].dueDate)
                             .isWithinTwoDays === 1
                           ? "#750101"

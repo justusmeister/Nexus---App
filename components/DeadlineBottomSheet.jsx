@@ -22,14 +22,15 @@ import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
 import { SegmentedControl } from "./SegmentedControl";
+import SingleRadioButton from "./SingleRadioButton";
 
 const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
   const [selectedOption, setSelectedOption] = useState("Event");
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [deadlineTitle, setDeadlineTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [deadlineTitle, setDeadlineTitle] = useState(null);
+  const [description, setDescription] = useState(null);
   const [eventType, setEventType] = useState("Klausur");
 
   const windowWidth = useWindowDimensions().width;
@@ -87,7 +88,10 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     }
   }, []);
 
-  const handleTitleChange = useCallback((text) => setDeadlineTitle(text), []);
+  const handleTitleChange = useCallback(
+    (text) => setDeadlineTitle(text),
+    [setDeadlineTitle]
+  );
   const handleDescriptionChange = useCallback(
     (text) => setDescription(text),
     []
@@ -137,15 +141,15 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
         </View>
 
         {selectedOption !== "Zeitraum" && selectedOption !== "Frist" && (
-          <View style={styles.switchContainer}>
-            <Text style={styles.label}>Frist?</Text>
-            <Switch value={isAllDay} onChange={toggleIsAllDay} />
+          <View style={styles.radioButtonContainer}>
+            <Text style={styles.label}>Als Frist speichern?</Text>
+            <SingleRadioButton value={isAllDay} onPress={toggleIsAllDay} />
           </View>
         )}
 
         {selectedOption === "Event" ? (
           <View style={styles.eventTypeSelectorContainer}>
-            <Text style={styles.label}>Event Typ:</Text>
+            <Text style={styles.label}>Eventtyp:</Text>
             <SegmentedControl
               options={["Klausur", "Event"]}
               selectedOption={eventType}
@@ -244,12 +248,11 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
                 endDate,
                 appointmentType,
                 description || "-",
-                selectedOption === "Zeitraum" ? false : true
+                selectedOption === "Zeitraum" ? false : true,
+                isAllDay
               );
-            } 
-            catch (error)
-            {
-              console.log(error)
+            } catch (error) {
+              console.log(error);
             }
             handleClose();
           }}
@@ -282,7 +285,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
@@ -307,12 +310,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlignVertical: "top",
   },
-  switchContainer: {
+  radioButtonContainer: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   dateTimeContainer: {
     width: "100%",
@@ -364,7 +367,7 @@ const styles = StyleSheet.create({
   },
   eventTypeSelectorContainer: {
     width: "100%",
-    marginVertical: 5,
+    marginBottom: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

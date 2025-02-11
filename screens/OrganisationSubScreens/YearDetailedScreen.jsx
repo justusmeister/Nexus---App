@@ -176,7 +176,8 @@ const YearDetailedScreen = function ({ navigation }) {
     endDate,
     eventType,
     description,
-    singleEvent
+    singleEvent,
+    saveAsDeadline
   ) => {
     if (!user) return;
 
@@ -208,6 +209,38 @@ const YearDetailedScreen = function ({ navigation }) {
     } finally {
       setLoading(false);
       fetchAppointments(params.date);
+      eventType === 0 || saveAsDeadline
+        ? addDeadline(name, day, description)
+        : null;
+    }
+  };
+
+  const addDeadline = async (name, day, description) => {
+    if (!user) return;
+
+    try {
+      const deadlineCollectionRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+
+      await addDoc(deadlineCollectionRef, {
+        name,
+        day,
+        description,
+        timestamp: serverTimestamp(),
+      });
+
+      console.log("Frist erfolgreich hinzugefügt!");
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
     }
   };
 
@@ -606,7 +639,7 @@ const WeekRow = memo(
               </Text>
               <Icon.FontAwesome
                 name="circle"
-                size={5}
+                size={6}
                 color={"#656565"}
                 style={{
                   margin: 2,

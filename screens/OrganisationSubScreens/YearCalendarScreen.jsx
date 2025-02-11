@@ -36,6 +36,7 @@ import {
   Timestamp,
   orderBy,
   serverTimestamp,
+  setDoc,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { BlurView } from "expo-blur";
@@ -175,7 +176,8 @@ const YearCalendarScreen = function ({ navigation }) {
     endDate,
     eventType,
     description,
-    singleEvent
+    singleEvent,
+    saveAsDeadline
   ) => {
     if (!user) return;
 
@@ -207,6 +209,38 @@ const YearCalendarScreen = function ({ navigation }) {
     } finally {
       setLoading(false);
       fetchAppointments();
+      eventType === 0 || saveAsDeadline
+        ? addDeadline(name, day, description)
+        : null;
+    }
+  };
+
+  const addDeadline = async (name, day, description) => {
+    if (!user) return;
+
+    try {
+      const deadlineCollectionRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+
+      await addDoc(deadlineCollectionRef, {
+        name,
+        day,
+        description,
+        timestamp: serverTimestamp(),
+      });
+
+      console.log("Frist erfolgreich hinzugefügt!");
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
     }
   };
 
