@@ -62,6 +62,7 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-webview": "13.12.5",
     "reanimated-bottom-sheet": "^1.0.0-alpha.22",
+    "webuntis": "^2.2.1",
     "zeego": "^2.0.4"
   },
   "devDependencies": {
