@@ -107,12 +107,6 @@ const YearDetailedScreen = function ({ navigation }) {
     return Timestamp.fromDate(date);
   };
 
-  const getEndDate = (startDate, monthLength) => {
-    if (!startDate || !monthLength) return null;
-    const [year, month, day] = startDate.split("-").map(Number);
-    return `${year}.${month}.${monthLength}`; // Endet immer am Monatsletzten
-  };
-
   const parseDateToTimestampRange = (startDate, endDate) => ({
     start: parseDateToTimestamp(startDate),
     end: parseDateToTimestamp(endDate),
@@ -270,6 +264,18 @@ const YearDetailedScreen = function ({ navigation }) {
     setSelectedDay(day);
   }, []);
 
+  const formatDate = () => {
+    if (!selectedDay || !params?.date) return null;
+
+    const [year, month] = params?.date.split("-");
+    const formattedDay = String(selectedDay).padStart(2, "0");
+    return `${year}-${month.padStart(2, "0")}-${formattedDay}`;
+  };
+
+  const filteredDeadlines = formatDate()
+    ? deadlinesList.filter((item) => item.day === formatDate())
+    : deadlinesList;
+
   return (
     <View style={styles.screen}>
       <View style={styles.container}>
@@ -292,7 +298,7 @@ const YearDetailedScreen = function ({ navigation }) {
             alle Fristen im {params?.month}:
           </Text>
           <FlashList
-            data={deadlinesList}
+            data={filteredDeadlines}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -599,7 +605,7 @@ const WeekRow = memo(
           if (day > monthLength || day < 1)
             return <View key={index} style={styles.dayButton} />;
           return (
-            <TouchableOpacity
+            <View
               style={[
                 styles.dayButton,
                 getDayColors(
@@ -623,30 +629,42 @@ const WeekRow = memo(
                   0
                 ),
               ]}
-              onPress={() => setSelectedDay(day)}
               key={index}
             >
-              <Text
-                style={[
-                  styles.dayText,
-                  {
-                    color: isToday(day, month, year) ? "red" : "black",
-                    backgroundColor: selectedDay === day ? "white" : null,
-                  },
-                ]}
-              >
-                {day}
-              </Text>
-              <Icon.FontAwesome
-                name="circle"
-                size={6}
-                color={"#656565"}
+              <TouchableOpacity
                 style={{
-                  margin: 2,
-                  opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
+                  width: "95%",
+                  alignItems: "center",
+                  borderRadius: 50,
+                  backgroundColor: selectedDay === day ? "white" : null,
                 }}
-              />
-            </TouchableOpacity>
+                onPress={() =>
+                  day !== selectedDay
+                    ? setSelectedDay(day)
+                    : setSelectedDay(null)
+                }
+              >
+                <Text
+                  style={[
+                    styles.dayText,
+                    {
+                      color: isToday(day, month, year) ? "red" : "black",
+                    },
+                  ]}
+                >
+                  {day}
+                </Text>
+                <Icon.FontAwesome
+                  name="circle"
+                  size={6}
+                  color={"#656565"}
+                  style={{
+                    margin: 2,
+                    opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
+                  }}
+                />
+              </TouchableOpacity>
+            </View>
           );
         })}
       </View>
