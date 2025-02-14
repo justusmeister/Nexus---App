@@ -689,6 +689,7 @@ export const HomeScreen = function ({ navigation }) {
           <MessageBox
             title="Neuigkeiten"
             style={{
+              height: "32%",
               backgroundColor: "#0d7a18",
               borderRadius: 20,
             }}
@@ -764,6 +765,7 @@ export const HomeScreen = function ({ navigation }) {
           <MessageBox
             title="iServ Postfach"
             style={{
+              height: "32%",
               backgroundColor: "#2165bf",
               borderRadius: 20,
             }}
@@ -832,6 +834,7 @@ export const HomeScreen = function ({ navigation }) {
           <MessageBox
             title="anstehende Fristen"
             style={{
+              height: "32%",
               backgroundColor: "#e02225",
               borderRadius: 20,
             }}
