@@ -77,7 +77,6 @@ export default MessageBox;
 const styles = StyleSheet.create({
   boxSize: {
     width: "100%",
-    height: "32%",
     shadowColor: "#000",
     justifyContent: "center",
     alignItems: "center",
