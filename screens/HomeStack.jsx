@@ -558,6 +558,7 @@ export const DeadlineScreen = function ({ navigation }) {
 };
 
 export const HomeScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { deadlinesData, changeData } = useContext(DeadlinesContext);
 
   const truncateText = (text, maxLength) => {
@@ -684,8 +685,8 @@ export const HomeScreen = function ({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.view} contentInsetAdjustmentBehavior="automatic">
+      <SafeAreaView style={[styles.container, { marginBottom: tabBarHeight + 6 }]}>
+        <View style={styles.view}>
           <MessageBox
             title="Neuigkeiten"
             style={{
@@ -954,7 +955,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
-    marginBottom: 89,
   },
   view: {
     flex: 1,

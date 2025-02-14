@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   sender: {
     fontWeight: "bold",
-    fontSize: RFPercentage(1.18),
+    fontSize: RFPercentage(2.18),
     color: "#4A90E2",
   },
   title: {
