@@ -218,7 +218,7 @@ const HomeworkScreen = ({ navigation }) => {
         />
       </View>
 
-      <View>
+      <View style={{ paddingBottom: tabBarHeight - 11 }}>
         <Pressable
           style={{
             width: "auto",
@@ -254,7 +254,6 @@ const HomeworkScreen = ({ navigation }) => {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
       <View style={[styles.screen, {  }]}>
         <FlatList
-          style={{ paddingBottom: tabBarHeight + 6 }}
           data={loading ? [...subjects, { id: "loading-indicator" }] : subjects}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) =>
