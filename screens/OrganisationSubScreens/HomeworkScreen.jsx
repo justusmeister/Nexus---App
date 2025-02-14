@@ -36,6 +36,7 @@ import {
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const colors = [
   "#333",
@@ -196,13 +197,7 @@ const HomeworkScreen = ({ navigation }) => {
         >
           <Icon.Feather name="plus-square" size={26} color="white" />
           <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              color: "white",
-              marginLeft: 10,
-              textTransform: "capitalize",
-            }}
+            style={styles.subjectText}
           >
             Fach hinzufügen
           </Text>
@@ -243,12 +238,7 @@ const HomeworkScreen = ({ navigation }) => {
         >
           <Icon.FontAwesome6 name="note-sticky" size={30} color="white" />
           <Text
-            style={{
-              marginLeft: 15,
-              fontSize: 18,
-              fontWeight: "600",
-              color: "white",
-            }}
+            style={styles.noteButtonText}
           >
             allgemeine Notizen
           </Text>
@@ -312,7 +302,7 @@ const HomeworkScreen = ({ navigation }) => {
                 <View style={{ alignItems: "center", rowGap: 10, margin: 10 }}>
                   <Text
                     style={{
-                      fontSize: 16,
+                      fontSize: RFPercentage(2.05),
                       fontWeight: "600",
                       color: "#8E8E93",
                     }}
@@ -455,7 +445,7 @@ const HomeworkScreen = ({ navigation }) => {
               }
             }}
           >
-            <Text style={[styles.buttonText, { fontSize: 16 }]}>Speichern</Text>
+            <Text style={[styles.buttonText, { fontSize: RFPercentage(2.05) }]}>Speichern</Text>
           </Pressable>
         </BottomSheetView>
       </BottomSheetModal>
@@ -483,7 +473,7 @@ const styles = StyleSheet.create({
   },
   subjectText: {
     marginLeft: 15,
-    fontSize: 18,
+    fontSize: RFPercentage(2.31),
     fontWeight: "600",
     color: "white",
   },
@@ -500,7 +490,7 @@ const styles = StyleSheet.create({
   addSubjectText: {
     color: "white",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: RFPercentage(2.05),
     marginLeft: 10,
   },
   keyboardAvoidingContainer: {
@@ -517,7 +507,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.05),
     fontWeight: "500",
     marginBottom: 10,
   },
@@ -547,4 +537,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "600",
   },
+  noteButtonText: {
+    marginLeft: 15,
+    fontSize: RFPercentage(2.31),
+    fontWeight: "600",
+    color: "white",
+  }
 });

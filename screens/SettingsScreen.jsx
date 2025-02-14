@@ -11,6 +11,7 @@ import {
   Image,
 } from "react-native";
 import { firebaseAuth } from "../firebaseConfig";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const SettingsScreen = function ({ navigation }) {
   useLayoutEffect(() => {
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: RFPercentage(2.44),
     fontWeight: "bold",
     color: "#333",
     marginBottom: 10,
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
   buttonText: {
     marginLeft: 10,
     color: "white",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
     padding: 15,
   },
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   },
   copyrightText: {
     color: "#333",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "500",
   },
   logo: {

@@ -28,6 +28,7 @@ import {
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { useRoute } from "@react-navigation/native";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const NotesScreen = function ({ navigation }) {
   const [notesList, setNotesList] = useState([]);
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   emptyListText: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.05),
     fontWeight: "500",
     color: "#8E8E93",
     textAlign: "center",
@@ -184,13 +185,13 @@ const styles = StyleSheet.create({
   },
   subjectText: {
     color: "#333",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "700",
     marginBottom: 10,
   },
   taskText: {
     color: "#333",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     marginBottom: 16,
   },
 });

@@ -8,8 +8,8 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
-const USERNAME = "justus.meister";
-const PASSWORD = "u.g.i!JM08";
+const USERNAME = "username";
+const PASSWORD = "password";
 const CLIENT = "WebUntis";
 
 let sessionId = null;
@@ -18,6 +18,7 @@ const getSession = async () => {
   if (sessionId) return sessionId;
 
   try {
+    //1. Request zum Abfragen der sessionId
     const response = await axios.post(BASE_URL, {
       id: 1,
       method: "authenticate",
@@ -29,11 +30,8 @@ const getSession = async () => {
       jsonrpc: "2.0",
     });
 
-    console.log(response.data);
-
-
     sessionId = response.data.result.sessionId;
-    console.log("Erfolgreich eingeloggt!");
+    console.log("Login erfolgreich!");
     return sessionId;
   } catch (error) {
     console.log("Login fehlgeschlagen:", error);
@@ -41,15 +39,12 @@ const getSession = async () => {
   }
 };
 
-const formatDate = (date) => {
-  return date.toISOString().split("T")[0].replace(/-/g, "");
-};
-
 const getTimetable = async () => {
   try {
     const session = await getSession();
     if (!session) return;
 
+    //2. Request zum Abfragen des Stundenplans
     const response = await axios.post(
       BASE_URL,
       {
@@ -58,6 +53,7 @@ const getTimetable = async () => {
         params: {
           options: {
             element: {
+              //Nutzer id und Nutzer type aus vorheriger Sessionabfrage
               id: 1676,
               type: 5,
             },
@@ -74,7 +70,7 @@ const getTimetable = async () => {
 
     console.log("Stundenplan:", JSON.stringify(response.data.result, null, 2));
   } catch (error) {
-    console.log("Fehler beim Abrufen des Stundenplans:", error);
+    console.log("Stundenplan fehlerhaft:", error);
   }
 };
 

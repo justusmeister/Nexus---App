@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useHolidayData } from "../contexts/HolidayDataContext";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const lessonStartTime = [
   "07:50",
@@ -169,7 +170,7 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
           {holidayName.split("").map((char, index) => (
             <Text
               key={index}
-              style={{ fontSize: 15, fontWeight: "500", color: "white" }}
+              style={{ fontSize: RFPercentage(2.05), fontWeight: "500", color: "white" }}
             >
               {char}
             </Text>
@@ -338,7 +339,7 @@ const TimeTable = ({ currentWeek }) => {
                 },
               ]}
             >
-              <Text style={{ fontSize: 8, fontWeight: "500" }}>
+              <Text style={{ fontSize: RFPercentage(1.02), fontWeight: "500" }}>
                 {index === 0
                   ? monthList[currentWeekMonday.getMonth()]
                   : monthList[
@@ -350,7 +351,7 @@ const TimeTable = ({ currentWeek }) => {
               </Text>
               <Text
                 style={{
-                  fontSize: 19,
+                  fontSize: RFPercentage(2.56),
                   fontWeight:
                     currentWeek === 0 && index + 1 === currentDate.getDay()
                       ? "900"
@@ -361,7 +362,7 @@ const TimeTable = ({ currentWeek }) => {
                   ? currentWeekMonday.getDate()
                   : setDayDate(currentWeekMonday, index).getDate()}
               </Text>
-              <Text style={{ fontSize: 8 }}>{day}</Text>
+              <Text style={{ fontSize: RFPercentage(1.02) }}>{day}</Text>
             </View>
           )
         )}
@@ -467,17 +468,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeText: {
-    fontSize: 10,
+    fontSize: RFPercentage(1.41),
     fontWeight: "500",
     color: "#4d4d4d",
   },
   lessonNumber: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
     color: "#4d4d4d",
   },
   lessonText: {
-    fontSize: 8,
+    fontSize: RFPercentage(1.02),
     fontWeight: "500",
     color: "white",
   },
@@ -507,7 +508,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   closeButtonText: {
-    fontSize: 24,
+    fontSize: RFPercentage(3.21),
     color: "#4A90E2",
   },
   modalHeader: {
@@ -518,15 +519,15 @@ const styles = StyleSheet.create({
   },
   subject: {
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     color: "#4A90E2",
   },
   teacher: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#333",
   },
   room: {
-    fontSize: 12,
+    fontSize: RFPercentage(1.67),
     color: "#666",
   },
   divider: {

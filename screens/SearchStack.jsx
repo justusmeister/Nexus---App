@@ -19,6 +19,7 @@ import { SQLiteProvider } from "expo-sqlite";
 import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import * as SQLite from "expo-sqlite";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 let dbLocal;
 
@@ -180,7 +181,7 @@ const ResultList = function ({ data, alreadySearched }) {
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
         <Text
           style={{
-            fontSize: 14,
+            fontSize: RFPercentage(1.92),
             fontWeight: "500",
             color: "#8E8E93",
           }}
@@ -203,14 +204,14 @@ const ResultList = function ({ data, alreadySearched }) {
       }}
     >
       <View style={{ flexDirection: "row", marginBottom: 8 }}>
-        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
+        <Text style={{ marginHorizontal: 4, fontSize: RFPercentage(2.05), fontWeight: "500" }}>
           {item.teacherFirstname}
         </Text>
-        <Text style={{ marginHorizontal: 4, fontSize: 15, fontWeight: "500" }}>
+        <Text style={{ marginHorizontal: 4, fontSize: RFPercentage(2.05), fontWeight: "500" }}>
           {item.teacherLastname}
         </Text>
       </View>
-      <Text style={{ marginLeft: 10, fontSize: 15, fontWeight: "500" }}>
+      <Text style={{ marginLeft: 10, fontSize: RFPercentage(2.05), fontWeight: "500" }}>
         {item.teacherAbbrevation}
       </Text>
     </View>
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   textInput: {
     margin: 4,
     color: "#8E8E93",
-    fontSize: 17.5,
+    fontSize: RFPercentage(2.375),
     fontWeight: "500",
   },
   buttonsBox: {
@@ -403,7 +404,7 @@ const styles = StyleSheet.create({
   buttonText: {
     marginLeft: 10,
     color: "white",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
     padding: 15,
   },
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
   },
   quitText: {
     color: "black",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
   },
   searchInputBox: {
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
     marginLeft: 14,
   },
   teacherSearchInput: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     flex: 1,
     fontWeight: "500",
     marginHorizontal: 4,

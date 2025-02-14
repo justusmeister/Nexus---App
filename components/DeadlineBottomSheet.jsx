@@ -23,6 +23,8 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { SegmentedControl } from "./SegmentedControl";
 import SingleRadioButton from "./SingleRadioButton";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import FormalSignleLineInputField from "./FormalSingleLineInputField";
 
 const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
   const [selectedOption, setSelectedOption] = useState("Event");
@@ -132,11 +134,12 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
       >
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Titel:</Text>
-          <TextInput
+          <FormalSignleLineInputField
             style={styles.inputField}
-            placeholder="Titel..."
+            placeholder="Titel"
             value={deadlineTitle}
             onChangeText={handleTitleChange}
+            autoOpen={true}
           />
         </View>
 
@@ -288,7 +291,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
     color: "#333",
     marginBottom: 5,
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     padding: 12,
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
   },
   descriptionField: {
     backgroundColor: "#fff",
@@ -307,7 +310,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     padding: 12,
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     textAlignVertical: "top",
   },
   radioButtonContainer: {
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
   },
   dateTimeContainer: {
@@ -359,7 +362,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
   },
   icon: {

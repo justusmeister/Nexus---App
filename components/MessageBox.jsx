@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const MessageBox = function ({
   titleStyle,
@@ -39,7 +40,7 @@ const MessageBox = function ({
           <Text
             style={{
               color: "white",
-              fontSize: 20,
+              fontSize: RFPercentage(2.69),
               marginBottom: 5,
               paddingTop: 3,
             }}

@@ -41,6 +41,7 @@ import {
 import Toast from "react-native-toast-message";
 import { BlurView } from "expo-blur";
 import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const months = [
   "Januar",
@@ -768,7 +769,7 @@ const DayRow = memo(
                   styles.dayText,
                   {
                     color: isToday(day, month, year) ? "red" : "#333",
-                    fontSize: isToday(day, month, year) ? 10 : 10,
+                    fontSize: RFPercentage(1.41),
                     fontWeight: isToday(day, month, year) ? "700" : "600",
                   },
                 ]}
@@ -833,7 +834,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerTitleText: {
-    fontSize: 32,
+    fontSize: RFPercentage(4),
     fontWeight: "900",
     color: "#ff3c00",
   },
@@ -850,7 +851,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   monthTitle: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "600",
     color: "#333",
   },
@@ -927,7 +928,7 @@ const styles = StyleSheet.create({
   item: {
     padding: 15,
     fontWeight: "500",
-    fontSize: 17,
+    fontSize: RFPercentage(2.18),
   },
   filterSubButton: {
     flexDirection: "row",
