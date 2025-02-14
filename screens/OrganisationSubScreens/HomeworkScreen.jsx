@@ -37,6 +37,7 @@ import {
 import Toast from "react-native-toast-message";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const colors = [
   "#333",
@@ -58,6 +59,8 @@ const icons = [
 ];
 
 const HomeworkScreen = ({ navigation }) => {
+  const tabBarHeight = useBottomTabBarHeight();
+
   const sheetRef = useRef(null);
 
   const [subjectName, setSubjectName] = useState("");
@@ -215,7 +218,7 @@ const HomeworkScreen = ({ navigation }) => {
         />
       </View>
 
-      <View style={{ paddingBottom: 79 }}>
+      <View>
         <Pressable
           style={{
             width: "auto",
@@ -249,8 +252,9 @@ const HomeworkScreen = ({ navigation }) => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <View style={styles.screen}>
+      <View style={[styles.screen, {  }]}>
         <FlatList
+          style={{ paddingBottom: tabBarHeight + 6 }}
           data={loading ? [...subjects, { id: "loading-indicator" }] : subjects}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) =>

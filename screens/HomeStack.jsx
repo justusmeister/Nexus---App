@@ -38,6 +38,7 @@ import {
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const DeadlinesContext = createContext();
 
@@ -297,8 +298,15 @@ export const useDeadlinesData = () => useContext(DeadlinesContext);
 export default HomeStack;
 
 const NewsScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 80 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#EFEEF6",
+        paddingBottom: tabBarHeight + 6,
+      }}
+    >
       <NewsDetailedScreen data={newsBoxDummyData} />
     </View>
   );
@@ -389,6 +397,7 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
 };
 
 const DeadlineDetailedScreen = function () {
+  const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
   const { deadlinesData, changeData } = useDeadlinesData();
@@ -513,7 +522,7 @@ const DeadlineDetailedScreen = function () {
   };
 
   return (
-    <View style={{ flex: 1, paddingBottom: 80 }}>
+    <View style={{ flex: 1, paddingBottom: tabBarHeight + 6 }}>
       <FlatList
         data={deadlinesData}
         renderItem={renderDeadline}

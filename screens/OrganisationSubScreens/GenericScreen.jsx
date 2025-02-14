@@ -42,8 +42,10 @@ import {
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const GenericScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [isHomeworkModalVisible, setIsHomeworkModalVisible] = useState(false);
   const [isInputModalVisible, setIsInputModalVisible] = useState(false);
   const [homeworkList, setHomeworkList] = useState([]);
@@ -126,9 +128,7 @@ const GenericScreen = function ({ navigation }) {
     }
   };
 
-  const addDeadline = async (subject, dueDate) => {
-    
-  };
+  const addDeadline = async (subject, dueDate) => {};
 
   const renderItem = ({ item }) => (
     <View
@@ -177,7 +177,7 @@ const GenericScreen = function ({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: tabBarHeight + 6 }]}>
       <FlatList
         data={homeworkList}
         renderItem={renderItem}
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#EFEEF6",
-    paddingVertical: 10,
+    paddingTop: 10,
   },
   finishButtonView: {
     justifyContent: "center",

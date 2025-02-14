@@ -14,8 +14,10 @@ import {
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const InboxDetailedScreen = ({ data, index }) => {
+  const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentEmail, setCurrentEmail] = useState(null);
   const [activeAnimation, setActiveAnimation] = useState(null);
@@ -112,7 +114,7 @@ const InboxDetailedScreen = ({ data, index }) => {
   };
 
   return (
-    <View style={{ flex: 1, paddingBottom: 80 }}>
+    <View style={{ flex: 1, paddingBottom: tabBarHeight + 6 }}>
       <FlatList
         data={data}
         renderItem={resultBox}

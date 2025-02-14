@@ -13,6 +13,7 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHolidayData } from "../../contexts/HolidayDataContext";
 import * as Icon from "@expo/vector-icons";
 import Animated, {
@@ -104,10 +105,13 @@ function createEventMap(events) {
 }
 
 const YearCalendarScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const flatListRef = useRef(null);
   const containerHeight =
-    Dimensions.get("window").height - useSafeAreaInsets().top - 48 - 111;
+    Dimensions.get("screen").height -
+    (useSafeAreaInsets().top + 48) -
+    (tabBarHeight + 26);
   const [isFilterMenuVisible, setIsFilterMenuVisible] = useState(false);
   const [filter, setFilter] = useState(0);
   const height = useSharedValue(0);
@@ -310,8 +314,15 @@ const YearCalendarScreen = function ({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-        <SafeAreaView style={styles.screen}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#EFEEF6",
+        }}
+      >
+        <SafeAreaView
+          style={[styles.screen, { marginBottom: tabBarHeight + 6 }]}
+        >
           {isFilterMenuVisible && (
             <Pressable style={styles.overlay} onPress={toggleDropdown} />
           )}
@@ -465,9 +476,6 @@ const MonthBox = memo(
         return 31;
       return 30;
     };
-
-    const secondWeekStartDay =
-      firstMonthDayWeekDay !== 0 ? 8 - (firstMonthDayWeekDay - 1) : 2;
 
     const lastDayOfMonth = monthLength();
 
@@ -790,7 +798,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
-    marginBottom: 89,
   },
   containerYearCalendar: {
     flex: 1,

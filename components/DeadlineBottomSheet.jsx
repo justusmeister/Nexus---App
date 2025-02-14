@@ -271,7 +271,6 @@ export default memo(DeadlineBottomSheet);
 
 const styles = StyleSheet.create({
   sheetContainer: {
-    paddingBottom: 0,
     padding: 16,
     alignItems: "center",
     justifyContent: "flex-end",

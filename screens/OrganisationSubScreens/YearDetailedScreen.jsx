@@ -35,6 +35,7 @@ import { FlashList } from "@shopify/flash-list";
 import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
@@ -85,6 +86,7 @@ function createEventMap(events) {
 }
 
 const YearDetailedScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [appointments, setAppointments] = useState(new Map());
   const [deadlinesList, setDeadlinesList] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -295,9 +297,12 @@ const YearDetailedScreen = function ({ navigation }) {
             />
           ))}
         </View>
-        <View style={styles.deadlineListView}>
+        <View
+          style={[styles.deadlineListView, { paddingBottom: tabBarHeight + 6 }]}
+        >
           <Text style={styles.sectionTitle}>
-            Fristen {selectedDay ? `zum ${selectedDay}.` : "im ganzen"} {params?.month}:
+            Fristen {selectedDay ? `zum ${selectedDay}.` : "im ganzen"}{" "}
+            {params?.month}:
           </Text>
 
           <FlashList
@@ -714,13 +719,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     backgroundColor: "#EFEEF6",
-    paddingBottom: 89,
-  },
-  sheetContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    marginBottom: 79,
   },
   weekRow: {
     height: `${100 / 6}%`,

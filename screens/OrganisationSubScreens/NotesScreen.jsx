@@ -29,8 +29,10 @@ import {
 import Toast from "react-native-toast-message";
 import { useRoute } from "@react-navigation/native";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const NotesScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [notesList, setNotesList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -121,7 +123,7 @@ const NotesScreen = function ({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: tabBarHeight }]}>
       <FlatList
         data={notesList}
         renderItem={renderItem}
