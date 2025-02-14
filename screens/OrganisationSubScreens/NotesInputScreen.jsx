@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import { useRoute } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const NotesInputScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -167,7 +168,7 @@ const NotesInputScreen = ({ navigation }) => {
               onChangeText={setTitle}
               autoFocus
               style={{
-                fontSize: 20,
+                fontSize: RFPercentage(2.69),
                 fontWeight: "bold",
                 borderBottomWidth: 1,
                 borderColor: "#ccc",
@@ -228,12 +229,12 @@ export default NotesInputScreen;
 const styles = StyleSheet.create({
   saveButton: {
     color: "red",
-    fontSize: 17.5,
+    fontSize: RFPercentage(2.375),
     fontWeight: "600",
   },
   quitButton: {
     color: "red",
-    fontSize: 17,
+    fontSize: RFPercentage(2.31),
     fontWeight: "400",
   },
   androidSaveButton: {

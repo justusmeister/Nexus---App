@@ -41,6 +41,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const GenericScreen = function ({ navigation }) {
   const [isHomeworkModalVisible, setIsHomeworkModalVisible] = useState(false);
@@ -447,16 +448,16 @@ const styles = StyleSheet.create({
   },
   deadlineModalTitle: {
     fontWeight: "700",
-    fontSize: 18,
+    fontSize: RFPercentage(2.44),
     color: "#333",
   },
   remainingTimeText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
     color: "#d13030",
   },
   motivationText: {
-    fontSize: 12,
+    fontSize: RFPercentage(1.67),
     color: "#666",
   },
   divider: {
@@ -467,7 +468,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#EFEEF6",
-    padding: 10,
+    paddingVertical: 10,
   },
   finishButtonView: {
     justifyContent: "center",
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
   finishButtonText: {
     color: "white",
     fontWeight: "600",
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
   },
   homeworkItem: {
     padding: 15,
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   emptyListText: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
     color: "#8E8E93",
     textAlign: "center",
@@ -512,17 +513,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
     borderRadius: 15,
     padding: 12,
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     textAlignVertical: "top",
   },
   charCount: {
     textAlign: "right",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#666",
     margin: 2,
   },
   deadlineResult: {
-    width: "100%",
+    width: "auto",
+    marginHorizontal: 8,
     marginVertical: 6,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -547,23 +549,23 @@ const styles = StyleSheet.create({
   },
   subjectText: {
     color: "#333",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "700",
     marginBottom: 10,
   },
   taskText: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#666",
     marginBottom: 16,
   },
   dueDateText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "700",
     color: "grey",
   },
   dueDateDescriptionText: {
     color: "#333",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "600",
     marginRight: 10,
   },
@@ -576,7 +578,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   deadlineSwitchText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "500",
     color: "#333",
   },

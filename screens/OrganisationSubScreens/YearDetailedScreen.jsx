@@ -12,7 +12,8 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  FlatList,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
@@ -33,6 +34,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
 import Toast from "react-native-toast-message";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
@@ -295,8 +297,9 @@ const YearDetailedScreen = function ({ navigation }) {
         </View>
         <View style={styles.deadlineListView}>
           <Text style={styles.sectionTitle}>
-            alle Fristen im {params?.month}:
+            Fristen {selectedDay ? `zum ${selectedDay}.` : "im ganzen"} {params?.month}:
           </Text>
+
           <FlashList
             data={filteredDeadlines}
             keyExtractor={(item) => item.id}
@@ -322,6 +325,23 @@ const YearDetailedScreen = function ({ navigation }) {
                 </Text>
               </TouchableOpacity>
             )}
+            ListEmptyComponent={
+              loading ? (
+                <ActivityIndicator size={"small"} color={"#333"} />
+              ) : (
+                <Text
+                  style={{
+                    width: "100%",
+                    textAlign: "center",
+                    fontSize: RFPercentage(2),
+                    fontWeight: "500",
+                    color: "#8E8E93",
+                  }}
+                >
+                  Keine Fristen an diesem Tag
+                </Text>
+              )
+            }
             estimatedItemSize={75}
           />
         </View>
@@ -716,7 +736,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   dayText: {
-    fontSize: 18,
+    fontSize: RFPercentage(2.44),
     fontWeight: "600",
     borderRadius: 50,
     padding: 7,
@@ -743,21 +763,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deadlineTitle: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
     color: "#333",
   },
   deadlineCategory: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#777",
   },
   deadlineDate: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "500",
-    color: "#3a5f8a",
+    color: "#333",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: RFPercentage(2.44),
     fontWeight: "600",
     padding: 10,
     marginLeft: 10,

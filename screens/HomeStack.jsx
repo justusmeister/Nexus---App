@@ -37,6 +37,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const DeadlinesContext = createContext();
 
@@ -413,7 +414,7 @@ const DeadlineDetailedScreen = function () {
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
         <Text
           style={{
-            fontSize: 16,
+            fontSize: RFPercentage(2.05),
             fontWeight: "500",
             color: "#8E8E93",
           }}
@@ -559,7 +560,13 @@ export const HomeScreen = function ({ navigation }) {
 
   const noEntryTemplate = (text) => {
     return (
-      <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
+      <Text
+        style={{
+          color: "white",
+          fontSize: RFPercentage(1.92),
+          fontWeight: "500",
+        }}
+      >
         {text}
       </Text>
     );
@@ -581,7 +588,7 @@ export const HomeScreen = function ({ navigation }) {
         <Text
           style={{
             color: "black",
-            fontSize: 13,
+            fontSize: RFPercentage(1.79),
             fontWeight: read ? "500" : "700",
           }}
         >
@@ -589,7 +596,7 @@ export const HomeScreen = function ({ navigation }) {
         </Text>
         <Text
           style={{
-            fontSize: 12,
+            fontSize: RFPercentage(1.67),
             fontWeight: "500",
             color: "#363636",
             alignSelf: "flex-start",
@@ -598,7 +605,9 @@ export const HomeScreen = function ({ navigation }) {
           {date}
         </Text>
       </View>
-      <Text style={{ color: "white", fontSize: 13 }}>{reference}</Text>
+      <Text style={{ color: "white", fontSize: RFPercentage(1.79) }}>
+        {reference}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -619,16 +628,28 @@ export const HomeScreen = function ({ navigation }) {
           justifyContent: "space-between",
         }}
       >
-        <Text style={{ color: "white", fontSize: 15, fontWeight: "600" }}>
+        <Text
+          style={{
+            color: "white",
+            fontSize: RFPercentage(2.05),
+            fontWeight: "600",
+          }}
+        >
           {subject}:
         </Text>
 
-        <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
+        <Text
+          style={{
+            color: "white",
+            fontSize: RFPercentage(1.92),
+            fontWeight: "500",
+          }}
+        >
           {task}
         </Text>
         <Text
           style={{
-            fontSize: 12,
+            fontSize: RFPercentage(1.67),
             fontWeight: "700",
             color: "#363636",
           }}
@@ -674,7 +695,9 @@ export const HomeScreen = function ({ navigation }) {
                     <TouchableOpacity
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
-                      <Text style={{ color: "white", fontSize: 15 }}>
+                      <Text
+                        style={{ color: "white", fontSize: RFPercentage(2.05) }}
+                      >
                         {truncateText(newsBoxDummyData[0].news, 21)}
                       </Text>
                     </TouchableOpacity>
@@ -692,7 +715,9 @@ export const HomeScreen = function ({ navigation }) {
                     <TouchableOpacity
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
-                      <Text style={{ color: "white", fontSize: 15 }}>
+                      <Text
+                        style={{ color: "white", fontSize: RFPercentage(2.05) }}
+                      >
                         {truncateText(newsBoxDummyData[1].news, 21)}
                       </Text>
                     </TouchableOpacity>
@@ -710,7 +735,9 @@ export const HomeScreen = function ({ navigation }) {
                     <TouchableOpacity
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
-                      <Text style={{ color: "white", fontSize: 15 }}>
+                      <Text
+                        style={{ color: "white", fontSize: RFPercentage(2.05) }}
+                      >
                         {truncateText(newsBoxDummyData[2].news, 21)}
                       </Text>
                     </TouchableOpacity>
@@ -954,23 +981,23 @@ const styles = StyleSheet.create({
   },
   subjectText: {
     color: "#333",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "700",
     marginBottom: 10,
   },
   taskText: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#666",
     marginBottom: 16,
   },
   dueDateText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "700",
     color: "grey",
   },
   dueDateDescriptionText: {
     color: "#333",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "600",
     marginRight: 10,
   },
@@ -1000,7 +1027,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   closeButtonText: {
-    fontSize: 24,
+    fontSize: RFPercentage(3.21),
     color: "#4A90E2",
   },
   modalHeader: {
@@ -1011,16 +1038,16 @@ const styles = StyleSheet.create({
   },
   deadlineModalTitle: {
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     color: "#333",
   },
   remainingTimeText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "600",
     color: "#d13030",
   },
   motivationText: {
-    fontSize: 12,
+    fontSize: RFPercentage(1.67),
     color: "#666",
   },
   divider: {
@@ -1048,10 +1075,10 @@ const styles = StyleSheet.create({
   finishButtonText: {
     color: "white",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
   },
   taskTextHeader: {
-    fontSize: 17,
+    fontSize: RFPercentage(2.31),
     fontWeight: "600",
     color: "#333",
     marginBottom: 10,

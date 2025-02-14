@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, FlatList, ScrollView } from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const NewsDetailedScreen = function ({ data }) {
   if (!data || data.length === 0) {
@@ -8,7 +9,7 @@ const NewsDetailedScreen = function ({ data }) {
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
         <Text
           style={{
-            fontSize: 16,
+            fontSize: RFPercentage(2.18),
             fontWeight: "500",
             color: "#8E8E93",
           }}
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   text: {
     marginLeft: 15,
     color: "#333",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
   },
 });

@@ -1,6 +1,6 @@
 export const checkDeadlineRemainingTime = (dueDate) => {
   const [day, month, year] = dueDate.split(".").map(Number);
-  const submissionDate = new Date(year + 2000, month - 1, day, 22, 0, 0);
+  const submissionDate = new Date(year + 2000, month - 1, day, 7, 0, 0);
   const currentDate = new Date();
 
   const differenceInMilliseconds = submissionDate - currentDate;

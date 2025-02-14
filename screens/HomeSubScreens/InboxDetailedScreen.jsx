@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const InboxDetailedScreen = ({ data, index }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   closeButtonText: {
-    fontSize: 24,
+    fontSize: RFPercentage(3.21),
     color: "#4A90E2",
   },
   emailHeader: {
@@ -242,15 +243,15 @@ const styles = StyleSheet.create({
   },
   sender: {
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: RFPercentage(1.18),
     color: "#4A90E2",
   },
   title: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#333",
   },
   date: {
-    fontSize: 12,
+    fontSize: RFPercentage(1.67),
     color: "#666",
   },
   divider: {
@@ -282,21 +283,21 @@ const styles = StyleSheet.create({
     borderLeftColor: "#4A90E2",
   },
   newsBoxAuthor: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.05),
     color: "#333",
     marginBottom: 5,
   },
   newsBoxContent: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#666",
     marginBottom: 5,
   },
   newsBoxDate: {
-    fontSize: 12,
+    fontSize: RFPercentage(1.67),
     color: "#999",
   },
   emailContentText: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "400",
     color: "#333",
   },
