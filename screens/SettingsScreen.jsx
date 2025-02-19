@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import * as Icon from "@expo/vector-icons";
 import {
@@ -8,19 +8,27 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
+  Pressable,
   Image,
 } from "react-native";
 import { firebaseAuth } from "../firebaseConfig";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import LicenseModal from "../modals/LicenseModal";
 
 const SettingsScreen = function ({ navigation }) {
+  const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () =>
         Platform.OS === "ios" ? (
-          <TouchableOpacity onPress={({}) => navigation.goBack()}>
-            <Icon.Ionicons name="close-circle" size={34} color="grey" />
-          </TouchableOpacity>
+          <Pressable
+            onPress={({}) => navigation.goBack()}
+            style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+            hitSlop={12}
+          >
+            <Icon.Ionicons name="close-circle" size={36} color="grey" />
+          </Pressable>
         ) : null,
     });
   }, [navigation]);
@@ -29,6 +37,7 @@ const SettingsScreen = function ({ navigation }) {
     <ScrollView
       style={styles.scrollView}
       contentInsetAdjustmentBehavior="automatic"
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.container}>
         <View style={styles.section}>
@@ -46,7 +55,7 @@ const SettingsScreen = function ({ navigation }) {
                 },
               ]}
               activeOpacity={0.4}
-              onPress={() => navigation.navigate("PointsScreen")}
+              onPress={() => setIsLicenseModalVisible(true)}
             >
               <Icon.MaterialIcons
                 name="account-circle"
@@ -68,7 +77,7 @@ const SettingsScreen = function ({ navigation }) {
               ]}
               activeOpacity={0.4}
               onPress={() => {
-                navigation.navigate("GradesScreen");
+                setIsLicenseModalVisible(true);
               }}
             >
               <Icon.MaterialIcons
@@ -96,7 +105,7 @@ const SettingsScreen = function ({ navigation }) {
                 },
               ]}
               activeOpacity={0.4}
-              onPress={() => navigation.navigate("PointsScreen")}
+              onPress={() => setIsLicenseModalVisible(true)}
             >
               <Icon.MaterialIcons
                 name="nightlight"
@@ -118,7 +127,7 @@ const SettingsScreen = function ({ navigation }) {
               ]}
               activeOpacity={0.4}
               onPress={() => {
-                navigation.navigate("GradesScreen");
+                setIsLicenseModalVisible(true);
               }}
             >
               <Icon.MaterialIcons
@@ -144,7 +153,7 @@ const SettingsScreen = function ({ navigation }) {
                 },
               ]}
               activeOpacity={0.4}
-              onPress={() => navigation.navigate("PointsScreen")}
+              onPress={() => setIsLicenseModalVisible(true)}
             >
               <Icon.MaterialIcons
                 name="info-outline"
@@ -191,6 +200,10 @@ const SettingsScreen = function ({ navigation }) {
 
         <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
       </View>
+      <LicenseModal
+        visible={isLicenseModalVisible}
+        onClose={() => setIsLicenseModalVisible(false)}
+      />
     </ScrollView>
   );
 };

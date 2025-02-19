@@ -252,7 +252,7 @@ const HomeworkScreen = ({ navigation }) => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <View style={[styles.screen, {  }]}>
+      <View style={styles.screen}>
         <FlatList
           data={loading ? [...subjects, { id: "loading-indicator" }] : subjects}
           keyExtractor={(item) => item.id.toString()}
@@ -289,6 +289,7 @@ const HomeworkScreen = ({ navigation }) => {
                   onPress={() =>
                     navigation.navigate("GenericScreen", {
                       subject: item.subject,
+                      color: item.color
                     })
                   }
                 >
@@ -322,6 +323,7 @@ const HomeworkScreen = ({ navigation }) => {
             }
             return null;
           }}
+          style={{ paddingVertical: 8 }}
           showsVerticalScrollIndicator={false}
         />
       </View>
@@ -461,7 +463,6 @@ export default HomeworkScreen;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    paddingVertical: 20,
     backgroundColor: "#EFEEF6",
   },
   subjectBox: {

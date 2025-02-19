@@ -31,8 +31,8 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [deadlineTitle, setDeadlineTitle] = useState(null);
-  const [description, setDescription] = useState(null);
+  const [deadlineTitle, setDeadlineTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [eventType, setEventType] = useState("Klausur");
 
   const windowWidth = useWindowDimensions().width;
@@ -90,14 +90,14 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     }
   }, []);
 
-  const handleTitleChange = useCallback(
-    (text) => setDeadlineTitle(text),
-    [setDeadlineTitle]
-  );
-  const handleDescriptionChange = useCallback(
-    (text) => setDescription(text),
-    []
-  );
+  const handleTitleChange = useCallback((text) => {
+    setDeadlineTitle((prev) => (prev === text ? prev : text));
+  }, []);
+  
+  const handleDescriptionChange = useCallback((text) => {
+    setDescription((prev) => (prev === text ? prev : text));
+  }, []);
+  
 
   const toggleIsAllDay = useCallback(() => {
     setIsAllDay((prev) => !prev);
@@ -138,7 +138,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
             style={styles.inputField}
             placeholder="Titel"
             value={deadlineTitle}
-            onChangeText={handleTitleChange}
+            onChange={handleTitleChange}
             autoOpen={true}
           />
         </View>
@@ -229,7 +229,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
         ) : null}
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Beschreibung (optional):</Text>
+          <Text style={styles.label}>Beschreibung:</Text>
           <TextInput
             style={styles.descriptionField}
             placeholder="Beschreibung hinzufügen..."

@@ -21,6 +21,7 @@ import {
   collection,
   setDoc,
   getDocs,
+  deleteDoc,
   doc,
   query,
   orderBy,
@@ -30,6 +31,7 @@ import Toast from "react-native-toast-message";
 import { useRoute } from "@react-navigation/native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 
 const NotesScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -93,32 +95,61 @@ const NotesScreen = function ({ navigation }) {
     }
   };
 
+  const deleteNote = async (id) => {
+    if (user) {
+      try {
+        const noteRef = doc(firestoreDB, "notes", user.uid, "notesList", id);
+
+        await deleteDoc(noteRef);
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: "Beim Löschen der Notiz ist ein Fehler aufgetreten.",
+          visibilityTime: 4000,
+        });
+        console.error("Fehler beim Löschen der Notiz:", e);
+      } finally {
+        fetchNotes();
+      }
+    }
+  };
+
   const renderItem = ({ item }) => (
     <View
-      style={[
-        styles.deadlineResult,
-        {
-          shadowColor: 2 === 1 ? "#e02225" : "black",
-          shadowOpacity: 2 === 1 ? 1 : 0.3,
-          shadowRadius: 2 === 1 ? 9 : 4,
-        },
-      ]}
+      style={{
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+      }}
     >
-      <Pressable
-        onPress={() => {
-          navigation.navigate("NotesInputScreen", {
-            title: item.title,
-            note: item.note,
-            docId: item.id,
-          });
-        }}
-        style={styles.deadlineTaskBox}
-      >
-        <View style={styles.deadlineDetails}>
-          <Text style={styles.subjectText}>{item.title}</Text>
-          <Text style={styles.taskText}>{item.note}</Text>
+      <AppleStyleSwipeableRow onPressDelete={() => deleteNote(item.id)}>
+        <View style={styles.deadlineResult}>
+          <Pressable
+            onPress={() => {
+              navigation.navigate("NotesInputScreen", {
+                title: item.title,
+                note: item.note,
+                docId: item.id,
+              });
+            }}
+            style={styles.deadlineTaskBox}
+          >
+            <View style={styles.deadlineDetails}>
+              <Text style={styles.subjectText}>{item.title}</Text>
+              <Text
+                style={styles.taskText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.note}
+              </Text>
+            </View>
+          </Pressable>
         </View>
-      </Pressable>
+      </AppleStyleSwipeableRow>
     </View>
   );
 
@@ -137,6 +168,7 @@ const NotesScreen = function ({ navigation }) {
             </Text>
           ) : null
         }
+        style={{ padding: 8 }}
       />
     </View>
   );
@@ -148,7 +180,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#EFEEF6",
-    paddingVertical: 10,
   },
   emptyListText: {
     fontSize: RFPercentage(2.05),
@@ -163,12 +194,6 @@ const styles = StyleSheet.create({
   deadlineResult: {
     width: "auto",
     marginVertical: 6,
-    marginHorizontal: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
   },
   deadlineTaskBox: {
     flexDirection: "row",

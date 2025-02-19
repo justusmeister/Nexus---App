@@ -5,7 +5,7 @@ const FormalSignleLineInputField = function ({ value, onChange, placeholder, sty
     <View>
       <TextInput
         value={value}
-        onChange={onChange}
+        onChangeText={onChange}
         placeholder={placeholder}
         style={[styles.inputStyle, style]}
         autoFocus={autoOpen}

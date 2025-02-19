@@ -15,6 +15,30 @@ import {
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  return (
+    date.toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }) +
+    ", " +
+    date.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  );
+}
+
+function extractName(from) {
+  if (!from) return ""; // Falls from null, undefined oder leer ist, gib leeren String zurück
+  const match = from.match(/"?(.*?)"?\s*<.*@.*>/);
+  return match ? match[1] : from; // Falls Name existiert, bereinigt zurückgeben
+}
 
 const InboxDetailedScreen = ({ data, index }) => {
   const tabBarHeight = useBottomTabBarHeight();
@@ -82,10 +106,10 @@ const InboxDetailedScreen = ({ data, index }) => {
                 { fontWeight: item.read ? "500" : "700" },
               ]}
             >
-              {item.author}
+              {extractName(item.from)}
             </Text>
-            <Text style={styles.newsBoxContent}>{item.title}</Text>
-            <Text style={styles.newsBoxDate}>{item.date}</Text>
+            <Text style={styles.newsBoxContent}>{item.subject}</Text>
+            <Text style={styles.newsBoxDate}>{formatDate(item.date)}</Text>
           </View>
 
           <View style={styles.inboxSubBox}>
@@ -99,14 +123,16 @@ const InboxDetailedScreen = ({ data, index }) => {
                 }}
               />
             )}
-            <Icon.FontAwesome
-              name="paperclip"
-              size={20}
-              color={"black"}
-              style={{
-                zIndex: 1,
-              }}
-            />
+            {item.attachments.length > 0 ? (
+              <Icon.FontAwesome
+                name="paperclip"
+                size={20}
+                color={"black"}
+                style={{
+                  zIndex: 1,
+                }}
+              />
+            ) : null}
           </View>
         </Pressable>
       </Animated.View>
@@ -162,17 +188,52 @@ const EmailModal = ({ visible, email, onClose }) => {
                 />
               </TouchableOpacity>
               <View style={styles.emailHeader}>
-                <Text style={styles.sender}>{email?.author}</Text>
-                <Text style={styles.title}>{email?.title}</Text>
-                <Text style={styles.date}>{email?.date}</Text>
+                <Text style={styles.sender}>{extractName(email?.from)}</Text>
+                <Text style={styles.title}>{email?.subject}</Text>
+                <Text style={styles.date}>{formatDate(email?.date)}</Text>
               </View>
               <View style={styles.divider} />
               <View style={styles.bodyContainer}>
-                {1 === 0 ? (
+                {0 === 0 ? (
                   <ScrollView>
-                    <Text style={styles.emailContentText}>
-                      {emailPlainText.content}
-                    </Text>
+                    <Pressable>
+                      <Text style={styles.emailContentText}>{email?.text}</Text>
+                      {email?.attachments.length > 0 && (
+                        <View>
+                          {email?.attachments.map((attachment, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() =>
+                                openAttachment(
+                                  attachment.filename,
+                                  attachment.data
+                                )
+                              }
+                              style={{
+                                padding: 8,
+                                marginTop: 5,
+                                borderRadius: 8,
+                                backgroundColor: "#f0f0f0",
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Icon.FontAwesome
+                                name="paperclip"
+                                size={16}
+                                color="black"
+                                style={{ marginRight: 5 }}
+                              />
+                              <Text
+                                style={{ color: "#007AFF", fontWeight: "500" }}
+                              >
+                                {attachment.filename}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </Pressable>
                   </ScrollView>
                 ) : (
                   <TouchableWithoutFeedback>
@@ -180,18 +241,7 @@ const EmailModal = ({ visible, email, onClose }) => {
                       style={styles.webView}
                       originWhitelist={["-"]}
                       source={{
-                        html: `<!DOCTYPE html>
-                  <html>
-                  <head>
-                      <meta charset="UTF-8">
-                      <title>Beispiel E-Mail</title>
-                  </head>
-                  <body>
-                      <p>Hallo <strong>Justus</strong>,</p>
-                      <p>Dies ist eine HTML-E-Mail mit <b>Fettschrift</b> und einem Link.</p>
-                      <p><a href="https://example.com">Klicke hier</a>, um mehr zu erfahren.</p>
-                  </body>
-                  </html>`,
+                        html: email?.text,
                       }}
                       javaScriptEnabled={false}
                       scalesPageToFit={false}
@@ -205,6 +255,24 @@ const EmailModal = ({ visible, email, onClose }) => {
       </TouchableWithoutFeedback>
     </Modal>
   );
+};
+
+const openAttachment = async (filename, base64Data) => {
+  try {
+    const path = `${FileSystem.cacheDirectory}${filename}`;
+    await FileSystem.writeAsStringAsync(path, base64Data, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const available = await Sharing.isAvailableAsync();
+    if (available) {
+      await Sharing.shareAsync(path);
+    } else {
+      alert("Das Öffnen von Dateien wird auf diesem Gerät nicht unterstützt.");
+    }
+  } catch (error) {
+    console.error("Fehler beim Öffnen des Anhangs:", error);
+  }
 };
 
 const styles = StyleSheet.create({
@@ -283,6 +351,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderLeftWidth: 5,
     borderLeftColor: "#4A90E2",
+    maxWidth: "85%",
   },
   newsBoxAuthor: {
     fontSize: RFPercentage(2.05),
@@ -307,7 +376,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
     marginRight: 15,
-  }
+  },
 });
 
 export default InboxDetailedScreen;

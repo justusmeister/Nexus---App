@@ -20,8 +20,11 @@ const Checkbox = function ({ onConfirm, style }) {
             {
               text: "Bestätigen",
               onPress: () => {
-                onConfirm();
-                setIsActivated(false);
+                Promise.resolve(onConfirm())
+                  .catch((error) =>
+                    console.error("Fehler in onConfirm():", error)
+                  )
+                  .finally(() => setIsActivated(false));
               },
               style: "destructive",
             },

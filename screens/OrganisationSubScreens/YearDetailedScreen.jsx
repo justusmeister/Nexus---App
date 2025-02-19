@@ -24,6 +24,7 @@ import {
   collection,
   getDocs,
   addDoc,
+  deleteDoc,
   doc,
   query,
   where,
@@ -36,6 +37,8 @@ import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import AppointmentModal from "../../modals/AppointmentModal";
+import { eventEmitter } from "../../eventBus";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
@@ -91,6 +94,8 @@ const YearDetailedScreen = function ({ navigation }) {
   const [deadlinesList, setDeadlinesList] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalAppointmentItem, setModalAppointmentItem] = useState(null);
 
   const route = useRoute();
   const { params } = route;
@@ -210,6 +215,7 @@ const YearDetailedScreen = function ({ navigation }) {
       eventType === 0 || saveAsDeadline
         ? addDeadline(name, day, description)
         : null;
+      eventEmitter.emit("refreshAppointments");
     }
   };
 
@@ -239,6 +245,36 @@ const YearDetailedScreen = function ({ navigation }) {
         text2: e.message || "Ein Fehler ist aufgetreten",
         visibilityTime: 4000,
       });
+    } finally {
+      eventEmitter.emit("refreshDeadlines");
+    }
+  };
+
+  const deleteAppointment = async (singleEvent, itemId) => {
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(firestoreDB, "appointments", user.uid);
+
+      if (singleEvent) {
+        const singleEventRef = doc(userDocRef, "singleEvents", itemId);
+        await deleteDoc(singleEventRef);
+      } else {
+        const eventPeriodsRef = doc(userDocRef, "eventPeriods", itemId);
+        await deleteDoc(eventPeriodsRef);
+      }
+
+      console.log("Termin erfolgreich gelöscht!");
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
+    } finally {
+      setIsModalVisible(false);
+      fetchAppointments(params.date);
     }
   };
 
@@ -314,9 +350,19 @@ const YearDetailedScreen = function ({ navigation }) {
                   styles.deadlineItem,
                   { borderColor: eventTypeColorList[item.eventType] },
                 ]}
+                onPress={() => {
+                  setModalAppointmentItem(item);
+                  setIsModalVisible(true);
+                }}
               >
                 <View style={styles.deadlineContent}>
-                  <Text style={styles.deadlineTitle}>{item.name}</Text>
+                  <Text
+                    style={styles.deadlineTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.name}
+                  </Text>
                   <Text style={styles.deadlineCategory}>
                     {eventTypesList[item.eventType]}
                   </Text>
@@ -354,6 +400,12 @@ const YearDetailedScreen = function ({ navigation }) {
       <DeadlineBottomSheet
         sheetRef={sheetRef}
         addAppointment={addAppointment}
+      />
+      <AppointmentModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        item={modalAppointmentItem}
+        onDelete={deleteAppointment}
       />
     </View>
   );
@@ -410,7 +462,7 @@ const WeekRow = memo(
       return holidayData[0].data.has(date) || holidayData[1].data.has(date);
     };
 
-    const isEvent = (day, month, year) => {
+    const isEvent = (day, month, year, deadline) => {
       const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
         day < 10 ? `0${day}` : day
       }`;
@@ -418,7 +470,7 @@ const WeekRow = memo(
         const events = eventMap.get(date);
         for (const event of events) {
           if (event.eventType === 1) return 1;
-          else if (event.eventType === 0) return 0;
+          else if (event.eventType === 0 && deadline) return 0;
         }
         return 2;
       }
@@ -685,7 +737,7 @@ const WeekRow = memo(
                   color={"#656565"}
                   style={{
                     margin: 2,
-                    opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
+                    opacity: isDeadline(day, month, year, true) === 0 ? 1 : 0,
                   }}
                 />
               </TouchableOpacity>

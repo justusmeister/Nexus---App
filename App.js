@@ -8,8 +8,8 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
-const USERNAME = "username";
-const PASSWORD = "password";
+const USERNAME = "justus.meister";
+const PASSWORD = "u.g.i!JM08";
 const CLIENT = "WebUntis";
 
 let sessionId = null;
@@ -57,8 +57,8 @@ const getTimetable = async () => {
               id: 1676,
               type: 5,
             },
-            startDate: "20250210",
-            endDate: "20250214",
+            startDate: "20250217",
+            endDate: "20250221",
           },
         },
         jsonrpc: "2.0",

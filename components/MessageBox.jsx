@@ -27,7 +27,6 @@ const MessageBox = function ({
         style={[
           styles.titleBox,
           titleStyle,
-          { borderBottomWidth: isLoading ? 1 : 0 },
         ]}
       >
         <View style={styles.title}>

@@ -58,11 +58,13 @@ const SearchStack = function ({ navigation }) {
           headerStyle: { backgroundColor: "#EFEEF6", height: 1000 },
 
           headerRight: () => (
-            <TouchableOpacity
+            <Pressable
               onPress={() => navigation.navigate("SettingsScreen")}
+              style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+              hitSlop={7}
             >
               <Icon.Ionicons name="settings" size={31} />
-            </TouchableOpacity>
+            </Pressable>
           ),
         }}
       />
@@ -204,14 +206,32 @@ const ResultList = function ({ data, alreadySearched }) {
       }}
     >
       <View style={{ flexDirection: "row", marginBottom: 8 }}>
-        <Text style={{ marginHorizontal: 4, fontSize: RFPercentage(2.05), fontWeight: "500" }}>
+        <Text
+          style={{
+            marginHorizontal: 4,
+            fontSize: RFPercentage(2.05),
+            fontWeight: "500",
+          }}
+        >
           {item.teacherFirstname}
         </Text>
-        <Text style={{ marginHorizontal: 4, fontSize: RFPercentage(2.05), fontWeight: "500" }}>
+        <Text
+          style={{
+            marginHorizontal: 4,
+            fontSize: RFPercentage(2.05),
+            fontWeight: "500",
+          }}
+        >
           {item.teacherLastname}
         </Text>
       </View>
-      <Text style={{ marginLeft: 10, fontSize: RFPercentage(2.05), fontWeight: "500" }}>
+      <Text
+        style={{
+          marginLeft: 10,
+          fontSize: RFPercentage(2.05),
+          fontWeight: "500",
+        }}
+      >
         {item.teacherAbbrevation}
       </Text>
     </View>
@@ -277,11 +297,7 @@ const OpenedSearchScreen = function ({ navigation }) {
         >
           <View style={styles.searchBarAButton}>
             <View style={styles.searchInputBox}>
-              <Icon.Ionicons
-                name="search"
-                size={20}
-                color={"#8E8E93"}
-              />
+              <Icon.Ionicons name="search" size={20} color={"#8E8E93"} />
               <TextInput
                 placeholder="Suchen"
                 placeholderTextColor={"#8E8E93"}
@@ -306,11 +322,7 @@ const OpenedSearchScreen = function ({ navigation }) {
                     OnSearchAbbrevation(dbLocal, "", setResult);
                   }}
                 >
-                  <Icon.MaterialIcons
-                    name="clear"
-                    size={20}
-                    color="black"
-                  />
+                  <Icon.MaterialIcons name="clear" size={20} color="black" />
                 </TouchableOpacity>
               )}
             </View>

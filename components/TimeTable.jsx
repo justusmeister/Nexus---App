@@ -103,8 +103,6 @@ const dummyStundenplan = [
   },
 ];
 
-
-
 function addTime(timeString, minutesToAdd) {
   const time = new Date(`2024-12-10T${timeString}:00`);
   time.setMinutes(time.getMinutes() + minutesToAdd);
@@ -170,7 +168,11 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
           {holidayName.split("").map((char, index) => (
             <Text
               key={index}
-              style={{ fontSize: RFPercentage(2.05), fontWeight: "500", color: "white" }}
+              style={{
+                fontSize: RFPercentage(2.05),
+                fontWeight: "500",
+                color: "white",
+              }}
             >
               {char}
             </Text>
@@ -193,14 +195,14 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
               dummyStundenplan[indexColumn].stunden[index - 1]?.raum;
 
           if (isLastDoubleLesson) {
-            return null; 
+            return null;
           }
 
           if (isDoubleLesson) {
             return (
               <View
                 key={index}
-                style={[styles.cell, { height: cellHeight * 2 }]}
+                style={[styles.cell, { height: cellHeight * 2, }]}
               >
                 <TouchableOpacity
                   style={styles.lessonBox}
@@ -210,9 +212,27 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
                     setIsModalVisible(true);
                   }}
                 >
-                  <Text style={styles.lessonText}>{data[index]?.fach}</Text>
-                  <Text style={styles.lessonText}>{data[index]?.raum}</Text>
-                  <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
+                  <Text
+                    style={styles.lessonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {data[index]?.fach}
+                  </Text>
+                  <Text
+                    style={styles.lessonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {data[index]?.raum}
+                  </Text>
+                  <Text
+                    style={styles.lessonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {data[index]?.lehrer}
+                  </Text>
                 </TouchableOpacity>
               </View>
             );
@@ -227,9 +247,27 @@ const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
                     setIsModalVisible(true);
                   }}
                 >
-                  <Text style={styles.lessonText}>{data[index]?.fach}</Text>
-                  <Text style={styles.lessonText}>{data[index]?.raum}</Text>
-                  <Text style={styles.lessonText}>{data[index]?.lehrer}</Text>
+                  <Text
+                    style={styles.lessonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {data[index]?.fach}
+                  </Text>
+                  <Text
+                    style={styles.lessonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {data[index]?.raum}
+                  </Text>
+                  <Text
+                    style={styles.lessonText}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {data[index]?.lehrer}
+                  </Text>
                 </TouchableOpacity>
               </View>
             );
@@ -464,8 +502,9 @@ const styles = StyleSheet.create({
     height: "97%",
     borderRadius: 5,
     backgroundColor: "#1d6fc2",
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     alignItems: "center",
+    padding: 3,
   },
   timeText: {
     fontSize: RFPercentage(1.41),
