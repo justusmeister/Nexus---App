@@ -42,6 +42,8 @@ const Navigation = function () {
         setHolidayDays(createAdjustedHolidayDataMap(publicHolidaysData));
       } catch (error) {
         console.error("Fehler beim Abrufen der Daten:", error);
+        setHolidayPeriods(createAdjustedHolidayDataMap([]))
+        setHolidayDays(createAdjustedHolidayDataMap([]))
       }
     };
     fetchHolidays();
@@ -115,12 +117,12 @@ const Tabs = function () {
         elevation: 0,
         shadowOpacity: 0,
         borderTopWidth: 0,
-        backgroundColor: "transparent"
+        backgroundColor: "transparent",
       },
       tabBarBackground: () => (
         <BlurView
-          tint="light"
-          intensity={100}
+          tint="systemThinMaterialLight"
+          intensity={200}
           style={StyleSheet.absoluteFill}
         />
       ),

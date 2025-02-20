@@ -45,14 +45,6 @@ const loadDatabase = async () => {
 const Stack = createNativeStackNavigator();
 
 const SearchStack = function ({ navigation }) {
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("tabPress", (e) => {
-      navigation.navigate("SearchScreen");
-    });
-
-    return unsubscribe;
-  }, []);
-
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -276,14 +268,18 @@ const OpenedSearchScreen = function ({ navigation }) {
       }}
     >
       <View style={styles.backgroundOverlay}>
-        <View style={styles.headerSearch}>
+        <View
+          style={[
+            styles.headerSearch,
+            { marginTop: Platform.OS === "ios" ? 0 : 40 },
+          ]}
+        >
           <View style={styles.searchBarAButton}>
             <View style={styles.searchInputBox}>
               <Icon.Ionicons
                 name="search"
                 size={20}
                 color={"#8E8E93"}
-                style={{ width: "10%" }}
               />
               <TextInput
                 placeholder="Suchen"
@@ -313,7 +309,6 @@ const OpenedSearchScreen = function ({ navigation }) {
                     name="clear"
                     size={20}
                     color="black"
-                    style={{ minWidth: "10%" }}
                   />
                 </TouchableOpacity>
               )}
@@ -423,7 +418,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "center",
     paddingBottom: 10,
-    width: "100%",
+    maxWidth: "100%",
     height: 55,
     borderBottomWidth: 1,
     borderBottomColor: "#dedee3",
@@ -434,11 +429,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   quitButton: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "flex-end",
+    flexShrink: 0,
     padding: 3,
     marginRight: 14,
+    marginLeft: 5,
   },
   quitText: {
     color: "black",
@@ -449,8 +445,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     flexDirection: "row",
-    minWidth: "65%",
-    maxWidth: "65%",
+    flex: 1,
     padding: 8,
     borderRadius: 13,
     backgroundColor: "#dedee3",
@@ -458,9 +453,9 @@ const styles = StyleSheet.create({
   },
   teacherSearchInput: {
     fontSize: 16,
-    minWidth: "78%",
-    maxWidth: "78%",
+    flex: 1,
     fontWeight: "500",
     marginHorizontal: 4,
+    alignSelf: "center",
   },
 });

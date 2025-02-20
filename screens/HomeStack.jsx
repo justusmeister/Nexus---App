@@ -183,14 +183,6 @@ const HomeStack = function ({ navigation }) {
     setDeadlinesData(newData);
   };
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("tabPress", (e) => {
-      navigation.navigate("HomeScreen");
-    });
-
-    return unsubscribe;
-  }, []);
-
   return (
     <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
       <Stack.Navigator>
@@ -893,7 +885,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    padding: 10,
+    padding: 15,
     borderRadius: 14,
     borderLeftWidth: 5,
     borderLeftColor: "#e02225",
@@ -910,9 +902,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   taskText: {
-    color: "#333",
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 14,
+    color: "#666",
     marginBottom: 16,
   },
   dueDateText: {

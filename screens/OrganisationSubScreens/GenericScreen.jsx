@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -10,11 +10,37 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  KeyboardAvoidingView,
+  Switch,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
+import { firestoreDB } from "../../firebaseConfig";
+import { getAuth } from "firebase/auth";
+import {
+  collection,
+  setDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  Timestamp,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
+import Toast from "react-native-toast-message";
 
 const GenericScreen = function ({ navigation }) {
   const [isHomeworkModalVisible, setIsHomeworkModalVisible] = useState(false);
@@ -24,6 +50,9 @@ const GenericScreen = function ({ navigation }) {
 
   const route = useRoute();
   const { params } = route;
+
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -38,19 +67,112 @@ const GenericScreen = function ({ navigation }) {
       ),
     });
 
-    setTimeout(() => {
-      setHomeworkList([]); 
-      setLoading(false);
-    }, 2000); 
+    if (user) fetchHomework(params.subject);
   }, [navigation]);
 
+  const fetchHomework = async (subject) => {
+    if (user) {
+      try {
+        const subjectRef = doc(firestoreDB, "subjects", user.uid + subject);
+        const homeworkRef = collection(subjectRef, "homework");
+
+        const q = query(homeworkRef, orderBy("timestamp", "asc"));
+        const querySnapshot = await getDocs(q);
+
+        const fetchedHomework = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setHomeworkList(fetchedHomework);
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Hausaufgabenliste:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const addHomework = async (title, startDate, dueDate, description) => {
+    if (user) {
+      try {
+        setLoading(true);
+
+        const subjectRef = doc(
+          firestoreDB,
+          "subjects",
+          user.uid + params.subject
+        );
+        const homeworkCollectionRef = collection(subjectRef, "homework");
+
+        await addDoc(homeworkCollectionRef, {
+          title: title,
+          startDate: startDate,
+          dueDate: dueDate,
+          description: description,
+          timestamp: serverTimestamp(),
+        });
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: e,
+          visibilityTime: 4000,
+        });
+      } finally {
+        fetchHomework(params.subject);
+      }
+    }
+  };
+
+  const addDeadline = async (subject, dueDate) => {
+    
+  };
+
   const renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => setIsHomeworkModalVisible(true)}
-      style={styles.homeworkItem}
+    <View
+      style={[
+        styles.deadlineResult,
+        {
+          shadowColor: 2 === 1 ? "#e02225" : "black",
+          shadowOpacity: 2 === 1 ? 1 : 0.3,
+          shadowRadius: 2 === 1 ? 9 : 4,
+        },
+      ]}
     >
-      <Text>{item.title}</Text>
-    </TouchableOpacity>
+      <Pressable
+        onPress={() => {
+          setIsHomeworkModalVisible(true);
+        }}
+        style={styles.deadlineTaskBox}
+      >
+        <Icon.MaterialIcons name="task" size={28} color="black" />
+        <View style={styles.deadlineDetails}>
+          <Text style={styles.subjectText}>{item.title}:</Text>
+          <Text style={styles.taskText}>{item.description}</Text>
+          <Text
+            style={[
+              styles.dueDateText,
+              {
+                color: 2 === 1 ? "#e02225" : "grey",
+              },
+            ]}
+          >
+            <Text style={styles.dueDateDescriptionText}>Abgabedatum:</Text>
+            {item.dueDate
+              ? new Date(item.dueDate.seconds * 1000).toLocaleDateString(
+                  "de-DE",
+                  {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  }
+                )
+              : "Datum nicht angegeben"}
+          </Text>
+        </View>
+      </Pressable>
+    </View>
   );
 
   return (
@@ -66,9 +188,7 @@ const GenericScreen = function ({ navigation }) {
             <Text style={styles.emptyListText}>
               Keine Hausaufgaben vorhanden
             </Text>
-          ) : (
-            <View></View>
-          )
+          ) : null
         }
       />
       <HomeworkDetailModal
@@ -78,6 +198,9 @@ const GenericScreen = function ({ navigation }) {
       <InputModal
         visible={isInputModalVisible}
         onClose={() => setIsInputModalVisible(false)}
+        addHomework={addHomework}
+        addDeadline={addDeadline}
+        subject={params.subject}
       />
     </View>
   );
@@ -122,13 +245,53 @@ const HomeworkDetailModal = ({ visible, onClose }) => {
   );
 };
 
-const InputModal = ({ visible, onClose }) => {
+const InputModal = ({
+  visible,
+  onClose,
+  addHomework,
+  addDeadline,
+  subject,
+}) => {
+  const [multiInputFocused, setMultiInputFocused] = useState(0);
+  const [startDate, setStartDate] = useState(new Date());
+  const [dueDate, setDueDate] = useState(new Date());
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isDeadline, setIsDeadline] = useState(false);
+  const titleInputRef = useRef(null);
+
+  const animatedModalStyle = useAnimatedStyle(() => {
+    return {
+      marginBottom: withSpring(multiInputFocused ? 150 : 0, {
+        damping: 15,
+        stiffness: 100,
+        mass: 1,
+        easing: Easing.ease,
+      }),
+    };
+  });
+
+  const showDatePicker = (mode, date, dateType) => {
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: date,
+        mode: mode,
+        onChange: (event, selectedDate) => {
+          if (selectedDate)
+            dateType === "due"
+              ? setDueDate(selectedDate)
+              : setStartDate(selectedDate);
+        },
+      });
+    }
+  };
+
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <KeyboardAvoidingView style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, animatedModalStyle]}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Icon.Ionicons
                   name="close-circle-sharp"
@@ -137,32 +300,117 @@ const InputModal = ({ visible, onClose }) => {
                 />
               </TouchableOpacity>
               <View style={styles.modalHeader}>
-                <TextInput style={styles.deadlineModalTitle}>Titel</TextInput>
-                <Text style={styles.remainingTimeText}>Aufgabedatum</Text>
+                <TextInput
+                  ref={titleInputRef}
+                  autoFocus
+                  style={styles.deadlineModalTitle}
+                  value={title}
+                  onChangeText={(text) => setTitle(text)}
+                  placeholder="Titel..."
+                  placeholderTextColor={"#c2c2c2"}
+                />
+                <Text style={styles.motivationText}>Aufgabedatum</Text>
+                {Platform.OS === "ios" ? (
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "default" : "spinner"}
+                    onChange={(event, day) => day && setStartDate(day)}
+                  />
+                ) : (
+                  <Pressable
+                    onPress={() => showDatePicker("date", startDate, "start")}
+                  >
+                    <Text style={styles.dateText}>
+                      {startDate.toLocaleDateString()}
+                    </Text>
+                  </Pressable>
+                )}
+
                 <Text style={styles.motivationText}>Abgabedatum: </Text>
+                {Platform.OS === "ios" ? (
+                  <DateTimePicker
+                    value={dueDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "default" : "spinner"}
+                    onChange={(event, day) => day && setDueDate(day)}
+                  />
+                ) : (
+                  <Pressable
+                    onPress={() => showDatePicker("date", dueDate, "due")}
+                  >
+                    <Text style={styles.dateText}>
+                      {dueDate.toLocaleDateString()}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
               <View style={styles.divider} />
-              <ScrollView keyboardDismissMode="on-drag">
-                <TextInput
-                  editable
-                  multiline
-                  numberOfLines={4}
-                  maxLength={100}
-                  style={styles.taskText}
-                >
-                  HA:
-                </TextInput>
-              </ScrollView>
+              <InputField
+                onFocused={() => setMultiInputFocused(true)}
+                onBlur={() => setMultiInputFocused(false)}
+                value={description}
+                onChangeText={(text) => setDescription(text)}
+              />
+              <View style={styles.deadlineSwitchBox}>
+                <Text style={styles.deadlineSwitchText}>
+                  Als Frist speichern ?
+                </Text>
+                <Switch
+                  value={isDeadline}
+                  onValueChange={() => setIsDeadline((prev) => !prev)}
+                />
+              </View>
               <View style={styles.finishButtonView}>
-                <Pressable style={styles.finishButton} onPress={onClose}>
-                  <Text style={styles.finishButtonText}>Abschließen</Text>
+                <Pressable
+                  style={styles.finishButton}
+                  onPress={() => {
+                    addHomework(title, startDate, dueDate, description);
+                    isDeadline ? addDeadline(subject) : null;
+                    onClose();
+                  }}
+                >
+                  <Text style={styles.finishButtonText}>Speichern</Text>
                 </Pressable>
               </View>
-            </KeyboardAvoidingView>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
+  );
+};
+const InputField = ({ onFocused, onBlur, onChangeText }) => {
+  const [text, setText] = useState("");
+  const scrollViewRef = useRef(null);
+
+  return (
+    <View style={styles.containerInput}>
+      <Text style={styles.charCount}>{text.length} / 200</Text>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        keyboardShouldPersistTaps="handled"
+        onContentSizeChange={() =>
+          scrollViewRef.current?.scrollToEnd({ animated: true })
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <TextInput
+          style={styles.input}
+          placeholder="Gib deinen Text ein..."
+          multiline
+          maxLength={200}
+          onFocus={() => onFocused()}
+          onBlur={() => onBlur()}
+          value={text}
+          onChangeText={(text) => {
+            setText(text);
+            onChangeText(text);
+          }}
+        />
+      </ScrollView>
+    </View>
   );
 };
 
@@ -174,12 +422,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    width: "85%",
-    height: "40%",
+    width: "90%",
+    height: "auto",
     backgroundColor: "#fff",
     borderRadius: 14,
-    padding: 15,
-    position: "relative",
+    padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -188,19 +435,19 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 7,
-    right: 7,
+    top: 10,
+    right: 10,
     zIndex: 1,
   },
   modalHeader: {
-    marginBottom: 10,
+    marginBottom: 15,
     backgroundColor: "#fceded",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
   },
   deadlineModalTitle: {
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 18,
     color: "#333",
   },
   remainingTimeText: {
@@ -231,21 +478,14 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: "#429e1b",
     borderRadius: 15,
-    marginBottom: 12,
     justifyContent: "center",
     alignItems: "center",
-    margin: 3,
+    marginTop: 15,
   },
   finishButtonText: {
     color: "white",
     fontWeight: "600",
-    fontSize: 14,
-  },
-  taskTextHeader: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 10,
+    fontSize: 15,
   },
   homeworkItem: {
     padding: 15,
@@ -262,5 +502,82 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginRight: 15,
+  },
+  containerInput: {},
+  scrollView: {
+    maxHeight: 140,
+    borderRadius: 15,
+  },
+  input: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 15,
+    padding: 12,
+    fontSize: 16,
+    textAlignVertical: "top",
+  },
+  charCount: {
+    textAlign: "right",
+    fontSize: 14,
+    color: "#666",
+    margin: 2,
+  },
+  deadlineResult: {
+    width: "100%",
+    marginVertical: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  deadlineTaskBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    padding: 15,
+    borderRadius: 14,
+    borderLeftWidth: 5,
+    borderLeftColor: "#e02225",
+  },
+  deadlineDetails: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  subjectText: {
+    color: "#333",
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  taskText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 16,
+  },
+  dueDateText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "grey",
+  },
+  dueDateDescriptionText: {
+    color: "#333",
+    fontSize: 14,
+    fontWeight: "600",
+    marginRight: 10,
+  },
+  deadlineSwitchBox: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingRight: 10,
+    marginVertical: 15,
+  },
+  deadlineSwitchText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#333",
   },
 });

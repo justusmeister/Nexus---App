@@ -11,11 +11,16 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const SegmentedControl = ({ options = [], selectedOption, onOptionPress }) => {
+const SegmentedControl = ({
+  options = [],
+  selectedOption,
+  onOptionPress,
+  width,
+}) => {
   const { width: windowWidth } = useWindowDimensions();
 
-  const internalPadding = 10;
-  const segmentedControlWidth = windowWidth - 32;
+  const internalPadding = 38 * 0.13;
+  const segmentedControlWidth = windowWidth - (width || 32);
 
   const itemWidth = (segmentedControlWidth - internalPadding) / options.length;
 
@@ -34,7 +39,7 @@ const SegmentedControl = ({ options = [], selectedOption, onOptionPress }) => {
         styles.container,
         {
           width: segmentedControlWidth,
-          borderRadius: 15,
+          borderRadius: 10,
           paddingLeft: internalPadding / 2,
         },
       ]}
@@ -73,12 +78,12 @@ const SegmentedControl = ({ options = [], selectedOption, onOptionPress }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    height: 40,
+    height: 35,
     backgroundColor: "lightgrey",
   },
   activeBox: {
     position: "absolute",
-    borderRadius: 10,
+    borderRadius: 8,
     shadowColor: "black",
     shadowOffset: {
       width: 0,
@@ -86,11 +91,14 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     elevation: 3,
-    height: "80%",
-    top: "10%",
+    height: "86%",
+    top: "7%",
     backgroundColor: "#fff",
   },
-  labelContainer: { justifyContent: "center", alignItems: "center" },
+  labelContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   label: {
     fontWeight: "500",
     fontSize: 16,

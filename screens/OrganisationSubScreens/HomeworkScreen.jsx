@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   View,
@@ -10,11 +10,13 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import BottomSheet, {
+import {
   BottomSheetView,
   BottomSheetBackdrop,
+  BottomSheetModal,
 } from "@gorhom/bottom-sheet";
 import * as Icon from "@expo/vector-icons";
 import { firestoreDB } from "../../firebaseConfig";
@@ -33,6 +35,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
+import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 
 const colors = [
   "#333",
@@ -120,20 +123,41 @@ const HomeworkScreen = ({ navigation }) => {
     }
   };
 
-  const snapPoints = ["70%"];
+  const deleteSubject = async (subject) => {
+    if (user) {
+      try {
+        const subjectRef = doc(firestoreDB, "subjects", user.uid + subject);
+        await deleteDoc(subjectRef);
+
+        setSubjects((prevSubjects) =>
+          prevSubjects.filter((item) => item.subject !== subject)
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: "Beim Löschen des Fachs ist ein Fehler aufgetreten.",
+          visibilityTime: 4000,
+        });
+        console.error("Fehler beim Löschen des Fachs:", e);
+      }
+    }
+  };
+
+  const snapPoints = useMemo(() => ["70%"], []);
 
   const handleOpen = () => {
-    sheetRef.current?.snapToIndex(1);
+    sheetRef.current?.present();
   };
 
   const handleClose = () => {
-    sheetRef.current?.close();
+    sheetRef.current?.dismiss();
   };
 
   const renderBackdrop = useCallback(
     (props) => (
       <BottomSheetBackdrop
-        appearsOnIndex={1}
+        appearsOnIndex={0}
         disappearsOnIndex={-1}
         {...props}
       />
@@ -146,9 +170,9 @@ const HomeworkScreen = ({ navigation }) => {
       <View>
         <TouchableOpacity
           style={{
-            width: "100%",
+            width: "auto",
             height: 50,
-            marginVertical: 18,
+            margin: 20,
             flexDirection: "row",
             backgroundColor: "#0066cc",
             borderRadius: 30,
@@ -199,12 +223,13 @@ const HomeworkScreen = ({ navigation }) => {
       <View style={{ paddingBottom: 79 }}>
         <Pressable
           style={{
-            width: "100%",
+            width: "auto",
             height: 85,
             marginTop: 20,
             backgroundColor: "#d1a336",
             borderRadius: 20,
             padding: 15,
+            marginHorizontal: 14,
             flexDirection: "row",
             justifyContent: "flex-start",
             alignItems: "center",
@@ -214,11 +239,7 @@ const HomeworkScreen = ({ navigation }) => {
             shadowRadius: 6,
             elevation: 3,
           }}
-          onPress={() =>
-            navigation.navigate("GenericScreen", {
-              subject: "allgemeine Notizen",
-            })
-          }
+          onPress={() => navigation.navigate("NotesScreen")}
         >
           <Icon.FontAwesome6 name="note-sticky" size={30} color="white" />
           <Text
@@ -229,7 +250,7 @@ const HomeworkScreen = ({ navigation }) => {
               color: "white",
             }}
           >
-            Allgemeine Notizen
+            allgemeine Notizen
           </Text>
         </Pressable>
       </View>
@@ -250,17 +271,38 @@ const HomeworkScreen = ({ navigation }) => {
                 style={{ marginVertical: 20, alignSelf: "center" }}
               />
             ) : (
-              <Pressable
-                style={[styles.subjectBox, { backgroundColor: item.color }]}
-                onPress={() =>
-                  navigation.navigate("GenericScreen", {
-                    subject: item.subject,
-                  })
+              <AppleStyleSwipeableRow
+                onPressDelete={() =>
+                  Alert.alert(
+                    "Möchten sie dieses Fach wirklich löschen?",
+                    "Das Fach wird samt Inhalt unwiderruflich gelöscht!",
+                    [
+                      {
+                        text: "Abbrechen",
+                      },
+                      {
+                        text: "Löschen",
+                        onPress: () => {
+                          deleteSubject(item.subject);
+                        },
+                        style: "destructive",
+                      },
+                    ]
+                  )
                 }
               >
-                <Icon.FontAwesome name={item.icon} size={30} color="white" />
-                <Text style={styles.subjectText}>{item.subject}</Text>
-              </Pressable>
+                <Pressable
+                  style={[styles.subjectBox, { backgroundColor: item.color }]}
+                  onPress={() =>
+                    navigation.navigate("GenericScreen", {
+                      subject: item.subject,
+                    })
+                  }
+                >
+                  <Icon.FontAwesome name={item.icon} size={30} color="white" />
+                  <Text style={styles.subjectText}>{item.subject}</Text>
+                </Pressable>
+              </AppleStyleSwipeableRow>
             )
           }
           ListFooterComponent={listFooterBox}
@@ -290,19 +332,14 @@ const HomeworkScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
         />
       </View>
-      <BottomSheet
+      <BottomSheetModal
         ref={sheetRef}
         snapPoints={snapPoints}
-        index={-1}
+        index={0}
         enablePanDownToClose={true}
         backgroundStyle={{ backgroundColor: "white" }}
         handleIndicatorStyle={{ backgroundColor: "gray" }}
         backdropComponent={renderBackdrop}
-        onChange={(index) => {
-          if (index === 0) {
-            sheetRef.current?.close();
-          }
-        }}
       >
         <BottomSheetView style={{ padding: 16, marginBottom: 79 }}>
           <Text style={[styles.label, { marginBottom: 12 }]}>
@@ -421,7 +458,7 @@ const HomeworkScreen = ({ navigation }) => {
             <Text style={[styles.buttonText, { fontSize: 16 }]}>Speichern</Text>
           </Pressable>
         </BottomSheetView>
-      </BottomSheet>
+      </BottomSheetModal>
     </GestureHandlerRootView>
   );
 };
@@ -431,14 +468,15 @@ export default HomeworkScreen;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    padding: 14,
+    paddingVertical: 20,
     backgroundColor: "#EFEEF6",
   },
   subjectBox: {
-    width: "100%",
+    width: "auto",
     height: 85,
     borderRadius: 20,
     padding: 15,
+    marginHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
