@@ -11,6 +11,7 @@ import {
   ScrollView,
   Animated,
   TouchableWithoutFeedback,
+  TextInput,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
@@ -197,7 +198,7 @@ const EmailModal = ({ visible, email, onClose }) => {
                 {0 === 0 ? (
                   <ScrollView>
                     <Pressable>
-                      <Text style={styles.emailContentText}>{email?.text}</Text>
+                      <TextInput style={styles.emailContentText} multiline={true} editable={false}>{email?.text}</TextInput>
                       {email?.attachments.length > 0 && (
                         <View>
                           {email?.attachments.map((attachment, index) => (

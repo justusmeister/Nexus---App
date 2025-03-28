@@ -26,7 +26,7 @@ import SingleRadioButton from "./SingleRadioButton";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import FormalSignleLineInputField from "./FormalSingleLineInputField";
 
-const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
+const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
   const [selectedOption, setSelectedOption] = useState("Event");
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
@@ -91,11 +91,11 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
   }, []);
 
   const handleTitleChange = useCallback((text) => {
-    setDeadlineTitle((prev) => (prev === text ? prev : text));
+    setDeadlineTitle(text);
   }, []);
-  
+
   const handleDescriptionChange = useCallback((text) => {
-    setDescription((prev) => (prev === text ? prev : text));
+    setDescription(text);
   }, []);
   
 
@@ -114,6 +114,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
       ref={sheetRef}
       snapPoints={snapPoints}
       index={0}
+      keyboardBehavior="interactive"
       enablePanDownToClose={true}
       backgroundStyle={{ backgroundColor: "white" }}
       handleIndicatorStyle={{ backgroundColor: "gray" }}
@@ -131,6 +132,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
       <BottomSheetScrollView
         contentContainerStyle={styles.sheetContainer}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Titel:</Text>
@@ -262,10 +264,11 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
         >
           <Text style={styles.buttonText}>Speichern</Text>
         </Pressable>
+        
       </BottomSheetScrollView>
     </BottomSheetModal>
   );
-};
+});
 
 export default memo(DeadlineBottomSheet);
 
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(2.18),
     fontWeight: "500",
     color: "#333",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   inputField: {
     backgroundColor: "#fff",
@@ -324,16 +327,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   confirmButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: "#0066cc",
+    height: 50,
+    borderRadius: 15,
     alignItems: "center",
-    marginTop: 20,
+    justifyContent: "center",
+    marginTop: 10,
     width: "100%",
   },
   buttonText: {
-    color: "#fff",
+    color: "white",
     fontSize: RFPercentage(2.18),
     fontWeight: "600",
   },

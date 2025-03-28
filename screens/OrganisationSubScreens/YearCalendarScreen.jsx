@@ -550,11 +550,15 @@ const DayRow = memo(
       }`;
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
+        let isDeadlineIn = false;
+        let isEventIn = false;
         for (const event of events) {
           if (event.eventType === 1) return 1;
-          else if (event.eventType === 0 && deadline) return 0;
+          else if (event.eventType === 2) isEventIn = true;
+          else if (event.eventType === 0 && deadline) isDeadlineIn = true;
         }
-        return 2;
+        if (isDeadlineIn && deadline) return 0;
+        return isEventIn ? 2 : 0;
       }
       return 0;
     };
@@ -581,7 +585,8 @@ const DayRow = memo(
 
       const isEventEnd =
         isEvent(day, month, year) === 2 &&
-        (!isEvent(day + 1, month, year) ||
+        ((isEvent(day + 1, month, year, true) === 0 && isEvent(day + 1, month, year) === 0) ||
+          !isEvent(day + 1, month, year) ||
           isClasstestNext ||
           index === 4 ||
           day === endDay);

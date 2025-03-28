@@ -5,6 +5,7 @@ import {
   useState,
   useEffect,
   memo,
+  useMemo,
 } from "react";
 import {
   TouchableOpacity,
@@ -149,20 +150,35 @@ const YearDetailedScreen = function ({ navigation }) {
         day: formatTimestamp(doc.data().day),
       }));
 
-      const eventPeriodsQuery = query(
+      const eventPeriodsQuery1 = query(
         eventPeriodsRef,
         where("day", ">=", start),
         where("day", "<=", end),
         orderBy("day")
-      );
-      const eventPeriodsSnapshot = await getDocs(eventPeriodsQuery);
-      const eventPeriods = eventPeriodsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        title: doc.name,
-        day: formatTimestamp(doc.data().day),
-        endDate: formatTimestamp(doc.data().endDate),
-      }));
+    );
+    
+    const eventPeriodsQuery2 = query(
+        eventPeriodsRef,
+        where("endDate", ">=", start),
+        where("endDate", "<=", end)
+    );
+    
+    const [eventPeriodsSnapshot1, eventPeriodsSnapshot2] = await Promise.all([
+        getDocs(eventPeriodsQuery1),
+        getDocs(eventPeriodsQuery2)
+    ]);
+    
+    const eventPeriods = [...eventPeriodsSnapshot1.docs, ...eventPeriodsSnapshot2.docs]
+        .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            title: doc.name,
+            day: formatTimestamp(doc.data().day),
+            endDate: formatTimestamp(doc.data().endDate),
+        }))
+        .filter((event, index, self) => 
+            index === self.findIndex(e => e.id === event.id) // Duplikate rausfiltern
+        );
 
       setAppointments(createEventMap({ singleEvents, eventPeriods }));
       setDeadlinesList([...singleEvents, ...eventPeriods]);
@@ -275,6 +291,7 @@ const YearDetailedScreen = function ({ navigation }) {
     } finally {
       setIsModalVisible(false);
       fetchAppointments(params.date);
+      eventEmitter.emit("refreshAppointments");
     }
   };
 
@@ -313,7 +330,7 @@ const YearDetailedScreen = function ({ navigation }) {
   };
 
   const filteredDeadlines = formatDate()
-    ? deadlinesList.filter((item) => item.day === formatDate())
+    ? deadlinesList.filter((item) => item.day === formatDate() || (item.day <= formatDate() && item.endDate >= formatDate()))
     : deadlinesList;
 
   return (
@@ -468,11 +485,15 @@ const WeekRow = memo(
       }`;
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
+        let isDeadlineIn = false;
+        let isEventIn = false;
         for (const event of events) {
           if (event.eventType === 1) return 1;
-          else if (event.eventType === 0 && deadline) return 0;
+          else if (event.eventType === 2) isEventIn = true;
+          else if (event.eventType === 0 && deadline) isDeadlineIn = true;
         }
-        return 2;
+        if (isDeadlineIn && deadline) return 0;
+        return isEventIn ? 2 : 0;
       }
       return 0;
     };
@@ -512,7 +533,7 @@ const WeekRow = memo(
 
       const isEventEnd =
         isEvent(day, month, year) === 2 &&
-        (!isEvent(day + 1, month, year) ||
+        ((isDeadline(day + 1, month, year) === 0 && isEvent(day + 1, month, year) === 0) || !isEvent(day + 1, month, year) ||
           isClasstestNext ||
           index === 4 ||
           day === endDay);
@@ -538,97 +559,60 @@ const WeekRow = memo(
         );
       };
 
-      if (filter === 0 || !filter || filter === null)
-        return {
-          borderTopLeftRadius:
-            isClasstest && !isWeekendEnd
-              ? 50
-              : isWeekendStart ||
-                (isHolidayStart(
-                  isClasstestBefore ||
-                    (isEvent(day, month, year) !== 2 &&
-                      isEvent(day - 1, month, year) === 2)
-                ) &&
-                  index !== 6) ||
-                (isEventStart && index !== 6)
-              ? 50
-              : 0,
-          borderBottomLeftRadius:
-            isClasstest && !isWeekendEnd
-              ? 50
-              : isWeekendStart ||
-                (isHolidayStart(
-                  isClasstestBefore ||
-                    (isEvent(day, month, year) !== 2 &&
-                      isEvent(day - 1, month, year) === 2)
-                ) &&
-                  index !== 6) ||
-                (isEventStart && index !== 6)
-              ? 50
-              : 0,
-          borderTopRightRadius:
-            isClasstest && !isWeekendStart
-              ? 50
-              : isWeekendEnd ||
-                (isHolidayEnd(
-                  isClasstestNext ||
-                    (isEvent(day, month, year) !== 2 &&
-                      isEvent(day + 1, month, year) === 2)
-                ) &&
-                  index !== 5) ||
-                (isEventEnd && index !== 5)
-              ? 50
-              : 0,
-          borderBottomRightRadius:
-            isClasstest && !isWeekendStart
-              ? 50
-              : isWeekendEnd ||
-                (isHolidayEnd(
-                  isClasstestNext ||
-                    (isEvent(day, month, year) !== 2 &&
-                      isEvent(day + 1, month, year) === 2)
-                ) &&
-                  index !== 5) ||
-                (isEventEnd && index !== 5)
-              ? 50
-              : 0,
-        };
-      else if (filter === 1)
-        return {
-          borderTopLeftRadius: isWeekendStart || isHolidayStart() ? 50 : 0,
-          borderBottomLeftRadius: isWeekendStart || isHolidayStart() ? 50 : 0,
-          borderTopRightRadius:
-            isWeekendEnd || (isHolidayEnd() && index !== 5) ? 50 : 0,
-          borderBottomRightRadius:
-            isWeekendEnd || (isHolidayEnd() && index !== 5) ? 50 : 0,
-        };
-      else if (filter === 2)
-        return {
-          borderTopLeftRadius:
-            isClasstest && !isWeekendEnd
-              ? 50
-              : isWeekendStart || isEventStart
-              ? 50
-              : 0,
-          borderBottomLeftRadius:
-            isClasstest && !isWeekendEnd
-              ? 50
-              : isWeekendStart || isEventStart
-              ? 50
-              : 0,
-          borderTopRightRadius:
-            isClasstest && !isWeekendStart
-              ? 50
-              : isWeekendEnd || (isEventEnd && index !== 5)
-              ? 50
-              : 0,
-          borderBottomRightRadius:
-            isClasstest && !isWeekendStart
-              ? 50
-              : isWeekendEnd || (isEventEnd && index !== 5)
-              ? 50
-              : 0,
-        };
+      return {
+        borderTopLeftRadius:
+          isClasstest && !isWeekendEnd
+            ? 50
+            : isWeekendStart ||
+              (isHolidayStart(
+                isClasstestBefore ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day - 1, month, year) === 2)
+              ) &&
+                index !== 6) ||
+              (isEventStart && index !== 6)
+            ? 50
+            : 0,
+        borderBottomLeftRadius:
+          isClasstest && !isWeekendEnd
+            ? 50
+            : isWeekendStart ||
+              (isHolidayStart(
+                isClasstestBefore ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day - 1, month, year) === 2)
+              ) &&
+                index !== 6) ||
+              (isEventStart && index !== 6)
+            ? 50
+            : 0,
+        borderTopRightRadius:
+          isClasstest && !isWeekendStart
+            ? 50
+            : isWeekendEnd ||
+              (isHolidayEnd(
+                isClasstestNext ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day + 1, month, year) === 2)
+              ) &&
+                index !== 5) ||
+              (isEventEnd && index !== 5)
+            ? 50
+            : 0,
+        borderBottomRightRadius:
+          isClasstest && !isWeekendStart
+            ? 50
+            : isWeekendEnd ||
+              (isHolidayEnd(
+                isClasstestNext ||
+                  (isEvent(day, month, year) !== 2 &&
+                    isEvent(day + 1, month, year) === 2)
+              ) &&
+                index !== 5) ||
+              (isEventEnd && index !== 5)
+            ? 50
+            : 0,
+      };
     };
 
     const getDayColors = (
@@ -641,39 +625,18 @@ const WeekRow = memo(
       endDay,
       filter
     ) => {
-      if (filter === 0 || !filter || filter === null)
-        return {
-          backgroundColor:
-            isEvent(day, month, year) !== 0
-              ? isEvent(day, month, year) === 1
-                ? "#F9D566"
-                : "#C08CFF"
-              : index === 5 || index === 6
-              ? "#BFBFC4"
-              : isHoliday(day, month, year)
-              ? "#A4C8FF"
-              : null,
-        };
-      else if (filter === 1)
-        return {
-          backgroundColor:
-            index === 5 || index === 6
-              ? "#BFBFC4"
-              : isHoliday(day, month, year)
-              ? "#A4C8FF"
-              : null,
-        };
-      else if (filter === 2)
-        return {
-          backgroundColor:
-            isEvent(day, month, year) !== 0
-              ? isEvent(day, month, year) === 1
-                ? "#F9D566"
-                : "#C08CFF"
-              : index === 5 || index === 6
-              ? "#BFBFC4"
-              : null,
-        };
+      return {
+        backgroundColor:
+          isEvent(day, month, year) === 1  || isEvent(day, month, year) === 2
+            ? isEvent(day, month, year) === 1
+              ? "#F9D566"
+              : "#C08CFF"
+            : index === 5 || index === 6
+            ? "#BFBFC4"
+            : isHoliday(day, month, year)
+            ? "#A4C8FF"
+            : null,
+      };
     };
 
     return (
@@ -692,8 +655,7 @@ const WeekRow = memo(
                   index,
                   isHoliday,
                   startDay,
-                  monthLength,
-                  0
+                  monthLength
                 ),
                 getBorderRadius(
                   day,
@@ -737,7 +699,7 @@ const WeekRow = memo(
                   color={"#656565"}
                   style={{
                     margin: 2,
-                    opacity: isDeadline(day, month, year, true) === 0 ? 1 : 0,
+                    opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
                   }}
                 />
               </TouchableOpacity>
