@@ -155,29 +155,33 @@ const YearDetailedScreen = function ({ navigation }) {
         where("day", ">=", start),
         where("day", "<=", end),
         orderBy("day")
-    );
-    
-    const eventPeriodsQuery2 = query(
+      );
+
+      const eventPeriodsQuery2 = query(
         eventPeriodsRef,
         where("endDate", ">=", start),
         where("endDate", "<=", end)
-    );
-    
-    const [eventPeriodsSnapshot1, eventPeriodsSnapshot2] = await Promise.all([
+      );
+
+      const [eventPeriodsSnapshot1, eventPeriodsSnapshot2] = await Promise.all([
         getDocs(eventPeriodsQuery1),
-        getDocs(eventPeriodsQuery2)
-    ]);
-    
-    const eventPeriods = [...eventPeriodsSnapshot1.docs, ...eventPeriodsSnapshot2.docs]
+        getDocs(eventPeriodsQuery2),
+      ]);
+
+      const eventPeriods = [
+        ...eventPeriodsSnapshot1.docs,
+        ...eventPeriodsSnapshot2.docs,
+      ]
         .map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            title: doc.name,
-            day: formatTimestamp(doc.data().day),
-            endDate: formatTimestamp(doc.data().endDate),
+          id: doc.id,
+          ...doc.data(),
+          title: doc.name,
+          day: formatTimestamp(doc.data().day),
+          endDate: formatTimestamp(doc.data().endDate),
         }))
-        .filter((event, index, self) => 
-            index === self.findIndex(e => e.id === event.id) // Duplikate rausfiltern
+        .filter(
+          (event, index, self) =>
+            index === self.findIndex((e) => e.id === event.id) // Duplikate rausfiltern
         );
 
       setAppointments(createEventMap({ singleEvents, eventPeriods }));
@@ -330,7 +334,11 @@ const YearDetailedScreen = function ({ navigation }) {
   };
 
   const filteredDeadlines = formatDate()
-    ? deadlinesList.filter((item) => item.day === formatDate() || (item.day <= formatDate() && item.endDate >= formatDate()))
+    ? deadlinesList.filter(
+        (item) =>
+          item.day === formatDate() ||
+          (item.day <= formatDate() && item.endDate >= formatDate())
+      )
     : deadlinesList;
 
   return (
@@ -498,6 +506,20 @@ const WeekRow = memo(
       return 0;
     };
 
+    const isSingleEvent = (day, month, year) => {
+      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
+        day < 10 ? `0${day}` : day
+      }`;
+      if (eventMap.has(date)) {
+        const events = eventMap.get(date);
+        for (const event of events) {
+          if (event.eventCategory === 1) return 1;
+        }
+        0;
+      }
+      return -1;
+    };
+
     const isDeadline = (day, month, year) => {
       const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
         day < 10 ? `0${day}` : day
@@ -528,12 +550,16 @@ const WeekRow = memo(
       const isEventStart =
         isEvent(day, month, year) === 2 &&
         (!isEvent(day - 1, month, year) ||
+          isSingleEvent(day, month, year) == 1 ||
           isClasstestBefore ||
           day === startDay);
 
       const isEventEnd =
         isEvent(day, month, year) === 2 &&
-        ((isDeadline(day + 1, month, year) === 0 && isEvent(day + 1, month, year) === 0) || !isEvent(day + 1, month, year) ||
+        ((isDeadline(day + 1, month, year) === 0 &&
+          isEvent(day + 1, month, year) === 0) ||
+          isSingleEvent(day, month, year) == 1 ||
+          !isEvent(day + 1, month, year) ||
           isClasstestNext ||
           index === 4 ||
           day === endDay);
@@ -627,7 +653,7 @@ const WeekRow = memo(
     ) => {
       return {
         backgroundColor:
-          isEvent(day, month, year) === 1  || isEvent(day, month, year) === 2
+          isEvent(day, month, year) === 1 || isEvent(day, month, year) === 2
             ? isEvent(day, month, year) === 1
               ? "#F9D566"
               : "#C08CFF"

@@ -30,9 +30,9 @@ import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { eventEmitter } from "../eventBus";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEmailData } from "../contexts/EmailContext";
 
 const DeadlinesContext = createContext();
-const EmailContext = createContext();
 
 const Stack = createNativeStackNavigator();
 
@@ -41,8 +41,8 @@ const newsBoxDummyData = [
     news: "Version 1.0 ist ab jetzt draußen!",
   },
   {
-    news: "Entdecke die App!"
-  }
+    news: "Entdecke die App!",
+  },
 ];
 
 const saveEmailsToStorage = async (emails) => {
@@ -50,16 +50,6 @@ const saveEmailsToStorage = async (emails) => {
     await AsyncStorage.setItem("emails", JSON.stringify(emails));
   } catch (error) {
     console.error("❌ Fehler beim Speichern der E-Mails:", error);
-  }
-};
-
-const loadEmailsFromStorage = async () => {
-  try {
-    const storedEmails = await AsyncStorage.getItem("emails");
-    return storedEmails ? JSON.parse(storedEmails) : null;
-  } catch (error) {
-    console.error("❌ Fehler beim Laden der E-Mails:", error);
-    return null;
   }
 };
 
@@ -103,7 +93,6 @@ const fetchEmails = async (setEmails) => {
 
 const HomeStack = function ({ navigation }) {
   const [deadlinesData, setDeadlinesData] = useState(["loading"]);
-  const [mailData, setMailData] = useState(["loading"]);
 
   const auth = getAuth();
   const user = auth.currentUser;
@@ -114,6 +103,41 @@ const HomeStack = function ({ navigation }) {
     return `${String(date.getDate()).padStart(2, "0")}.${String(
       date.getMonth() + 1
     ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
+  };
+
+  const parseDateString = (dateString) => {
+    const [day, month, year] = dateString.split(".").map(Number);
+    return new Date(2000 + year, month - 1, day);
+  };
+
+  const deleteDeadline = async (deadlineId) => {
+    const user = getAuth().currentUser;
+
+    if (user) {
+      try {
+        const deadlineRef = doc(
+          firestoreDB,
+          "deadlines",
+          user.uid,
+          "deadlinesList",
+          deadlineId
+        );
+
+        await deleteDoc(deadlineRef);
+
+        changeData((prevDeadlines) =>
+          prevDeadlines.filter((item) => item.id !== deadlineId)
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: "Beim Löschen der Deadline ist ein Fehler aufgetreten.",
+          visibilityTime: 4000,
+        });
+        console.error("Fehler beim Löschen der Deadline:", e);
+      }
+    }
   };
 
   const fetchDeadlines = async () => {
@@ -132,11 +156,36 @@ const HomeStack = function ({ navigation }) {
         subject: doc.data().name,
         task: doc.data().description,
         dueDate: formatTimestamp(doc.data().day),
+        canDelete:
+          checkDeadlineRemainingTime(formatTimestamp(doc.data().day)).time ===
+          "delete"
+            ? true
+            : false,
       }));
 
-      const sortedDeadlines = deadlines.sort((a, b) => a.dueDate - b.dueDate);
+      const currentDate = new Date();
+
+      const upcomingDues = deadlines
+        .filter((d) => parseDateString(d.dueDate) >= currentDate)
+        .sort(
+          (a, b) => parseDateString(a.dueDate) - parseDateString(b.dueDate)
+        );
+
+      const pastDues = deadlines
+        .filter((d) => parseDateString(d.dueDate) < currentDate)
+        .sort(
+          (a, b) => parseDateString(b.dueDate) - parseDateString(a.dueDate)
+        );
+
+      const sortedDeadlines = [...upcomingDues, ...pastDues];
 
       setDeadlinesData(sortedDeadlines);
+
+      for (const deadline of deadlines) {
+        if (deadline.canDelete) {
+          await deleteDeadline(deadline.id);
+        }
+      }
     } catch (error) {
       console.error("Fehler beim Abrufen der Termine:", error);
     } finally {
@@ -149,16 +198,6 @@ const HomeStack = function ({ navigation }) {
   };
 
   useEffect(() => {
-    const loadAndFetchEmails = async () => {
-      const cachedEmails = await loadEmailsFromStorage();
-      if (cachedEmails) {
-        setMailData(cachedEmails);
-      }
-
-      fetchEmails(setMailData);
-    };
-
-    loadAndFetchEmails();
     fetchDeadlines();
 
     eventEmitter.on("refreshDeadlines", fetchDeadlines);
@@ -169,58 +208,56 @@ const HomeStack = function ({ navigation }) {
   }, []);
 
   return (
-    <EmailContext.Provider value={{ mailData, setMailData }}>
-      <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="HomeScreen"
-            component={HomeScreen}
-            options={{
-              title: "Startseite",
-              headerLargeTitle: true,
-              headerShadowVisible: false,
-              headerStyle: { backgroundColor: "#EFEEF6" },
-              headerRight: () => (
-                <Pressable
-                  onPress={() => navigation.navigate("SettingsScreen")}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
-                  hitSlop={12}
-                >
-                  <Icon.Ionicons name="settings" size={31} />
-                </Pressable>
-              ),
-            }}
-          />
-          <Stack.Screen
-            name="NewsScreen"
-            component={NewsScreen}
-            options={{
-              title: "Neuigkeiten",
-              headerBackTitle: "Zurück",
-              headerTintColor: "black",
-            }}
-          />
-          <Stack.Screen
-            name="InboxScreen"
-            component={InboxScreen}
-            options={{
-              title: "Posteingang",
-              headerBackTitle: "Zurück",
-              headerTintColor: "black",
-            }}
-          />
-          <Stack.Screen
-            name="DeadlineScreen"
-            component={DeadlineScreen}
-            options={{
-              title: "anstehende Fristen",
-              headerBackTitle: "Zurück",
-              headerTintColor: "black",
-            }}
-          />
-        </Stack.Navigator>
-      </DeadlinesContext.Provider>
-    </EmailContext.Provider>
+    <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="HomeScreen"
+          component={HomeScreen}
+          options={{
+            title: "Startseite",
+            headerLargeTitle: true,
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: "#EFEEF6" },
+            headerRight: () => (
+              <Pressable
+                onPress={() => navigation.navigate("SettingsScreen")}
+                style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+                hitSlop={12}
+              >
+                <Icon.Ionicons name="settings" size={31} />
+              </Pressable>
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="NewsScreen"
+          component={NewsScreen}
+          options={{
+            title: "Neuigkeiten",
+            headerBackTitle: "Zurück",
+            headerTintColor: "black",
+          }}
+        />
+        <Stack.Screen
+          name="InboxScreen"
+          component={InboxScreen}
+          options={{
+            title: "Posteingang",
+            headerBackTitle: "Zurück",
+            headerTintColor: "black",
+          }}
+        />
+        <Stack.Screen
+          name="DeadlineScreen"
+          component={DeadlineScreen}
+          options={{
+            title: "anstehende Fristen",
+            headerBackTitle: "Zurück",
+            headerTintColor: "black",
+          }}
+        />
+      </Stack.Navigator>
+    </DeadlinesContext.Provider>
   );
 };
 
@@ -245,13 +282,17 @@ const NewsScreen = function ({ navigation }) {
 
 const InboxScreen = function ({ navigation }) {
   const route = useRoute();
-  const { mailData } = useContext(EmailContext);
+  const { mailData } = useEmailData();
 
   let index = route.params?.emailId !== null ? route.params?.emailId : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <InboxDetailedScreen data={mailData} index={index} />
+      <InboxDetailedScreen
+        data={mailData}
+        index={index}
+        navigation={navigation}
+      />
     </View>
   );
 };
@@ -430,6 +471,13 @@ const DeadlineDetailedScreen = function () {
                 .isWithinTwoDays === 1
                 ? 9
                 : 4,
+            opacity:
+              checkDeadlineRemainingTime(deadlinesData[index].dueDate)
+                .isWithinTwoDays === 0 ||
+              checkDeadlineRemainingTime(deadlinesData[index].dueDate)
+                .isWithinTwoDays === -1
+                ? 0.5
+                : 1,
           },
         ]}
       >
@@ -517,7 +565,7 @@ export const DeadlineScreen = function ({ navigation }) {
 export const HomeScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { deadlinesData, changeData } = useContext(DeadlinesContext);
-  const { mailData } = useContext(EmailContext);
+  const { mailData, refreshing } = useEmailData();
 
   const truncateText = (text, maxLength) => {
     text = text || " ";
@@ -642,6 +690,11 @@ export const HomeScreen = function ({ navigation }) {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        opacity:
+          checkDeadlineRemainingTime(date).isWithinTwoDays === 0 ||
+          checkDeadlineRemainingTime(date).isWithinTwoDays === -1
+            ? 0.4
+            : 1,
       }}
       onPress={() => navigation.navigate("DeadlineScreen", { taskId: place })}
     >
@@ -794,6 +847,7 @@ export const HomeScreen = function ({ navigation }) {
               borderBottomColor: "#b3b3ba",
             }}
             isLoading={mailData[0] === "loading"}
+            isRefreshing={refreshing}
             content={[
               {
                 content:

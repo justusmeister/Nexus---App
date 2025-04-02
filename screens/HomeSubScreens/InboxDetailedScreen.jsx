@@ -1,5 +1,5 @@
 import { WebView } from "react-native-webview";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -12,12 +12,90 @@ import {
   Animated,
   TouchableWithoutFeedback,
   TextInput,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEmailData } from "../../contexts/EmailContext";
+
+const saveEmailsToStorage = async (emails) => {
+  try {
+    await AsyncStorage.setItem("emails", JSON.stringify(emails));
+    await AsyncStorage.setItem(
+      "emailsLastUpdated",
+      new Date().toLocaleString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+    );
+  } catch (error) {
+    console.error("❌ Fehler beim Speichern der E-Mails:", error);
+  }
+};
+
+const loadEmailsLastUpdatedFromStorage = async () => {
+  try {
+    const storedEmails = await AsyncStorage.getItem("emailsLastUpdated");
+    return storedEmails || " - ";
+  } catch (error) {
+    console.error("❌ Fehler beim Laden der letzen E-Mailabrufung:", error);
+    return null;
+  }
+};
+
+const fetchEmails = async (setEmails, setRefreshing, setPullRefresh) => {
+  try {
+    console.log("📨 Starte Anfrage an Server...");
+    setRefreshing(true);
+    setPullRefresh(true);
+
+    const response = await fetch(
+      "https://iserv-email-retriever.onrender.com/fetch-emails",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "justus.meister",
+          password: "nivsic-wuGnej-9kyvke",
+        }),
+      }
+    );
+
+    console.log("📨 Antwort erhalten:", response.status);
+
+    if (!response.ok) {
+      setRefreshing(false);
+      setPullRefresh(false);
+      return;
+    }
+
+    const data = await response.json();
+    console.log("📩 E-Mails erhalten:", JSON.stringify(data, null, 2));
+
+    const sortedEmails = data.sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
+
+    setEmails(sortedEmails);
+    setRefreshing(false);
+    setPullRefresh(false);
+    await saveEmailsToStorage(sortedEmails);
+  } catch (error) {
+    console.error("❌ Fehler beim Abrufen der E-Mails:", error);
+    setRefreshing(false);
+  }
+};
 
 function formatDate(isoString) {
   const date = new Date(isoString);
@@ -41,12 +119,29 @@ function extractName(from) {
   return match ? match[1] : from; // Falls Name existiert, bereinigt zurückgeben
 }
 
-const InboxDetailedScreen = ({ data, index }) => {
+const InboxDetailedScreen = ({ data, index, navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentEmail, setCurrentEmail] = useState(null);
   const [activeAnimation, setActiveAnimation] = useState(null);
   const buttonScale = useState(new Animated.Value(1))[0];
+  const { refreshing, setRefreshing, setMailData } = useEmailData();
+  const [pullRefresh, setPullRefresh] = useState(false);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={({}) => fetchEmails(setMailData, setRefreshing)}
+          style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+          hitSlop={12}
+        >
+          <Icon.Feather name="refresh-cw" size={27} color="black" />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
+
   useEffect(() => {
     setTimeout(() => {
       if (index !== null && index !== undefined) {
@@ -147,6 +242,30 @@ const InboxDetailedScreen = ({ data, index }) => {
         renderItem={resultBox}
         keyExtractor={(item, index) => index.toString()}
         style={{ padding: 8 }}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            {refreshing && !pullRefresh ? (
+              <ActivityIndicator
+                size="small"
+                color="grey"
+                style={styles.indicator}
+              />
+            ) : null}
+            <Text style={styles.lastUpdatedFont}>
+              zuletzt aktualisiert: {loadEmailsLastUpdatedFromStorage()}
+            </Text>
+          </View>
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              fetchEmails(setMailData, setRefreshing, setPullRefresh);
+            }}
+            colors={["grey"]}
+            progressBackgroundColor={"black"}
+          />
+        }
       />
       <EmailModal
         visible={isModalVisible}
@@ -198,7 +317,13 @@ const EmailModal = ({ visible, email, onClose }) => {
                 {0 === 0 ? (
                   <ScrollView>
                     <Pressable>
-                      <TextInput style={styles.emailContentText} multiline={true} editable={false}>{email?.text}</TextInput>
+                      <TextInput
+                        style={styles.emailContentText}
+                        multiline={true}
+                        editable={false}
+                      >
+                        {email?.text}
+                      </TextInput>
                       {email?.attachments.length > 0 && (
                         <View>
                           {email?.attachments.map((attachment, index) => (
@@ -377,6 +502,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
     marginRight: 15,
+  },
+  lastUpdatedFont: {
+    fontSize: RFPercentage(1.79),
+    margin: 5,
+    fontWeight: "500",
+  },
+  indicator: {
+    alignSelf: "center",
+    margin: 8,
   },
 });
 

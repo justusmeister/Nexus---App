@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
-  BottomSheetView,
+  BottomSheetScrollView,
   BottomSheetBackdrop,
   BottomSheetModal,
 } from "@gorhom/bottom-sheet";
@@ -48,12 +48,19 @@ const colors = [
   "#27ae60",
   "#8e44ad",
   "#e74c3c",
+  "#2c3e50",
+  "#d35400",
 ];
+
 const icons = [
+  "graduation-cap",
   "book",
-  "calculator",
-  "flask",
+  "language",
   "globe",
+  "pencil",
+  "calculator",
+  "area-chart",
+  "flask",
   "paint-brush",
   "music",
   "code",
@@ -63,6 +70,7 @@ const HomeworkScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
 
   const sheetRef = useRef(null);
+  const inputRef = useRef(null);
 
   const [subjectName, setSubjectName] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0]);
@@ -153,6 +161,9 @@ const HomeworkScreen = ({ navigation }) => {
 
   const handleOpen = () => {
     sheetRef.current?.present();
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 200);
   };
 
   const handleClose = () => {
@@ -215,7 +226,7 @@ const HomeworkScreen = ({ navigation }) => {
         />
       </View>
 
-      <View style={{ paddingBottom: tabBarHeight - 11 }}>
+      <View style={{ paddingBottom: tabBarHeight + 11 }}>
         <Pressable
           style={{
             width: "auto",
@@ -331,9 +342,20 @@ const HomeworkScreen = ({ navigation }) => {
         backdropComponent={renderBackdrop}
         enableDynamicSizing={false}
       >
-        <BottomSheetView style={{ padding: 16 }}>
+        <BottomSheetScrollView
+          style={{
+            padding: 16,
+            shadowColor: "#333",
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+          }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           <Text style={styles.label}>Name des Faches:</Text>
           <TextInput
+            ref={inputRef}
             style={{
               backgroundColor: "#fff",
               borderRadius: 8,
@@ -343,10 +365,11 @@ const HomeworkScreen = ({ navigation }) => {
               fontSize: RFPercentage(2.18),
             }}
             placeholder="Name des Fachs"
-            value={subjectName}
-            onChangeText={setSubjectName}
+            defaultValue={subjectName} // Unkontrolliert setzen
+            onEndEditing={(e) => setSubjectName(e.nativeEvent.text)} 
             autoOpen={true}
           />
+
           <Text style={[styles.label, { marginTop: 20 }]}>
             Farbe auswählen:
           </Text>
@@ -390,7 +413,7 @@ const HomeworkScreen = ({ navigation }) => {
                     borderWidth: item === selectedIcon ? 2 : 0,
                     borderColor: "black",
                     backgroundColor:
-                      item === selectedIcon ? "#e8e8e8" : "#f9f9f9",
+                      item === selectedIcon ? "#e8e8e8" : "#f7f5f5",
                   },
                 ]}
                 onPress={() => setSelectedIcon(item)}
@@ -431,7 +454,7 @@ const HomeworkScreen = ({ navigation }) => {
               Speichern
             </Text>
           </Pressable>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheetModal>
     </GestureHandlerRootView>
   );
