@@ -17,6 +17,7 @@ install! 'cocoapods',
 prepare_react_native_project!
 
 target 'Nexus' do
+  use_frameworks!
   use_expo_modules!
 
    use_frameworks! :linkage => :static
