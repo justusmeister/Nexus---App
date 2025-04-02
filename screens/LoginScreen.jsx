@@ -15,6 +15,7 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { firebaseAuth } from "../firebaseConfig";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const LoginScreen = function ({ navigation }) {
   const [email, setEmail] = useState("");
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 15,
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: RFPercentage(2.05),
   },
   signInButton: {
     width: "100%",
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#ffffff",
-    fontSize: 16,
+    fontSize: RFPercentage(2.05),
     fontWeight: "bold",
   },
 });

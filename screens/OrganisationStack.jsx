@@ -24,6 +24,8 @@ import NotesScreen from "./OrganisationSubScreens/NotesScreen";
 import NotesInputScreen from "./OrganisationSubScreens/NotesInputScreen";
 import YearDetailedScreen from "./OrganisationSubScreens/YearDetailedScreen";
 import { FlashList } from "@shopify/flash-list";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -109,7 +111,7 @@ const MaterialTopTabs = function () {
           tabBarActiveTintColor: "#333",
           tabBarInactiveTintColor: "#888",
           tabBarLabelStyle: {
-            fontSize: 13,
+            fontSize: RFPercentage(1.79),
             fontWeight: "600",
           },
           tabBarStyle: {
@@ -161,6 +163,7 @@ const generateWeeks = (startWeek, count) =>
   });
 
 const TimeTableScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const flashListRef = useRef();
 
   const [weeks, setWeeks] = useState(generateWeeks(-10, 15));
@@ -230,7 +233,7 @@ const TimeTableScreen = function ({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <SafeAreaView style={styles.screen}>
+      <SafeAreaView style={[styles.screen, { marginBottom: tabBarHeight + 6 }]}>
         <View style={styles.containerTimeTable}>
           <TouchableOpacity
             style={{
@@ -268,10 +271,22 @@ const TimeTableScreen = function ({ navigation }) {
             />
 
             <View>
-              <Text style={{ fontWeight: "500", fontSize: 14, color: "#333" }}>
+              <Text
+                style={{
+                  fontWeight: "500",
+                  fontSize: RFPercentage(1.92),
+                  color: "#333",
+                }}
+              >
                 Aktuelles Datum:
               </Text>
-              <Text style={{ fontWeight: "700", fontSize: 15, color: "#333" }}>
+              <Text
+                style={{
+                  fontWeight: "700",
+                  fontSize: RFPercentage(2.05),
+                  color: "#333",
+                }}
+              >
                 {currentDate}
               </Text>
             </View>
@@ -308,7 +323,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
-    marginBottom: 89,
   },
   containerTimeTable: {
     flex: 1,

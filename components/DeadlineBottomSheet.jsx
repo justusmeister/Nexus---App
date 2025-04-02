@@ -17,11 +17,15 @@ import {
   BottomSheetScrollView,
   BottomSheetBackdrop,
   BottomSheetModal,
+  BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
 import { SegmentedControl } from "./SegmentedControl";
+import SingleRadioButton from "./SingleRadioButton";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import FormalSignleLineInputField from "./FormalSingleLineInputField";
 
 const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
   const [selectedOption, setSelectedOption] = useState("Event");
@@ -55,7 +59,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     };
   }, []);
 
-  const snapPoints = useMemo(() => ["75%"], []);
+  const snapPoints = useMemo(() => ["75%", "90%"], []);
 
   const renderBackdrop = useCallback(
     (props) => (
@@ -87,11 +91,13 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     }
   }, []);
 
-  const handleTitleChange = useCallback((text) => setDeadlineTitle(text), []);
-  const handleDescriptionChange = useCallback(
-    (text) => setDescription(text),
-    []
-  );
+  const handleTitleChange = useCallback((text) => {
+    setDeadlineTitle((prev) => (prev === text ? prev : text));
+  }, []);
+
+  const handleDescriptionChange = useCallback((text) => {
+    setDescription((prev) => (prev === text ? prev : text));
+  }, []);
 
   const toggleIsAllDay = useCallback(() => {
     setIsAllDay((prev) => !prev);
@@ -105,6 +111,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
 
   return (
     <BottomSheetModal
+    
       ref={sheetRef}
       snapPoints={snapPoints}
       index={0}
@@ -128,24 +135,37 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
       >
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Titel:</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Titel..."
+          <FormalSignleLineInputField
+            style={[
+              styles.inputField,
+              {
+                height: 50,
+                borderColor: "#d1d1d6",
+                borderWidth: 1,
+                borderRadius: 12,
+                backgroundColor: "#f9f9f9",
+                paddingHorizontal: 16,
+                fontSize: 16,
+                color: "#333",
+              },
+            ]}
+            placeholder="Titel"
             value={deadlineTitle}
-            onChangeText={handleTitleChange}
+            onChange={handleTitleChange}
+            autoOpen={true}
           />
         </View>
 
         {selectedOption !== "Zeitraum" && selectedOption !== "Frist" && (
-          <View style={styles.switchContainer}>
-            <Text style={styles.label}>Frist?</Text>
-            <Switch value={isAllDay} onChange={toggleIsAllDay} />
+          <View style={styles.radioButtonContainer}>
+            <Text style={styles.label}>Als Frist speichern?</Text>
+            <SingleRadioButton value={isAllDay} onPress={toggleIsAllDay} />
           </View>
         )}
 
         {selectedOption === "Event" ? (
           <View style={styles.eventTypeSelectorContainer}>
-            <Text style={styles.label}>Event Typ:</Text>
+            <Text style={styles.label}>Eventtyp:</Text>
             <SegmentedControl
               options={["Klausur", "Event"]}
               selectedOption={eventType}
@@ -222,8 +242,8 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
         ) : null}
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Beschreibung (optional):</Text>
-          <TextInput
+          <Text style={styles.label}>Beschreibung:</Text>
+          <BottomSheetTextInput
             style={styles.descriptionField}
             placeholder="Beschreibung hinzufügen..."
             multiline
@@ -244,12 +264,11 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
                 endDate,
                 appointmentType,
                 description || "-",
-                selectedOption === "Zeitraum" ? false : true
+                selectedOption === "Zeitraum" ? false : true,
+                isAllDay
               );
-            } 
-            catch (error)
-            {
-              console.log(error)
+            } catch (error) {
+              console.log(error);
             }
             handleClose();
           }}
@@ -265,7 +284,6 @@ export default memo(DeadlineBottomSheet);
 
 const styles = StyleSheet.create({
   sheetContainer: {
-    paddingBottom: 0,
     padding: 16,
     alignItems: "center",
     justifyContent: "flex-end",
@@ -282,37 +300,33 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
     color: "#333",
     marginBottom: 5,
   },
   inputField: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
   },
   descriptionField: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    paddingVertical: 15,
+    borderColor: "#d1d1d6",
     borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#f9f9f9",
+    paddingHorizontal: 16,
     fontSize: 16,
-    textAlignVertical: "top",
+    color: "#333",
   },
-  switchContainer: {
+  radioButtonContainer: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   dateTimeContainer: {
     width: "100%",
@@ -322,14 +336,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
     marginTop: 20,
     width: "100%",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
   },
   dateTimeContainer: {
@@ -356,7 +375,7 @@ const styles = StyleSheet.create({
   },
   dateText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
   },
   icon: {
@@ -364,7 +383,7 @@ const styles = StyleSheet.create({
   },
   eventTypeSelectorContainer: {
     width: "100%",
-    marginVertical: 5,
+    marginBottom: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

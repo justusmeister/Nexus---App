@@ -12,6 +12,7 @@ import {
   Modal,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import MessageBox from "../components/MessageBox";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -21,217 +22,205 @@ import InboxDetailedScreen from "./HomeSubScreens/InboxDetailedScreen";
 import NewsDetailedScreen from "./HomeSubScreens/NewsDetailedScreen";
 import { useRoute } from "@react-navigation/native";
 import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+import { firestoreDB } from "../firebaseConfig";
+import { getAuth } from "firebase/auth";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import Toast from "react-native-toast-message";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { eventEmitter } from "../eventBus";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DeadlinesContext = createContext();
+const EmailContext = createContext();
 
 const Stack = createNativeStackNavigator();
 
 const newsBoxDummyData = [
   {
-    news: "Es fällt die 5. Stunde aus!",
+    news: "Version 1.0 ist ab jetzt draußen!",
   },
   {
-    news: "Neues Update verfügbar !",
-  },
-  {
-    news: "Die alten Bugs wurden gestern gefixed !",
-  },
+    news: "Entdecke die App!"
+  }
 ];
 
-export const iServInboxDummyData = [
-  {
-    author: "Herr Müller-Schmidt",
-    title: "Ankündigung für die Klassenarbeit",
-    date: new Date("2024-11-21T15:00:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: false,
-  },
-  {
-    author: "Lisa Müller",
-    title: "Neue Hausaufgabe für Montag",
-    date: new Date("2024-11-12T12:00:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: true,
-  },
-  {
-    author: "Herr Schmidt",
-    title: "Wichtige Info zur Exkursion",
-    date: new Date("2024-11-21T15:00:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: false,
-  },
-  {
-    author: "Frau Meier",
-    title: "Korrektur der letzten Klausur",
-    date: new Date("2024-11-18T12:45:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: true,
-  },
-  {
-    author: "Max Mustermann",
-    title: "Elternabend am nächsten Donnerstag",
-    date: new Date("2024-11-22T18:00:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: false,
-  },
-  {
-    author: "Herr Weber",
-    title: "Material für das nächste Projekt",
-    date: new Date("2024-11-21T09:00:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: true,
-  },
-  {
-    author: "Frau Schulz",
-    title: "Vertretung in der 3. Stunde",
-    date: new Date("2024-11-23T07:45:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: false,
-  },
-  {
-    author: "Lisa Müller",
-    title: "Info zu den Winterferien",
-    date: new Date("2024-11-24T13:30:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: false,
-  },
-  {
-    author: "Herr Schmidt",
-    title: "Abgabe der Facharbeit",
-    date: new Date("2024-11-20T14:15:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: true,
-  },
-  {
-    author: "Frau Meier",
-    title: "Rückgabe der Seminararbeit",
-    date: new Date("2024-11-25T11:00:00").toLocaleString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    read: false,
-  },
-];
+const saveEmailsToStorage = async (emails) => {
+  try {
+    await AsyncStorage.setItem("emails", JSON.stringify(emails));
+  } catch (error) {
+    console.error("❌ Fehler beim Speichern der E-Mails:", error);
+  }
+};
 
-const deadlinesDummyData = [
-  { subject: "Informatik", task: "B. S. 72 Nr. 5", dueDate: "03.01.25" },
-  { subject: "Sport", task: "5 Runden laufen", dueDate: "03.06.25" },
-];
+const loadEmailsFromStorage = async () => {
+  try {
+    const storedEmails = await AsyncStorage.getItem("emails");
+    return storedEmails ? JSON.parse(storedEmails) : null;
+  } catch (error) {
+    console.error("❌ Fehler beim Laden der E-Mails:", error);
+    return null;
+  }
+};
 
-const showToast = () => {
-  Toast.show({
-    type: "success",
-    text1: "Glückwunsch! 🎉",
-    text2: "Du hast eine weitere Frist erledigt!",
-    visibilityTime: 4000,
-  });
+const fetchEmails = async (setEmails) => {
+  try {
+    console.log("📨 Starte Anfrage an Server...");
+
+    const response = await fetch(
+      "https://iserv-email-retriever.onrender.com/fetch-emails",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "justus.meister",
+          password: "nivsic-wuGnej-9kyvke",
+        }),
+      }
+    );
+
+    console.log("📨 Antwort erhalten:", response.status);
+
+    if (!response.ok) {
+      return;
+    }
+
+    const data = await response.json();
+    console.log("📩 E-Mails erhalten:", JSON.stringify(data, null, 2));
+
+    const sortedEmails = data.sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
+
+    setEmails(sortedEmails);
+    await saveEmailsToStorage(sortedEmails);
+  } catch (error) {
+    console.error("❌ Fehler beim Abrufen der E-Mails:", error);
+  }
 };
 
 const HomeStack = function ({ navigation }) {
-  const [deadlinesData, setDeadlinesData] = useState(deadlinesDummyData);
+  const [deadlinesData, setDeadlinesData] = useState(["loading"]);
+  const [mailData, setMailData] = useState(["loading"]);
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    return `${String(date.getDate()).padStart(2, "0")}.${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
+  };
+
+  const fetchDeadlines = async () => {
+    if (!user) return;
+    try {
+      const deadlinesRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+      const deadlinesSnapshot = await getDocs(deadlinesRef);
+
+      const deadlines = deadlinesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        subject: doc.data().name,
+        task: doc.data().description,
+        dueDate: formatTimestamp(doc.data().day),
+      }));
+
+      const sortedDeadlines = deadlines.sort((a, b) => a.dueDate - b.dueDate);
+
+      setDeadlinesData(sortedDeadlines);
+    } catch (error) {
+      console.error("Fehler beim Abrufen der Termine:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const changeData = (newData) => {
     setDeadlinesData(newData);
   };
 
+  useEffect(() => {
+    const loadAndFetchEmails = async () => {
+      const cachedEmails = await loadEmailsFromStorage();
+      if (cachedEmails) {
+        setMailData(cachedEmails);
+      }
+
+      fetchEmails(setMailData);
+    };
+
+    loadAndFetchEmails();
+    fetchDeadlines();
+
+    eventEmitter.on("refreshDeadlines", fetchDeadlines);
+
+    return () => {
+      eventEmitter.off("refreshDeadlines", fetchDeadlines);
+    };
+  }, []);
+
   return (
-    <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="HomeScreen"
-          component={HomeScreen}
-          options={{
-            title: "Startseite",
-            headerLargeTitle: true,
-            headerShadowVisible: false,
-            headerStyle: { backgroundColor: "#EFEEF6" },
-            headerRight: () => (
-              <TouchableOpacity
-                onPress={() => navigation.navigate("SettingsScreen")}
-              >
-                <Icon.Ionicons name="settings" size={31} />
-              </TouchableOpacity>
-            ),
-          }}
-        />
-        <Stack.Screen
-          name="NewsScreen"
-          component={NewsScreen}
-          options={{
-            title: "Neuigkeiten",
-            headerBackTitle: "Zurück",
-            headerTintColor: "black",
-          }}
-        />
-        <Stack.Screen
-          name="InboxScreen"
-          component={InboxScreen}
-          options={{
-            title: "Posteingang",
-            headerBackTitle: "Zurück",
-            headerTintColor: "black",
-          }}
-        />
-        <Stack.Screen
-          name="DeadlineScreen"
-          component={DeadlineScreen}
-          options={{
-            title: "anstehende Fristen",
-            headerBackTitle: "Zurück",
-            headerTintColor: "black",
-          }}
-        />
-      </Stack.Navigator>
-    </DeadlinesContext.Provider>
+    <EmailContext.Provider value={{ mailData, setMailData }}>
+      <DeadlinesContext.Provider value={{ deadlinesData, changeData }}>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="HomeScreen"
+            component={HomeScreen}
+            options={{
+              title: "Startseite",
+              headerLargeTitle: true,
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: "#EFEEF6" },
+              headerRight: () => (
+                <Pressable
+                  onPress={() => navigation.navigate("SettingsScreen")}
+                  style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+                  hitSlop={12}
+                >
+                  <Icon.Ionicons name="settings" size={31} />
+                </Pressable>
+              ),
+            }}
+          />
+          <Stack.Screen
+            name="NewsScreen"
+            component={NewsScreen}
+            options={{
+              title: "Neuigkeiten",
+              headerBackTitle: "Zurück",
+              headerTintColor: "black",
+            }}
+          />
+          <Stack.Screen
+            name="InboxScreen"
+            component={InboxScreen}
+            options={{
+              title: "Posteingang",
+              headerBackTitle: "Zurück",
+              headerTintColor: "black",
+            }}
+          />
+          <Stack.Screen
+            name="DeadlineScreen"
+            component={DeadlineScreen}
+            options={{
+              title: "anstehende Fristen",
+              headerBackTitle: "Zurück",
+              headerTintColor: "black",
+            }}
+          />
+        </Stack.Navigator>
+      </DeadlinesContext.Provider>
+    </EmailContext.Provider>
   );
 };
 
@@ -240,8 +229,15 @@ export const useDeadlinesData = () => useContext(DeadlinesContext);
 export default HomeStack;
 
 const NewsScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: 80 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#EFEEF6",
+        paddingBottom: tabBarHeight + 6,
+      }}
+    >
       <NewsDetailedScreen data={newsBoxDummyData} />
     </View>
   );
@@ -249,12 +245,13 @@ const NewsScreen = function ({ navigation }) {
 
 const InboxScreen = function ({ navigation }) {
   const route = useRoute();
+  const { mailData } = useContext(EmailContext);
 
   let index = route.params?.emailId !== null ? route.params?.emailId : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <InboxDetailedScreen data={iServInboxDummyData} index={index} />
+      <InboxDetailedScreen data={mailData} index={index} />
     </View>
   );
 };
@@ -312,7 +309,7 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
                         {
                           text: "Bestätigen",
                           onPress: () => {
-                            onConfirm();
+                            onConfirm(task.id);
                           },
                           style: "destructive",
                         },
@@ -332,6 +329,7 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
 };
 
 const DeadlineDetailedScreen = function () {
+  const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
   const { deadlinesData, changeData } = useDeadlinesData();
@@ -339,6 +337,36 @@ const DeadlineDetailedScreen = function () {
   const scale = useState(new Animated.Value(1))[0];
 
   const route = useRoute();
+
+  const deleteDeadline = async (deadlineId) => {
+    const user = getAuth().currentUser;
+
+    if (user) {
+      try {
+        const deadlineRef = doc(
+          firestoreDB,
+          "deadlines",
+          user.uid,
+          "deadlinesList",
+          deadlineId
+        );
+
+        await deleteDoc(deadlineRef);
+
+        changeData((prevDeadlines) =>
+          prevDeadlines.filter((item) => item.id !== deadlineId)
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: "Beim Löschen der Deadline ist ein Fehler aufgetreten.",
+          visibilityTime: 4000,
+        });
+        console.error("Fehler beim Löschen der Deadline:", e);
+      }
+    }
+  };
 
   let index = route.params?.taskId !== null ? route.params?.taskId : null;
 
@@ -352,18 +380,10 @@ const DeadlineDetailedScreen = function () {
     }
   }, [index]);
 
-  if (!deadlinesData || deadlinesData.length === 0) {
+  if (deadlinesData[0] === "loading") {
     return (
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "500",
-            color: "#8E8E93",
-          }}
-        >
-          Alle Fristen erledigt! 💪
-        </Text>
+        <ActivityIndicator size="small" color="#333" />
       </ScrollView>
     );
   }
@@ -424,7 +444,13 @@ const DeadlineDetailedScreen = function () {
         >
           <View style={styles.deadlineDetails}>
             <Text style={styles.subjectText}>{item.subject}:</Text>
-            <Text style={styles.taskText}>{item.task}</Text>
+            <Text
+              style={styles.taskText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.task}
+            </Text>
             <Text
               style={[
                 styles.dueDateText,
@@ -441,43 +467,40 @@ const DeadlineDetailedScreen = function () {
               {item.dueDate}
             </Text>
           </View>
-          <Checkbox
-            onConfirm={() => {
-              const updatedDeadlines = deadlinesData.filter(
-                (_, objIndex) => objIndex !== index
-              );
-              changeData(updatedDeadlines);
-              showToast();
-            }}
-          />
+          <Checkbox onConfirm={() => deleteDeadline(item.id)} />
         </Pressable>
       </Animated.View>
     );
   };
 
   return (
-    <View style={{ flex: 1, paddingBottom: 80 }}>
+    <View style={{ flex: 1, paddingBottom: tabBarHeight + 6 }}>
       <FlatList
         data={deadlinesData}
         renderItem={renderDeadline}
         keyExtractor={(item, index) => index.toString()}
         style={{ padding: 8 }}
+        ListEmptyComponent={
+          <ScrollView
+            contentContainerStyle={{ padding: 15, alignItems: "center" }}
+          >
+            <Text
+              style={{
+                fontSize: RFPercentage(2.05),
+                fontWeight: "500",
+                color: "#8E8E93",
+              }}
+            >
+              Alle Fristen erledigt! 💪
+            </Text>
+          </ScrollView>
+        }
       />
       <DeadlineInformationModal
         visible={isModalVisible}
         task={currentTask}
         onClose={() => setIsModalVisible(false)}
-        onConfirm={() => {
-          const currentIndex = deadlinesData.findIndex(
-            (item) => item === currentTask
-          );
-          const updatedDeadlines = deadlinesData.filter(
-            (_, objIndex) => objIndex !== currentIndex
-          );
-          changeData(updatedDeadlines);
-          setIsModalVisible(false);
-          showToast();
-        }}
+        onConfirm={deleteDeadline}
       />
     </View>
   );
@@ -492,18 +515,79 @@ export const DeadlineScreen = function ({ navigation }) {
 };
 
 export const HomeScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { deadlinesData, changeData } = useContext(DeadlinesContext);
+  const { mailData } = useContext(EmailContext);
 
   const truncateText = (text, maxLength) => {
+    text = text || " ";
     if (text.length > maxLength) {
-      return text.substring(0, maxLength) + "..";
+      return text.substring(0, maxLength) + "...";
     }
     return text;
   };
 
+  function formatDate(isoString) {
+    const date = new Date(isoString);
+    return (
+      date.toLocaleDateString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+      }) +
+      ", " +
+      date.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
+  }
+
+  function extractName(from) {
+    if (!from) return ""; // Falls from null, undefined oder leer ist, gib leeren String zurück
+    const match = from.match(/"?(.*?)"?\s*<.*@.*>/);
+    return match ? match[1] : from; // Falls Name existiert, bereinigt zurückgeben
+  }
+
+  const deleteDeadline = async (deadlineId) => {
+    const user = getAuth().currentUser;
+
+    if (user) {
+      try {
+        const deadlineRef = doc(
+          firestoreDB,
+          "deadlines",
+          user.uid,
+          "deadlinesList",
+          deadlineId
+        );
+
+        await deleteDoc(deadlineRef);
+
+        changeData((prevDeadlines) =>
+          prevDeadlines.filter((item) => item.id !== deadlineId)
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: "Beim Löschen der Deadline ist ein Fehler aufgetreten.",
+          visibilityTime: 4000,
+        });
+        console.error("Fehler beim Löschen der Deadline:", e);
+      }
+    }
+  };
+
   const noEntryTemplate = (text) => {
     return (
-      <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
+      <Text
+        style={{
+          color: "white",
+          fontSize: RFPercentage(1.92),
+          fontWeight: "500",
+        }}
+      >
         {text}
       </Text>
     );
@@ -525,24 +609,30 @@ export const HomeScreen = function ({ navigation }) {
         <Text
           style={{
             color: "black",
-            fontSize: 13,
+            fontSize: RFPercentage(1.79),
             fontWeight: read ? "500" : "700",
           }}
         >
-          {writer}
+          {truncateText(extractName(writer), 15)}
         </Text>
         <Text
           style={{
-            fontSize: 12,
+            fontSize: RFPercentage(1.67),
             fontWeight: "500",
             color: "#363636",
             alignSelf: "flex-start",
           }}
         >
-          {date}
+          {formatDate(date)}
         </Text>
       </View>
-      <Text style={{ color: "white", fontSize: 13 }}>{reference}</Text>
+      <Text
+        style={{ color: "white", fontSize: RFPercentage(1.79) }}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {reference}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -563,16 +653,34 @@ export const HomeScreen = function ({ navigation }) {
           justifyContent: "space-between",
         }}
       >
-        <Text style={{ color: "white", fontSize: 15, fontWeight: "600" }}>
-          {subject}:
+        <Text>
+          <Text
+            style={{
+              color: "white",
+              fontSize: RFPercentage(2.05),
+              fontWeight: "600",
+            }}
+          >
+            {truncateText(subject, 7)}:
+          </Text>
         </Text>
 
-        <Text style={{ color: "white", fontSize: 14, fontWeight: "500" }}>
+        <Text
+          style={{
+            color: "white",
+            fontSize: RFPercentage(1.92),
+            fontWeight: "500",
+            paddingHorizontal: 5,
+            flexShrink: 1,
+          }}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {task}
         </Text>
         <Text
           style={{
-            fontSize: 12,
+            fontSize: RFPercentage(1.67),
             fontWeight: "700",
             color: "#363636",
           }}
@@ -580,29 +688,20 @@ export const HomeScreen = function ({ navigation }) {
           {date}
         </Text>
       </View>
-      <Checkbox
-        onConfirm={() => {
-          if (deadlinesData.length > 1) {
-            const updatedDeadlines = deadlinesData.filter(
-              (_, index) => index !== place
-            );
-            changeData(updatedDeadlines);
-          } else {
-            changeData([]);
-          }
-          showToast();
-        }}
-      />
+      <Checkbox onConfirm={() => deleteDeadline(deadlinesData[place].id)} />
     </TouchableOpacity>
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.view} contentInsetAdjustmentBehavior="automatic">
+      <SafeAreaView
+        style={[styles.container, { marginBottom: tabBarHeight + 6 }]}
+      >
+        <View style={styles.view}>
           <MessageBox
             title="Neuigkeiten"
             style={{
+              height: "32%",
               backgroundColor: "#0d7a18",
               borderRadius: 20,
             }}
@@ -618,8 +717,12 @@ export const HomeScreen = function ({ navigation }) {
                     <TouchableOpacity
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
-                      <Text style={{ color: "white", fontSize: 15 }}>
-                        {truncateText(newsBoxDummyData[0].news, 21)}
+                      <Text
+                        style={{ color: "white", fontSize: RFPercentage(2.05) }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {newsBoxDummyData[0].news}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -636,8 +739,12 @@ export const HomeScreen = function ({ navigation }) {
                     <TouchableOpacity
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
-                      <Text style={{ color: "white", fontSize: 15 }}>
-                        {truncateText(newsBoxDummyData[1].news, 21)}
+                      <Text
+                        style={{ color: "white", fontSize: RFPercentage(2.05) }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {newsBoxDummyData[1].news}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -654,8 +761,12 @@ export const HomeScreen = function ({ navigation }) {
                     <TouchableOpacity
                       onPress={() => navigation.navigate("NewsScreen")}
                     >
-                      <Text style={{ color: "white", fontSize: 15 }}>
-                        {truncateText(newsBoxDummyData[2].news, 21)}
+                      <Text
+                        style={{ color: "white", fontSize: RFPercentage(2.05) }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {newsBoxDummyData[2].news}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -672,66 +783,69 @@ export const HomeScreen = function ({ navigation }) {
           <MessageBox
             title="iServ Postfach"
             style={{
+              height: "32%",
               backgroundColor: "#2165bf",
               borderRadius: 20,
             }}
             icon="inbox"
             titleStyle={{
-              borderBottomWidth: iServInboxDummyData.length > 0 ? 0 : 1,
+              borderBottomWidth:
+                mailData.length > 0 && mailData[0] !== "loading" ? 0 : 1,
               borderBottomColor: "#b3b3ba",
             }}
+            isLoading={mailData[0] === "loading"}
             content={[
               {
                 content:
-                  iServInboxDummyData.length > 0
+                  mailData.length > 0 && mailData[0] !== "loading"
                     ? inboxTemplate(
-                        truncateText(iServInboxDummyData[0].author, 16),
-                        truncateText(iServInboxDummyData[0].title, 24),
-                        iServInboxDummyData[0].date,
-                        iServInboxDummyData[0].read,
+                        mailData[0].from,
+                        mailData[0].subject,
+                        mailData[0].date,
+                        mailData[0].read,
                         0
                       )
                     : noEntryTemplate("keine weiteren Einträge"),
                 style: [
                   styles.iservContent,
-                  { borderWidth: iServInboxDummyData.length > 0 ? 0.5 : 0 },
+                  { borderWidth: mailData.length > 0 ? 0.5 : 0 },
                 ],
               },
               {
                 content:
-                  iServInboxDummyData.length > 1
+                  mailData.length > 1
                     ? inboxTemplate(
-                        truncateText(iServInboxDummyData[1].author, 16),
-                        truncateText(iServInboxDummyData[1].title, 24),
-                        iServInboxDummyData[1].date,
-                        iServInboxDummyData[1].read,
+                        mailData[1].from,
+                        mailData[1].subject,
+                        mailData[1].date,
+                        mailData[1].read,
                         1
                       )
-                    : iServInboxDummyData.length > 0
+                    : mailData.length > 0
                     ? noEntryTemplate("alle Aufgaben erledigt")
                     : null,
 
                 style: [
                   styles.iservContent,
-                  { borderWidth: iServInboxDummyData.length > 1 ? 0.5 : 0 },
+                  { borderWidth: mailData.length > 1 ? 0.5 : 0 },
                 ],
               },
               {
                 content:
-                  iServInboxDummyData.length > 2
+                  mailData.length > 2
                     ? inboxTemplate(
-                        truncateText(iServInboxDummyData[2].author, 16),
-                        truncateText(iServInboxDummyData[2].title, 24),
-                        iServInboxDummyData[2].date,
-                        iServInboxDummyData[2].read,
+                        mailData[2].from,
+                        mailData[2].subject,
+                        mailData[2].date,
+                        mailData[2].read,
                         2
                       )
-                    : iServInboxDummyData.length > 1
+                    : mailData.length > 1
                     ? noEntryTemplate("alle Aufgaben erledigt")
                     : null,
                 style: [
                   styles.iservContent,
-                  { borderWidth: iServInboxDummyData.length > 2 ? 0.5 : 0 },
+                  { borderWidth: mailData.length > 2 ? 0.5 : 0 },
                 ],
               },
             ]}
@@ -740,37 +854,42 @@ export const HomeScreen = function ({ navigation }) {
           <MessageBox
             title="anstehende Fristen"
             style={{
+              height: "32%",
               backgroundColor: "#e02225",
               borderRadius: 20,
             }}
             icon="hourglass-1"
             titleStyle={{
-              borderBottomWidth: deadlinesData.length > 0 ? 0 : 1,
+              borderBottomWidth:
+                deadlinesData.length > 0 && deadlinesData[0] !== "loading"
+                  ? 0
+                  : 1,
               borderBottomColor: "#b3b3ba",
             }}
+            isLoading={deadlinesData[0] === "loading"}
             content={[
               {
                 content:
-                  deadlinesData.length > 0
+                  deadlinesData.length > 0 && deadlinesData[0] !== "loading"
                     ? deadlineTemplate(
-                        truncateText(deadlinesData[0].subject, 6),
-                        truncateText(deadlinesData[0].task, 10),
+                        deadlinesData[0].subject,
+                        deadlinesData[0].task,
                         deadlinesData[0].dueDate,
                         0
                       )
-                    : noEntryTemplate("Alle Aufgaben erledigt! 💪"),
+                    : noEntryTemplate("Alle Fristen abgeschlossen! 💪"),
                 style: [
                   styles.iservContent,
                   {
                     borderWidth:
-                      deadlinesData.length > 0
+                      deadlinesData.length > 0 && deadlinesData[0] !== "loading"
                         ? checkDeadlineRemainingTime(deadlinesData[0].dueDate)
                             .isWithinTwoDays === 1
                           ? 2.5
                           : 0.5
                         : 0,
                     borderColor:
-                      deadlinesData.length > 0
+                      deadlinesData.length > 0 && deadlinesData[0] !== "loading"
                         ? checkDeadlineRemainingTime(deadlinesData[0].dueDate)
                             .isWithinTwoDays === 1
                           ? "#750101"
@@ -783,13 +902,15 @@ export const HomeScreen = function ({ navigation }) {
                 content:
                   deadlinesData.length > 1
                     ? deadlineTemplate(
-                        truncateText(deadlinesData[1].subject, 6),
-                        truncateText(deadlinesData[1].task, 10),
+                        deadlinesData[1].subject,
+                        deadlinesData[1].task,
                         deadlinesData[1].dueDate,
                         1
                       )
                     : deadlinesData.length > 0
-                    ? noEntryTemplate("Alle restlichen Aufgaben erledigt! 💪")
+                    ? noEntryTemplate(
+                        "Alle restlichen Fristen abgeschlossen! 💪"
+                      )
                     : null,
                 style: [
                   styles.iservContent,
@@ -815,13 +936,15 @@ export const HomeScreen = function ({ navigation }) {
                 content:
                   deadlinesData.length > 2
                     ? deadlineTemplate(
-                        truncateText(deadlinesData[2].subject, 6),
-                        truncateText(deadlinesData[2].task, 10),
+                        deadlinesData[2].subject,
+                        deadlinesData[2].task,
                         deadlinesData[2].dueDate,
                         2
                       )
                     : deadlinesData.length > 1
-                    ? noEntryTemplate("Alle restlichen Aufgaben erledigt! 💪")
+                    ? noEntryTemplate(
+                        "Alle restlichen Fristen abgeschlossen! 💪"
+                      )
                     : null,
                 style: [
                   styles.iservContent,
@@ -858,7 +981,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
-    marginBottom: 89,
   },
   view: {
     flex: 1,
@@ -897,23 +1019,24 @@ const styles = StyleSheet.create({
   },
   subjectText: {
     color: "#333",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "700",
     marginBottom: 10,
   },
   taskText: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#666",
     marginBottom: 16,
+    flexShrink: 1,
   },
   dueDateText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "700",
     color: "grey",
   },
   dueDateDescriptionText: {
     color: "#333",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "600",
     marginRight: 10,
   },
@@ -943,7 +1066,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   closeButtonText: {
-    fontSize: 24,
+    fontSize: RFPercentage(3.21),
     color: "#4A90E2",
   },
   modalHeader: {
@@ -954,16 +1077,16 @@ const styles = StyleSheet.create({
   },
   deadlineModalTitle: {
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     color: "#333",
   },
   remainingTimeText: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "600",
     color: "#d13030",
   },
   motivationText: {
-    fontSize: 12,
+    fontSize: RFPercentage(1.67),
     color: "#666",
   },
   divider: {
@@ -991,10 +1114,10 @@ const styles = StyleSheet.create({
   finishButtonText: {
     color: "white",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
   },
   taskTextHeader: {
-    fontSize: 17,
+    fontSize: RFPercentage(2.31),
     fontWeight: "600",
     color: "#333",
     marginBottom: 10,

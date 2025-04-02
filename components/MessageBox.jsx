@@ -1,5 +1,12 @@
-import { StyleSheet, View, TouchableOpacity, Text } from "react-native";
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+} from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const MessageBox = function ({
   titleStyle,
@@ -8,6 +15,7 @@ const MessageBox = function ({
   title,
   icon,
   content = [{}],
+  isLoading,
 }) {
   return (
     <TouchableOpacity
@@ -15,7 +23,12 @@ const MessageBox = function ({
       activeOpacity={0.4}
       onPress={onPress}
     >
-      <View style={[styles.titleBox, titleStyle]}>
+      <View
+        style={[
+          styles.titleBox,
+          titleStyle,
+        ]}
+      >
         <View style={styles.title}>
           <Icon.FontAwesome
             name={icon}
@@ -26,7 +39,7 @@ const MessageBox = function ({
           <Text
             style={{
               color: "white",
-              fontSize: 20,
+              fontSize: RFPercentage(2.69),
               marginBottom: 5,
               paddingTop: 3,
             }}
@@ -41,13 +54,19 @@ const MessageBox = function ({
           style={{ paddingTop: 3 }}
         />
       </View>
-      <View style={styles.infoBoxOuterView}>
-        {content.map((item, index) => (
-          <View key={index} style={[styles.infoBox, item.style]}>
-            {item.content}
-          </View>
-        ))}
-      </View>
+      {isLoading ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size={"small"} color={"white"} />
+        </View>
+      ) : (
+        <View style={styles.infoBoxOuterView}>
+          {content.map((item, index) => (
+            <View key={index} style={[styles.infoBox, item.style]}>
+              {item.content}
+            </View>
+          ))}
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -57,7 +76,6 @@ export default MessageBox;
 const styles = StyleSheet.create({
   boxSize: {
     width: "100%",
-    height: "32%",
     shadowColor: "#000",
     justifyContent: "center",
     alignItems: "center",
@@ -94,6 +112,12 @@ const styles = StyleSheet.create({
   title: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  loadingBox: {
+    width: "90%",
+    height: "70%",
+    justifyContent: "center",
     alignItems: "center",
   },
 });

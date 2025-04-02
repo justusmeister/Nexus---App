@@ -4,7 +4,13 @@ import { RectButton } from "react-native-gesture-handler";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import * as Icon from "@expo/vector-icons";
 
-const AppleStyleSwipeableRow = ({ children, onSwipeOpen, id, activeSwipeId, onPressDelete }) => {
+const AppleStyleSwipeableRow = ({
+  children,
+  onSwipeOpen,
+  id,
+  activeSwipeId,
+  onPressDelete,
+}) => {
   const swipeableRef = useRef(null);
 
   const renderRightActions = () => {

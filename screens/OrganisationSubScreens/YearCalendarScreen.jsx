@@ -13,6 +13,7 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHolidayData } from "../../contexts/HolidayDataContext";
 import * as Icon from "@expo/vector-icons";
 import Animated, {
@@ -21,7 +22,7 @@ import Animated, {
   withSpring,
   interpolate,
 } from "react-native-reanimated";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { firestoreDB } from "../../firebaseConfig";
 import { getAuth } from "firebase/auth";
@@ -36,10 +37,13 @@ import {
   Timestamp,
   orderBy,
   serverTimestamp,
+  setDoc,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { BlurView } from "expo-blur";
 import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import { eventEmitter } from "../../eventBus";
 
 const months = [
   "Januar",
@@ -102,10 +106,13 @@ function createEventMap(events) {
 }
 
 const YearCalendarScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const flatListRef = useRef(null);
   const containerHeight =
-    Dimensions.get("window").height - useSafeAreaInsets().top - 48 - 111;
+    Dimensions.get("screen").height -
+    (useSafeAreaInsets().top + 48) -
+    (tabBarHeight + 26);
   const [isFilterMenuVisible, setIsFilterMenuVisible] = useState(false);
   const [filter, setFilter] = useState(0);
   const height = useSharedValue(0);
@@ -117,8 +124,6 @@ const YearCalendarScreen = function ({ navigation }) {
   const [appointments, setAppointments] = useState(new Map());
   const [loading, setLoading] = useState(true);
 
-  const [keyboardHight, setKeyoardHight] = useState(0);
-
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -126,7 +131,13 @@ const YearCalendarScreen = function ({ navigation }) {
     if (user) fetchAppointments();
   }, [user]);
 
-  useEffect(() => console.log(keyboardHight), [keyboardHight]);
+  useEffect(() => {
+    eventEmitter.on("refreshAppointments", fetchAppointments);
+
+    return () => {
+      eventEmitter.off("refreshAppointments", fetchAppointments);
+    };
+  }, []);
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "";
@@ -175,7 +186,8 @@ const YearCalendarScreen = function ({ navigation }) {
     endDate,
     eventType,
     description,
-    singleEvent
+    singleEvent,
+    saveAsDeadline
   ) => {
     if (!user) return;
 
@@ -207,6 +219,40 @@ const YearCalendarScreen = function ({ navigation }) {
     } finally {
       setLoading(false);
       fetchAppointments();
+      eventType === 0 || saveAsDeadline
+        ? addDeadline(name, day, description)
+        : null;
+    }
+  };
+
+  const addDeadline = async (name, day, description) => {
+    if (!user) return;
+
+    try {
+      const deadlineCollectionRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+
+      await addDoc(deadlineCollectionRef, {
+        name,
+        day,
+        description,
+        timestamp: serverTimestamp(),
+      });
+
+      console.log("Frist erfolgreich hinzugefügt!");
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
+    } finally {
+      eventEmitter.emit("refreshDeadlines");
     }
   };
 
@@ -275,8 +321,15 @@ const YearCalendarScreen = function ({ navigation }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-        <SafeAreaView style={styles.screen}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#EFEEF6",
+        }}
+      >
+        <SafeAreaView
+          style={[styles.screen, { marginBottom: tabBarHeight + 6 }]}
+        >
           {isFilterMenuVisible && (
             <Pressable style={styles.overlay} onPress={toggleDropdown} />
           )}
@@ -296,50 +349,48 @@ const YearCalendarScreen = function ({ navigation }) {
               />
             </Pressable>
             <Animated.View style={[styles.dropdown, animatedDropdownStyle]}>
-              <BlurView tint="systemThinMaterialLight" intensity={200}>
-                <TouchableOpacity
-                  onPress={() => {
-                    toggleDropdown();
-                    setFilter(0);
-                  }}
-                  style={styles.filterSubButton}
-                >
-                  <Text style={styles.item}>keine Filter</Text>
-                  <Icon.MaterialIcons
-                    name="filter-list-off"
-                    size={26}
-                    color={"#333"}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    toggleDropdown();
-                    setFilter(1);
-                  }}
-                  style={styles.filterSubButton}
-                >
-                  <Text style={styles.item}>Ferien</Text>
-                  <Icon.MaterialIcons
-                    name="beach-access"
-                    size={26}
-                    color={"#333"}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    toggleDropdown();
-                    setFilter(2);
-                  }}
-                  style={styles.filterSubButton}
-                >
-                  <Text style={styles.item}>Termine</Text>
-                  <Icon.MaterialIcons
-                    name="calendar-month"
-                    size={26}
-                    color={"#333"}
-                  />
-                </TouchableOpacity>
-              </BlurView>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDropdown();
+                  setFilter(0);
+                }}
+                style={styles.filterSubButton}
+              >
+                <Text style={styles.item}>keine Filter</Text>
+                <Icon.MaterialIcons
+                  name="filter-list-off"
+                  size={26}
+                  color={"#333"}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDropdown();
+                  setFilter(1);
+                }}
+                style={styles.filterSubButton}
+              >
+                <Text style={styles.item}>Ferien</Text>
+                <Icon.MaterialIcons
+                  name="beach-access"
+                  size={26}
+                  color={"#333"}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  toggleDropdown();
+                  setFilter(2);
+                }}
+                style={styles.filterSubButton}
+              >
+                <Text style={styles.item}>Termine</Text>
+                <Icon.MaterialIcons
+                  name="calendar-month"
+                  size={26}
+                  color={"#333"}
+                />
+              </TouchableOpacity>
             </Animated.View>
 
             <FlatList
@@ -431,9 +482,6 @@ const MonthBox = memo(
       return 30;
     };
 
-    const secondWeekStartDay =
-      firstMonthDayWeekDay !== 0 ? 8 - (firstMonthDayWeekDay - 1) : 2;
-
     const lastDayOfMonth = monthLength();
 
     const distance = firstMonthDayWeekDay !== 0 ? firstMonthDayWeekDay - 1 : 6;
@@ -496,7 +544,7 @@ const DayRow = memo(
       return holidayData[0].data.has(date) || holidayData[1].data.has(date);
     };
 
-    const isEvent = (day, month, year) => {
+    const isEvent = (day, month, year, deadline) => {
       const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
         day < 10 ? `0${day}` : day
       }`;
@@ -504,7 +552,7 @@ const DayRow = memo(
         const events = eventMap.get(date);
         for (const event of events) {
           if (event.eventType === 1) return 1;
-          else if (event.eventType === 0) return 0;
+          else if (event.eventType === 0 && deadline) return 0;
         }
         return 2;
       }
@@ -734,7 +782,7 @@ const DayRow = memo(
                   styles.dayText,
                   {
                     color: isToday(day, month, year) ? "red" : "#333",
-                    fontSize: isToday(day, month, year) ? 10 : 10,
+                    fontSize: RFPercentage(1.41),
                     fontWeight: isToday(day, month, year) ? "700" : "600",
                   },
                 ]}
@@ -755,7 +803,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     justifyContent: "center",
     marginTop: 20,
-    marginBottom: 89,
   },
   containerYearCalendar: {
     flex: 1,
@@ -799,7 +846,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerTitleText: {
-    fontSize: 32,
+    fontSize: RFPercentage(4),
     fontWeight: "900",
     color: "#ff3c00",
   },
@@ -816,7 +863,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   monthTitle: {
-    fontSize: 15,
+    fontSize: RFPercentage(2.05),
     fontWeight: "600",
     color: "#333",
   },
@@ -873,7 +920,7 @@ const styles = StyleSheet.create({
     top: 40,
     right: 10,
     borderRadius: 20,
-    backgroundColor: "lightgray",
+    backgroundColor: "gray",
     elevation: 5,
     shadowColor: "#333",
     shadowOffset: { width: 0, height: 2 },
@@ -881,6 +928,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     overflow: "hidden",
     zIndex: 2,
+    justifyContent: "space-between",
   },
   overlay: {
     position: "absolute",
@@ -893,14 +941,14 @@ const styles = StyleSheet.create({
   item: {
     padding: 15,
     fontWeight: "500",
-    fontSize: 17,
+    fontSize: RFPercentage(2.18),
   },
   filterSubButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 15,
-    borderBottomWidth: 0.3,
-    borderBottomColor: "#333",
+    height: 49.7,
+    backgroundColor: "lightgray",
   },
 });

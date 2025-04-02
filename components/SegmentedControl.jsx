@@ -10,6 +10,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const SegmentedControl = ({
   options = [],
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontWeight: "500",
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
   },
 });
 

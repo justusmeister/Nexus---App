@@ -8,6 +8,9 @@ ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'true' ? '
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 
 platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+
+use_modular_headers!
+
 install! 'cocoapods',
   :deterministic_uuids => false
 
@@ -15,6 +18,11 @@ prepare_react_native_project!
 
 target 'Nexus' do
   use_expo_modules!
+
+   use_frameworks! :linkage => :static
+
+  pod 'FirebaseAuth', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];

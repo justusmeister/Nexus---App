@@ -12,7 +12,8 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  FlatList,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
@@ -23,6 +24,7 @@ import {
   collection,
   getDocs,
   addDoc,
+  deleteDoc,
   doc,
   query,
   where,
@@ -33,6 +35,10 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
 import Toast from "react-native-toast-message";
+import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import AppointmentModal from "../../modals/AppointmentModal";
+import { eventEmitter } from "../../eventBus";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
@@ -83,10 +89,13 @@ function createEventMap(events) {
 }
 
 const YearDetailedScreen = function ({ navigation }) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [appointments, setAppointments] = useState(new Map());
   const [deadlinesList, setDeadlinesList] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalAppointmentItem, setModalAppointmentItem] = useState(null);
 
   const route = useRoute();
   const { params } = route;
@@ -105,12 +114,6 @@ const YearDetailedScreen = function ({ navigation }) {
   const parseDateToTimestamp = (dateString) => {
     const date = new Date(dateString);
     return Timestamp.fromDate(date);
-  };
-
-  const getEndDate = (startDate, monthLength) => {
-    if (!startDate || !monthLength) return null;
-    const [year, month, day] = startDate.split("-").map(Number);
-    return `${year}.${month}.${monthLength}`; // Endet immer am Monatsletzten
   };
 
   const parseDateToTimestampRange = (startDate, endDate) => ({
@@ -176,7 +179,8 @@ const YearDetailedScreen = function ({ navigation }) {
     endDate,
     eventType,
     description,
-    singleEvent
+    singleEvent,
+    saveAsDeadline
   ) => {
     if (!user) return;
 
@@ -208,6 +212,69 @@ const YearDetailedScreen = function ({ navigation }) {
     } finally {
       setLoading(false);
       fetchAppointments(params.date);
+      eventType === 0 || saveAsDeadline
+        ? addDeadline(name, day, description)
+        : null;
+      eventEmitter.emit("refreshAppointments");
+    }
+  };
+
+  const addDeadline = async (name, day, description) => {
+    if (!user) return;
+
+    try {
+      const deadlineCollectionRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+
+      await addDoc(deadlineCollectionRef, {
+        name,
+        day,
+        description,
+        timestamp: serverTimestamp(),
+      });
+
+      console.log("Frist erfolgreich hinzugefügt!");
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
+    } finally {
+      eventEmitter.emit("refreshDeadlines");
+    }
+  };
+
+  const deleteAppointment = async (singleEvent, itemId) => {
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(firestoreDB, "appointments", user.uid);
+
+      if (singleEvent) {
+        const singleEventRef = doc(userDocRef, "singleEvents", itemId);
+        await deleteDoc(singleEventRef);
+      } else {
+        const eventPeriodsRef = doc(userDocRef, "eventPeriods", itemId);
+        await deleteDoc(eventPeriodsRef);
+      }
+
+      console.log("Termin erfolgreich gelöscht!");
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
+    } finally {
+      setIsModalVisible(false);
+      fetchAppointments(params.date);
     }
   };
 
@@ -237,6 +304,18 @@ const YearDetailedScreen = function ({ navigation }) {
     setSelectedDay(day);
   }, []);
 
+  const formatDate = () => {
+    if (!selectedDay || !params?.date) return null;
+
+    const [year, month] = params?.date.split("-");
+    const formattedDay = String(selectedDay).padStart(2, "0");
+    return `${year}-${month.padStart(2, "0")}-${formattedDay}`;
+  };
+
+  const filteredDeadlines = formatDate()
+    ? deadlinesList.filter((item) => item.day === formatDate())
+    : deadlinesList;
+
   return (
     <View style={styles.screen}>
       <View style={styles.container}>
@@ -254,12 +333,16 @@ const YearDetailedScreen = function ({ navigation }) {
             />
           ))}
         </View>
-        <View style={styles.deadlineListView}>
+        <View
+          style={[styles.deadlineListView, { paddingBottom: tabBarHeight + 6 }]}
+        >
           <Text style={styles.sectionTitle}>
-            alle Fristen im {params?.month}:
+            Fristen {selectedDay ? `zum ${selectedDay}.` : "im ganzen"}{" "}
+            {params?.month}:
           </Text>
+
           <FlashList
-            data={deadlinesList}
+            data={filteredDeadlines}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -267,9 +350,19 @@ const YearDetailedScreen = function ({ navigation }) {
                   styles.deadlineItem,
                   { borderColor: eventTypeColorList[item.eventType] },
                 ]}
+                onPress={() => {
+                  setModalAppointmentItem(item);
+                  setIsModalVisible(true);
+                }}
               >
                 <View style={styles.deadlineContent}>
-                  <Text style={styles.deadlineTitle}>{item.name}</Text>
+                  <Text
+                    style={styles.deadlineTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.name}
+                  </Text>
                   <Text style={styles.deadlineCategory}>
                     {eventTypesList[item.eventType]}
                   </Text>
@@ -283,6 +376,23 @@ const YearDetailedScreen = function ({ navigation }) {
                 </Text>
               </TouchableOpacity>
             )}
+            ListEmptyComponent={
+              loading ? (
+                <ActivityIndicator size={"small"} color={"#333"} />
+              ) : (
+                <Text
+                  style={{
+                    width: "100%",
+                    textAlign: "center",
+                    fontSize: RFPercentage(2),
+                    fontWeight: "500",
+                    color: "#8E8E93",
+                  }}
+                >
+                  Keine Fristen an diesem Tag
+                </Text>
+              )
+            }
             estimatedItemSize={75}
           />
         </View>
@@ -290,6 +400,12 @@ const YearDetailedScreen = function ({ navigation }) {
       <DeadlineBottomSheet
         sheetRef={sheetRef}
         addAppointment={addAppointment}
+      />
+      <AppointmentModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        item={modalAppointmentItem}
+        onDelete={deleteAppointment}
       />
     </View>
   );
@@ -346,7 +462,7 @@ const WeekRow = memo(
       return holidayData[0].data.has(date) || holidayData[1].data.has(date);
     };
 
-    const isEvent = (day, month, year) => {
+    const isEvent = (day, month, year, deadline) => {
       const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
         day < 10 ? `0${day}` : day
       }`;
@@ -354,7 +470,7 @@ const WeekRow = memo(
         const events = eventMap.get(date);
         for (const event of events) {
           if (event.eventType === 1) return 1;
-          else if (event.eventType === 0) return 0;
+          else if (event.eventType === 0 && deadline) return 0;
         }
         return 2;
       }
@@ -566,7 +682,7 @@ const WeekRow = memo(
           if (day > monthLength || day < 1)
             return <View key={index} style={styles.dayButton} />;
           return (
-            <TouchableOpacity
+            <View
               style={[
                 styles.dayButton,
                 getDayColors(
@@ -590,30 +706,42 @@ const WeekRow = memo(
                   0
                 ),
               ]}
-              onPress={() => setSelectedDay(day)}
               key={index}
             >
-              <Text
-                style={[
-                  styles.dayText,
-                  {
-                    color: isToday(day, month, year) ? "red" : "black",
-                    backgroundColor: selectedDay === day ? "white" : null,
-                  },
-                ]}
-              >
-                {day}
-              </Text>
-              <Icon.FontAwesome
-                name="circle"
-                size={5}
-                color={"#656565"}
+              <TouchableOpacity
                 style={{
-                  margin: 2,
-                  opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
+                  width: "95%",
+                  alignItems: "center",
+                  borderRadius: 50,
+                  backgroundColor: selectedDay === day ? "white" : null,
                 }}
-              />
-            </TouchableOpacity>
+                onPress={() =>
+                  day !== selectedDay
+                    ? setSelectedDay(day)
+                    : setSelectedDay(null)
+                }
+              >
+                <Text
+                  style={[
+                    styles.dayText,
+                    {
+                      color: isToday(day, month, year) ? "red" : "black",
+                    },
+                  ]}
+                >
+                  {day}
+                </Text>
+                <Icon.FontAwesome
+                  name="circle"
+                  size={6}
+                  color={"#656565"}
+                  style={{
+                    margin: 2,
+                    opacity: isDeadline(day, month, year, true) === 0 ? 1 : 0,
+                  }}
+                />
+              </TouchableOpacity>
+            </View>
           );
         })}
       </View>
@@ -643,13 +771,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     backgroundColor: "#EFEEF6",
-    paddingBottom: 89,
-  },
-  sheetContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    marginBottom: 79,
   },
   weekRow: {
     height: `${100 / 6}%`,
@@ -665,7 +786,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   dayText: {
-    fontSize: 18,
+    fontSize: RFPercentage(2.44),
     fontWeight: "600",
     borderRadius: 50,
     padding: 7,
@@ -692,21 +813,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deadlineTitle: {
-    fontSize: 16,
+    fontSize: RFPercentage(2.18),
     fontWeight: "600",
     color: "#333",
   },
   deadlineCategory: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     color: "#777",
   },
   deadlineDate: {
-    fontSize: 14,
+    fontSize: RFPercentage(1.92),
     fontWeight: "500",
-    color: "#3a5f8a",
+    color: "#333",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: RFPercentage(2.44),
     fontWeight: "600",
     padding: 10,
     marginLeft: 10,
