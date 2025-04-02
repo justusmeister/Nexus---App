@@ -148,7 +148,7 @@ const HomeworkScreen = ({ navigation }) => {
     }
   };
 
-  const snapPoints = useMemo(() => ["70%"], []);
+  const snapPoints = useMemo(() => ["60%"], []);
 
   const handleOpen = () => {
     sheetRef.current?.present();
@@ -334,6 +334,7 @@ const HomeworkScreen = ({ navigation }) => {
         enablePanDownToClose={true}
         backgroundStyle={{ backgroundColor: "white" }}
         handleIndicatorStyle={{ backgroundColor: "gray" }}
+        enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
       >
         <BottomSheetView style={{ padding: 16, marginBottom: 79 }}>
@@ -425,7 +426,7 @@ const HomeworkScreen = ({ navigation }) => {
               styles.confirmButton,
               {
                 marginTop: 30,
-                backgroundColor: "#0066cc",
+                backgroundColor: "#4CAF50",
                 height: 50,
                 borderRadius: 12,
                 justifyContent: "center",
@@ -503,15 +504,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   subjectInputfield: {
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 10,
     marginBottom: 20,
   },
   label: {
-    fontSize: RFPercentage(2.05),
+    fontSize: RFPercentage(2.18),
     fontWeight: "500",
     marginBottom: 10,
   },
