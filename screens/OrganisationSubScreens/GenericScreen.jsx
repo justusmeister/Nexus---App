@@ -46,10 +46,14 @@ import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 import { eventEmitter } from "../../eventBus";
+import { checkDeadlineRemainingTime } from "../../externMethods/checkDeadlineRemainingTime";
+import HomeworkModal from "../../modals/HomeworkModal";
 
 const GenericScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const [isInputModalVisible, setIsInputModalVisible] = useState(false);
+  const [isDetailedModalVisible, setIsDetailedModalVisible] = useState(false);
+  const [homeworkItem, setHomeworkItem] = useState([]);
   const [homeworkList, setHomeworkList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,6 +79,14 @@ const GenericScreen = function ({ navigation }) {
     if (user) fetchHomework(params.subject);
   }, [navigation]);
 
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    return `${String(date.getDate()).padStart(2, "0")}.${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
+  };
+
   const fetchHomework = async (subject) => {
     if (user) {
       try {
@@ -87,9 +99,19 @@ const GenericScreen = function ({ navigation }) {
         const fetchedHomework = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          canDelete:
+            checkDeadlineRemainingTime(formatTimestamp(doc.data().dueDate))
+              .time === "delete"
+              ? true
+              : false,
         }));
 
         setHomeworkList(fetchedHomework);
+        for (const homework of fetchedHomework) {
+          if (homework.canDelete) {
+            await deleteHomework(homework.id);
+          }
+        }
       } catch (error) {
         console.error("Fehler beim Abrufen der Hausaufgabenliste:", error);
       } finally {
@@ -188,55 +210,60 @@ const GenericScreen = function ({ navigation }) {
           visibilityTime: 4000,
         });
         console.error("Fehler beim Löschen der Hausaufgabe:", e);
+        setIsDetailedModalVisible(false);
       } finally {
+        setIsDetailedModalVisible(false);
         fetchHomework(params?.subject);
       }
     }
   };
 
   const renderItem = ({ item }) => (
-    <View
-      style={[
-        styles.deadlineResult,
-        {
-          shadowColor: 2 === 1 ? "#e02225" : "black",
-          shadowOpacity: 2 === 1 ? 1 : 0.3,
-          shadowRadius: 2 === 1 ? 9 : 4,
-        },
-      ]}
+    <Pressable
+    style={({ pressed }) => [
+      styles.deadlineResult,
+      {
+        shadowColor: 2 === 1 ? "#e02225" : "black",
+        shadowOpacity: 2 === 1 ? 1 : 0.3,
+        shadowRadius: 2 === 1 ? 9 : 4,
+        opacity: pressed ? 0.4 : 1,
+      },
+    ]}
+      onPress={() => {
+        setHomeworkItem(item);
+        setIsDetailedModalVisible(true);
+      }}
     >
-      <AppleStyleSwipeableRow onPressDelete={() => deleteHomework(item.id)}>
-        <View
-          style={[styles.deadlineTaskBox, { borderLeftColor: params?.color }]}
-        >
-          <Icon.MaterialIcons name="task" size={28} color="black" />
-          <View style={styles.deadlineDetails}>
-            <Text style={styles.subjectText}>{item.title}:</Text>
-            <Text style={styles.taskText}>{item.description}</Text>
-            <Text
-              style={[
-                styles.dueDateText,
-                {
-                  color: 2 === 1 ? "#e02225" : "grey",
-                },
-              ]}
-            >
-              <Text style={styles.dueDateDescriptionText}>Abgabedatum:</Text>
-              {item.dueDate
-                ? new Date(item.dueDate.seconds * 1000).toLocaleDateString(
-                    "de-DE",
-                    {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "2-digit",
-                    }
-                  )
-                : "Datum nicht angegeben"}
-            </Text>
-          </View>
+      <View
+        style={[styles.deadlineTaskBox, { borderLeftColor: params?.color }]}
+      >
+        <Icon.MaterialIcons name="task" size={28} color="black" />
+        <View style={styles.deadlineDetails}>
+          <Text style={styles.subjectText}>{item.title}:</Text>
+          <Text style={styles.taskText}>{item.description}</Text>
+          <Text
+            style={[
+              styles.dueDateText,
+              {
+                color: 2 === 1 ? "#e02225" : "grey",
+              },
+            ]}
+          >
+            <Text style={styles.dueDateDescriptionText}>Abgabedatum:</Text>
+            {item.dueDate
+              ? new Date(item.dueDate.seconds * 1000).toLocaleDateString(
+                  "de-DE",
+                  {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  }
+                )
+              : "Datum nicht angegeben"}
+          </Text>
         </View>
-      </AppleStyleSwipeableRow>
-    </View>
+      </View>
+    </Pressable>
   );
 
   return (
@@ -262,6 +289,13 @@ const GenericScreen = function ({ navigation }) {
         addHomework={addHomework}
         addDeadline={addDeadline}
         subject={params.subject}
+      />
+      <HomeworkModal
+        visible={isDetailedModalVisible}
+        onClose={() => setIsDetailedModalVisible(false)}
+        item={homeworkItem}
+        color={params?.color}
+        onDelete={deleteHomework}
       />
     </View>
   );
@@ -351,6 +385,7 @@ const InputModal = ({ visible, onClose, addHomework }) => {
                     value={dueDate}
                     mode="date"
                     display={Platform.OS === "ios" ? "default" : "spinner"}
+                    minimumDate={startDate}
                     onChange={(event, day) => day && setDueDate(day)}
                   />
                 ) : (

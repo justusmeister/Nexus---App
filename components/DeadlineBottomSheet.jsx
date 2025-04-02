@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo, useMemo } from "react";
+import { useState, useEffect, useCallback, memo, useMemo, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -11,6 +11,8 @@ import {
   Platform,
   Dimensions,
   useWindowDimensions,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import {
@@ -34,6 +36,11 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
   const [deadlineTitle, setDeadlineTitle] = useState("");
   const [description, setDescription] = useState("");
   const [eventType, setEventType] = useState("Klausur");
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [activeField, setActiveField] = useState(null);
+  const titleInputRef = useRef(null);
+  const descriptionInputRef = useRef(null);
+  const scrollViewRef = useRef(null);
 
   const windowWidth = useWindowDimensions().width;
 
@@ -41,22 +48,28 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
     const keyboardShowListener = Keyboard.addListener(
       "keyboardDidShow",
       (event) => {
-        console.log(event.endCoordinates.height);
+        const keyboardHeightValue = event.endCoordinates.height;
+        setKeyboardHeight(keyboardHeightValue);
+
+        setTimeout(() => {
+          if (activeField === "description") {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          } else if (activeField === "title") {
+            scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+          }
+        }, 100);
       }
     );
 
-    const keyboardHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      (event) => {
-        console.log("0");
-      }
-    );
+    const keyboardHideListener = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
 
     return () => {
       keyboardShowListener.remove();
       keyboardHideListener.remove();
     };
-  }, []);
+  }, [activeField]);
 
   const snapPoints = useMemo(() => ["75%"], []);
 
@@ -90,14 +103,9 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
     }
   }, []);
 
-  const handleTitleChange = useCallback((text) => {
-    setDeadlineTitle(text);
-  }, []);
-
   const handleDescriptionChange = useCallback((text) => {
     setDescription(text);
   }, []);
-  
 
   const toggleIsAllDay = useCallback(() => {
     setIsAllDay((prev) => !prev);
@@ -108,6 +116,24 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
     if (selectedOption === "Frist") return 0;
     return eventType === "Klausur" ? 1 : 2;
   }, [selectedOption, eventType]);
+
+  const handleTitleFocus = () => {
+    setActiveField("title");
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }, 100);
+  };
+
+  const handleDescriptionFocus = () => {
+    setActiveField("description");
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const handleInputBlur = () => {
+    setActiveField(null);
+  };
 
   return (
     <BottomSheetModal
@@ -130,18 +156,27 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
         />
       </View>
       <BottomSheetScrollView
-        contentContainerStyle={styles.sheetContainer}
+        ref={scrollViewRef}
+        contentContainerStyle={[
+          styles.sheetContainer,
+          // Nur Padding hinzufügen, wenn das Beschreibungsfeld aktiv ist
+          activeField === "description" &&
+            keyboardHeight > 0 && { paddingBottom: keyboardHeight + 20 },
+        ]}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+        keyboardDismissMode="interactive"
+        showsVerticalScrollIndicator={true}
       >
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Titel:</Text>
-          <FormalSignleLineInputField
+          <TextInput
+            ref={titleInputRef}
             style={styles.inputField}
             placeholder="Titel"
-            value={deadlineTitle}
-            onChange={handleTitleChange}
-            autoOpen={true}
+            defaultValue={deadlineTitle}
+            onEndEditing={(e) => setDeadlineTitle(e.nativeEvent.text)}
+            onFocus={handleTitleFocus}
+            onBlur={handleInputBlur}
           />
         </View>
 
@@ -208,6 +243,7 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
                   mode="date"
                   display={Platform.OS === "ios" ? "default" : "spinner"}
                   onChange={(event, date) => date && setEndDate(date)}
+                  minimumDate={startDate}
                   style={styles.iosDatePicker}
                 />
               </View>
@@ -233,13 +269,16 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Beschreibung:</Text>
           <TextInput
+            ref={descriptionInputRef}
             style={styles.descriptionField}
             placeholder="Beschreibung hinzufügen..."
             multiline
             numberOfLines={3}
             maxLength={200}
-            value={description}
-            onChangeText={handleDescriptionChange}
+            defaultValue={description}
+            onEndEditing={(e) => setDescription(e.nativeEvent.text)}
+            onFocus={handleDescriptionFocus}
+            onBlur={handleInputBlur}
           />
         </View>
 
@@ -264,7 +303,6 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
         >
           <Text style={styles.buttonText}>Speichern</Text>
         </Pressable>
-        
       </BottomSheetScrollView>
     </BottomSheetModal>
   );
@@ -314,6 +352,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: RFPercentage(2.18),
     textAlignVertical: "top",
+    maxHeight: 100,
   },
   radioButtonContainer: {
     width: "100%",
