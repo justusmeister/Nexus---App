@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo, useMemo } from "react";
+import { useState, useEffect, useCallback, memo, useMemo, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -11,6 +11,8 @@ import {
   Platform,
   Dimensions,
   useWindowDimensions,
+  KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import {
@@ -27,7 +29,7 @@ import SingleRadioButton from "./SingleRadioButton";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import FormalSignleLineInputField from "./FormalSingleLineInputField";
 
-const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
+const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
   const [selectedOption, setSelectedOption] = useState("Event");
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
@@ -35,6 +37,11 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
   const [deadlineTitle, setDeadlineTitle] = useState("");
   const [description, setDescription] = useState("");
   const [eventType, setEventType] = useState("Klausur");
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [activeField, setActiveField] = useState(null);
+  const titleInputRef = useRef(null);
+  const descriptionInputRef = useRef(null);
+  const scrollViewRef = useRef(null);
 
   const windowWidth = useWindowDimensions().width;
 
@@ -42,22 +49,28 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     const keyboardShowListener = Keyboard.addListener(
       "keyboardDidShow",
       (event) => {
-        console.log(event.endCoordinates.height);
+        const keyboardHeightValue = event.endCoordinates.height;
+        setKeyboardHeight(keyboardHeightValue);
+
+        setTimeout(() => {
+          if (activeField === "description") {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          } else if (activeField === "title") {
+            scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+          }
+        }, 100);
       }
     );
 
-    const keyboardHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      (event) => {
-        console.log("0");
-      }
-    );
+    const keyboardHideListener = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
 
     return () => {
       keyboardShowListener.remove();
       keyboardHideListener.remove();
     };
-  }, []);
+  }, [activeField]);
 
   const snapPoints = useMemo(() => ["75%", "90%"], []);
 
@@ -91,12 +104,15 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     }
   }, []);
 
+<<<<<<< HEAD
   const handleTitleChange = useCallback((text) => {
     setDeadlineTitle((prev) => (prev === text ? prev : text));
   }, []);
 
+=======
+>>>>>>> 2fd5ed764d21446eebfd79dafed4b285395b87df
   const handleDescriptionChange = useCallback((text) => {
-    setDescription((prev) => (prev === text ? prev : text));
+    setDescription(text);
   }, []);
 
   const toggleIsAllDay = useCallback(() => {
@@ -109,12 +125,31 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
     return eventType === "Klausur" ? 1 : 2;
   }, [selectedOption, eventType]);
 
+  const handleTitleFocus = () => {
+    setActiveField("title");
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }, 100);
+  };
+
+  const handleDescriptionFocus = () => {
+    setActiveField("description");
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const handleInputBlur = () => {
+    setActiveField(null);
+  };
+
   return (
     <BottomSheetModal
     
       ref={sheetRef}
       snapPoints={snapPoints}
       index={0}
+      keyboardBehavior="interactive"
       enablePanDownToClose={true}
       backgroundStyle={{ backgroundColor: "white" }}
       handleIndicatorStyle={{ backgroundColor: "gray" }}
@@ -130,11 +165,20 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
         />
       </View>
       <BottomSheetScrollView
-        contentContainerStyle={styles.sheetContainer}
+        ref={scrollViewRef}
+        contentContainerStyle={[
+          styles.sheetContainer,
+          // Nur Padding hinzufügen, wenn das Beschreibungsfeld aktiv ist
+          activeField === "description" &&
+            keyboardHeight > 0 && { paddingBottom: keyboardHeight + 20 },
+        ]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        showsVerticalScrollIndicator={true}
       >
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Titel:</Text>
+<<<<<<< HEAD
           <FormalSignleLineInputField
             style={[
               styles.inputField,
@@ -149,10 +193,16 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
                 color: "#333",
               },
             ]}
+=======
+          <TextInput
+            ref={titleInputRef}
+            style={styles.inputField}
+>>>>>>> 2fd5ed764d21446eebfd79dafed4b285395b87df
             placeholder="Titel"
-            value={deadlineTitle}
-            onChange={handleTitleChange}
-            autoOpen={true}
+            defaultValue={deadlineTitle}
+            onEndEditing={(e) => setDeadlineTitle(e.nativeEvent.text)}
+            onFocus={handleTitleFocus}
+            onBlur={handleInputBlur}
           />
         </View>
 
@@ -219,6 +269,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
                   mode="date"
                   display={Platform.OS === "ios" ? "default" : "spinner"}
                   onChange={(event, date) => date && setEndDate(date)}
+                  minimumDate={startDate}
                   style={styles.iosDatePicker}
                 />
               </View>
@@ -243,14 +294,21 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Beschreibung:</Text>
+<<<<<<< HEAD
           <BottomSheetTextInput
+=======
+          <TextInput
+            ref={descriptionInputRef}
+>>>>>>> 2fd5ed764d21446eebfd79dafed4b285395b87df
             style={styles.descriptionField}
             placeholder="Beschreibung hinzufügen..."
             multiline
             numberOfLines={3}
             maxLength={200}
-            value={description}
-            onChangeText={handleDescriptionChange}
+            defaultValue={description}
+            onEndEditing={(e) => setDescription(e.nativeEvent.text)}
+            onFocus={handleDescriptionFocus}
+            onBlur={handleInputBlur}
           />
         </View>
 
@@ -278,7 +336,7 @@ const DeadlineBottomSheet = function ({ sheetRef, addAppointment }) {
       </BottomSheetScrollView>
     </BottomSheetModal>
   );
-};
+});
 
 export default memo(DeadlineBottomSheet);
 
@@ -306,7 +364,7 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(2.18),
     fontWeight: "500",
     color: "#333",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   inputField: {
     fontSize: RFPercentage(2.18),
@@ -315,11 +373,19 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderColor: "#d1d1d6",
     borderWidth: 1,
+<<<<<<< HEAD
     borderRadius: 12,
     backgroundColor: "#f9f9f9",
     paddingHorizontal: 16,
     fontSize: 16,
     color: "#333",
+=======
+    borderColor: "#ddd",
+    padding: 12,
+    fontSize: RFPercentage(2.18),
+    textAlignVertical: "top",
+    maxHeight: 100,
+>>>>>>> 2fd5ed764d21446eebfd79dafed4b285395b87df
   },
   radioButtonContainer: {
     width: "100%",
@@ -333,12 +399,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   confirmButton: {
+<<<<<<< HEAD
     backgroundColor: "#4CAF50",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
+=======
+    backgroundColor: "#0066cc",
+    height: 50,
+    borderRadius: 15,
+>>>>>>> 2fd5ed764d21446eebfd79dafed4b285395b87df
     alignItems: "center",
-    marginTop: 20,
+    justifyContent: "center",
+    marginTop: 10,
     width: "100%",
     alignItems: "center",
     shadowColor: "#000",
@@ -347,7 +420,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   buttonText: {
-    color: "#fff",
+    color: "white",
     fontSize: RFPercentage(2.18),
     fontWeight: "600",
   },

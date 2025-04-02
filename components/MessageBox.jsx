@@ -16,6 +16,7 @@ const MessageBox = function ({
   icon,
   content = [{}],
   isLoading,
+  isRefreshing,
 }) {
   return (
     <TouchableOpacity
@@ -47,11 +48,14 @@ const MessageBox = function ({
             {title}
           </Text>
         </View>
+        {isRefreshing && (
+        <ActivityIndicator size="small" color="white" />
+      )}
         <Icon.Entypo
           name="chevron-right"
           size={23}
           color="white"
-          style={{ paddingTop: 3 }}
+          style={{ alignSelf: "center" }}
         />
       </View>
       {isLoading ? (

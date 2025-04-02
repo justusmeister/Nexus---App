@@ -12,6 +12,8 @@ import SearchStack from "./screens/SearchStack";
 import { calculateHolidayAPIDates } from "./externMethods/calculateHolidayAPIDates";
 import { useHolidayData } from "./contexts/HolidayDataContext";
 import { createAdjustedHolidayDataMap } from "./externMethods/createAdjustedHolidayDataMap";
+import { useEmailData } from "./contexts/EmailContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoginScreen from "./screens/LoginScreen";
 import SplashScreen from "./screens/SplashScreen";
 
@@ -20,10 +22,81 @@ const Tab = createBottomTabNavigator();
 
 const { startDate, targetDate } = calculateHolidayAPIDates();
 
+const saveEmailsToStorage = async (emails) => {
+  try {
+    await AsyncStorage.setItem("emails", JSON.stringify(emails));
+    await AsyncStorage.setItem(
+      "emailsLastUpdated",
+      new Date().toLocaleString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+    );
+  } catch (error) {
+    console.error("❌ Fehler beim Speichern der E-Mails:", error);
+  }
+};
+
+const loadEmailsFromStorage = async () => {
+  try {
+    const storedEmails = await AsyncStorage.getItem("emails");
+    return storedEmails ? JSON.parse(storedEmails) : null;
+  } catch (error) {
+    console.error("❌ Fehler beim Laden der E-Mails:", error);
+    return null;
+  }
+};
+
+const fetchEmails = async (setEmails, setRefreshing) => {
+  try {
+    console.log("📨 Starte Anfrage an Server...");
+    setRefreshing(true);
+
+    const response = await fetch(
+      "https://iserv-email-retriever.onrender.com/fetch-emails",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "justus.meister",
+          password: "nivsic-wuGnej-9kyvke",
+        }),
+      }
+    );
+
+    console.log("📨 Antwort erhalten:", response.status);
+
+    if (!response.ok) {
+      setRefreshing(false);
+      return;
+    }
+
+    const data = await response.json();
+    console.log("📩 E-Mails erhalten:", JSON.stringify(data, null, 2));
+
+    const sortedEmails = data.sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
+
+    setEmails(sortedEmails);
+    setRefreshing(false);
+    await saveEmailsToStorage(sortedEmails);
+  } catch (error) {
+    console.error("❌ Fehler beim Abrufen der E-Mails:", error);
+    setRefreshing(false);
+  }
+};
+
 const Navigation = function () {
   const [publicHolidays, setHolidayDays] = useState(null);
   const [schoolHolidays, setHolidayPeriods] = useState(null);
-
+  const { setMailData, setRefreshing } = useEmailData();
   const { holidayData, setHolidayData } = useHolidayData();
 
   useEffect(() => {
@@ -42,10 +115,20 @@ const Navigation = function () {
         setHolidayDays(createAdjustedHolidayDataMap(publicHolidaysData));
       } catch (error) {
         console.error("Fehler beim Abrufen der Daten:", error);
-        setHolidayPeriods(createAdjustedHolidayDataMap([]))
-        setHolidayDays(createAdjustedHolidayDataMap([]))
+        setHolidayPeriods(createAdjustedHolidayDataMap([]));
+        setHolidayDays(createAdjustedHolidayDataMap([]));
       }
     };
+    const loadAndFetchEmails = async () => {
+      const cachedEmails = await loadEmailsFromStorage();
+      if (cachedEmails) {
+        setMailData(cachedEmails);
+      } else setMailData(null);
+
+      fetchEmails(setMailData, setRefreshing);
+    };
+
+    loadAndFetchEmails();
     fetchHolidays();
   }, []);
 

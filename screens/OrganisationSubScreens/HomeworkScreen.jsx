@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
-  BottomSheetView,
+  BottomSheetScrollView,
   BottomSheetBackdrop,
   BottomSheetModal,
 } from "@gorhom/bottom-sheet";
@@ -38,6 +38,7 @@ import Toast from "react-native-toast-message";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import FormalSignleLineInputField from "../../components/FormalSingleLineInputField";
 
 const colors = [
   "#333",
@@ -47,12 +48,19 @@ const colors = [
   "#27ae60",
   "#8e44ad",
   "#e74c3c",
+  "#2c3e50",
+  "#d35400",
 ];
+
 const icons = [
+  "graduation-cap",
   "book",
-  "calculator",
-  "flask",
+  "language",
   "globe",
+  "pencil",
+  "calculator",
+  "area-chart",
+  "flask",
   "paint-brush",
   "music",
   "code",
@@ -62,6 +70,7 @@ const HomeworkScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
 
   const sheetRef = useRef(null);
+  const inputRef = useRef(null);
 
   const [subjectName, setSubjectName] = useState("");
   const [selectedColor, setSelectedColor] = useState(colors[0]);
@@ -152,6 +161,9 @@ const HomeworkScreen = ({ navigation }) => {
 
   const handleOpen = () => {
     sheetRef.current?.present();
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 200);
   };
 
   const handleClose = () => {
@@ -199,11 +211,7 @@ const HomeworkScreen = ({ navigation }) => {
           }}
         >
           <Icon.Feather name="plus-square" size={26} color="white" />
-          <Text
-            style={styles.subjectText}
-          >
-            Fach hinzufügen
-          </Text>
+          <Text style={styles.subjectText}>Fach hinzufügen</Text>
         </TouchableOpacity>
       </View>
 
@@ -218,7 +226,7 @@ const HomeworkScreen = ({ navigation }) => {
         />
       </View>
 
-      <View style={{ paddingBottom: tabBarHeight - 11 }}>
+      <View style={{ paddingBottom: tabBarHeight + 11 }}>
         <Pressable
           style={{
             width: "auto",
@@ -240,11 +248,7 @@ const HomeworkScreen = ({ navigation }) => {
           onPress={() => navigation.navigate("NotesScreen")}
         >
           <Icon.FontAwesome6 name="note-sticky" size={30} color="white" />
-          <Text
-            style={styles.noteButtonText}
-          >
-            allgemeine Notizen
-          </Text>
+          <Text style={styles.noteButtonText}>allgemeine Notizen</Text>
         </Pressable>
       </View>
     </View>
@@ -289,7 +293,7 @@ const HomeworkScreen = ({ navigation }) => {
                   onPress={() =>
                     navigation.navigate("GenericScreen", {
                       subject: item.subject,
-                      color: item.color
+                      color: item.color,
                     })
                   }
                 >
@@ -332,35 +336,41 @@ const HomeworkScreen = ({ navigation }) => {
         snapPoints={snapPoints}
         index={0}
         enablePanDownToClose={true}
+        keyboardBehavior="interactive"
         backgroundStyle={{ backgroundColor: "white" }}
         handleIndicatorStyle={{ backgroundColor: "gray" }}
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
       >
-        <BottomSheetView style={{ padding: 16, marginBottom: 79 }}>
-          <Text style={[styles.label, { marginBottom: 12 }]}>
-            Name des Faches:
-          </Text>
+        <BottomSheetScrollView
+          style={{
+            padding: 16,
+            shadowColor: "#333",
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+          }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <Text style={styles.label}>Name des Faches:</Text>
           <TextInput
-            style={[
-              styles.subjectInputfield,
-              {
-                height: 50,
-                borderColor: "#d1d1d6",
-                borderWidth: 1,
-                borderRadius: 12,
-                backgroundColor: "#f9f9f9",
-                paddingHorizontal: 16,
-                fontSize: 16,
-                color: "#333",
-              },
-            ]}
+            ref={inputRef}
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: "#ddd",
+              padding: 12,
+              fontSize: RFPercentage(2.18),
+            }}
             placeholder="Name des Fachs"
-            placeholderTextColor="#b0b0b0"
-            value={subjectName}
-            onChangeText={setSubjectName}
+            defaultValue={subjectName} // Unkontrolliert setzen
+            onEndEditing={(e) => setSubjectName(e.nativeEvent.text)} 
+            autoOpen={true}
           />
-          <Text style={[styles.label, { marginTop: 20, marginBottom: 12 }]}>
+
+          <Text style={[styles.label, { marginTop: 20 }]}>
             Farbe auswählen:
           </Text>
           <FlatList
@@ -387,9 +397,7 @@ const HomeworkScreen = ({ navigation }) => {
             contentContainerStyle={{ paddingHorizontal: 8 }}
             showsHorizontalScrollIndicator={false}
           />
-          <Text style={[styles.label, { marginTop: 20, marginBottom: 12 }]}>
-            Icon auswählen:
-          </Text>
+          <Text style={[styles.label, { marginTop: 20 }]}>Icon auswählen:</Text>
           <FlatList
             horizontal
             data={icons}
@@ -405,7 +413,7 @@ const HomeworkScreen = ({ navigation }) => {
                     borderWidth: item === selectedIcon ? 2 : 0,
                     borderColor: "black",
                     backgroundColor:
-                      item === selectedIcon ? "#e8e8e8" : "#f9f9f9",
+                      item === selectedIcon ? "#e8e8e8" : "#f7f5f5",
                   },
                 ]}
                 onPress={() => setSelectedIcon(item)}
@@ -426,7 +434,7 @@ const HomeworkScreen = ({ navigation }) => {
               styles.confirmButton,
               {
                 marginTop: 30,
-                backgroundColor: "#4CAF50",
+                backgroundColor: "#0066cc",
                 height: 50,
                 borderRadius: 12,
                 justifyContent: "center",
@@ -451,9 +459,11 @@ const HomeworkScreen = ({ navigation }) => {
               }
             }}
           >
-            <Text style={[styles.buttonText, { fontSize: RFPercentage(2.05) }]}>Speichern</Text>
+            <Text style={[styles.buttonText, { fontSize: RFPercentage(2.18) }]}>
+              Speichern
+            </Text>
           </Pressable>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheetModal>
     </GestureHandlerRootView>
   );
@@ -509,7 +519,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: RFPercentage(2.18),
     fontWeight: "500",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   colorChoosingBox: {
     width: 40,
@@ -528,8 +538,8 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: "#0066cc",
-    height: 45,
-    borderRadius: 10,
+    height: 50,
+    borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -542,5 +552,5 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(2.31),
     fontWeight: "600",
     color: "white",
-  }
+  },
 });

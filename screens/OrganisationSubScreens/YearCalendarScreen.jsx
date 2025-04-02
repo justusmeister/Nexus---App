@@ -550,13 +550,31 @@ const DayRow = memo(
       }`;
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
+        let isDeadlineIn = false;
+        let isEventIn = false;
         for (const event of events) {
           if (event.eventType === 1) return 1;
-          else if (event.eventType === 0 && deadline) return 0;
+          else if (event.eventType === 2) isEventIn = true;
+          else if (event.eventType === 0 && deadline) isDeadlineIn = true;
         }
-        return 2;
+        if (isDeadlineIn && deadline) return 0;
+        return isEventIn ? 2 : 0;
       }
       return 0;
+    };
+
+    const isSingleEvent = (day, month, year) => {
+      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
+        day < 10 ? `0${day}` : day
+      }`;
+      if (eventMap.has(date)) {
+        const events = eventMap.get(date);
+        for (const event of events) {
+          if (event.eventCategory === 1) return 1;
+        }
+        0;
+      }
+      return -1;
     };
 
     const getBorderRadius = (
@@ -576,12 +594,16 @@ const DayRow = memo(
       const isEventStart =
         isEvent(day, month, year) === 2 &&
         (!isEvent(day - 1, month, year) ||
+          isSingleEvent(day, month, year) == 1 ||
           isClasstestBefore ||
           day === startDay);
 
       const isEventEnd =
         isEvent(day, month, year) === 2 &&
-        (!isEvent(day + 1, month, year) ||
+        ((isEvent(day + 1, month, year, true) === 0 &&
+          isEvent(day + 1, month, year) === 0) ||
+          !isEvent(day + 1, month, year) ||
+          isSingleEvent(day, month, year) == 1 ||
           isClasstestNext ||
           index === 4 ||
           day === endDay);

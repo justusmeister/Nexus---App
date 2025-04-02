@@ -15,6 +15,7 @@
 		570A602C39FB43DB8C4A484B /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9239556A41BC4E3CA60C8ED9 /* noop-file.swift */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		C02AA13E2D96D95000031910 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = C02AA13D2D96D95000031910 /* Algorithms */; };
 		FF3E488EBB7AFADF8E258165 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 85F1A6DC7153678E9AD8C9A3 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -27,7 +28,7 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Nexus/main.m; sourceTree = "<group>"; };
 		3D4ACD51A1B391E2F5ABB4C1 /* Pods-Nexus.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Nexus.debug.xcconfig"; path = "Target Support Files/Pods-Nexus/Pods-Nexus.debug.xcconfig"; sourceTree = "<group>"; };
 		645F2D6CB59B7FDF2E0B533B /* Pods_Nexus.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Nexus.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		85F1A6DC7153678E9AD8C9A3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Nexus/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		85F1A6DC7153678E9AD8C9A3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Nexus/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8BEAFDC9BEA5E743807D32EC /* Pods-Nexus.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Nexus.release.xcconfig"; path = "Target Support Files/Pods-Nexus/Pods-Nexus.release.xcconfig"; sourceTree = "<group>"; };
 		9239556A41BC4E3CA60C8ED9 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "Nexus/noop-file.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Nexus/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -42,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C02AA13E2D96D95000031910 /* Algorithms in Frameworks */,
 				2267DA1BDBC23CDAAE320C74 /* Pods_Nexus.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -187,6 +189,9 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				C02AA13C2D96D95000031910 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -392,7 +397,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.meister.Nexus;
+				PRODUCT_BUNDLE_IDENTIFIER = com.justusmeister.Nexus;
 				PRODUCT_NAME = Nexus;
 				SWIFT_OBJC_BRIDGING_HEADER = "Nexus/Nexus-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -424,7 +429,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.meister.Nexus;
+				PRODUCT_BUNDLE_IDENTIFIER = com.justusmeister.Nexus;
 				PRODUCT_NAME = Nexus;
 				SWIFT_OBJC_BRIDGING_HEADER = "Nexus/Nexus-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -499,10 +504,7 @@
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -568,10 +570,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -601,6 +600,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C02AA13C2D96D95000031910 /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C02AA13D2D96D95000031910 /* Algorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C02AA13C2D96D95000031910 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
+			productName = Algorithms;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }
