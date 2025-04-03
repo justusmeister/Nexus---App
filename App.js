@@ -9,8 +9,8 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
-const USERNAME = "justus.meister";
-const PASSWORD = "u.g.i!JM08";
+const USERNAME = "username";
+const PASSWORD = "password";
 const CLIENT = "WebUntis";
 
 let sessionId = null;
