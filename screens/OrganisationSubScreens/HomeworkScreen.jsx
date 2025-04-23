@@ -33,6 +33,7 @@ import {
   Timestamp,
   orderBy,
   serverTimestamp,
+  getCountFromServer,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
@@ -69,6 +70,37 @@ const icons = [
 const HomeworkScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
 
+  const swipeableRefs = useRef({});
+  const activeSwipeRef = useRef(null);
+  const [editMode, setEditMode] = useState(false);
+
+  const setActiveSwipe = (id) => {
+    // Im Edit-Modus sollten wir keine Swipeables schließen
+    if (!editMode) {
+      if (activeSwipeRef.current && activeSwipeRef.current !== id) {
+        const prevRef = swipeableRefs.current[activeSwipeRef.current];
+        prevRef?.close();
+      }
+      activeSwipeRef.current = id;
+    }
+  };
+
+  const clearActiveSwipe = (id) => {
+    if (activeSwipeRef.current === id) {
+      activeSwipeRef.current = null;
+    }
+  };
+
+  // Hilfsfunktion um den Edit-Modus umzuschalten
+  const toggleEditMode = () => {
+    setEditMode((prev) => !prev);
+
+    // Wenn Edit-Modus ausgeschaltet wird, aktiven Swipe zurücksetzen
+    if (editMode) {
+      activeSwipeRef.current = null;
+    }
+  };
+
   const sheetRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -98,10 +130,18 @@ const HomeworkScreen = ({ navigation }) => {
         );
         const querySnapshot = await getDocs(q);
 
-        const fetchedSubjects = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const fetchedSubjects = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const homeworkColRef = collection(doc.ref, "homework");
+            const countSnap = await getCountFromServer(homeworkColRef);
+
+            return {
+              id: doc.id,
+              ...doc.data(),
+              items: countSnap.data().count,
+            };
+          })
+        );
 
         setSubjects(fetchedSubjects);
       } catch (error) {
@@ -287,19 +327,43 @@ const HomeworkScreen = ({ navigation }) => {
                     ]
                   )
                 }
+                id={item.id}
+                setActiveSwipe={setActiveSwipe}
+                clearActiveSwipe={clearActiveSwipe}
+                editMode={editMode}
+                swipeableRef={(ref) => (swipeableRefs.current[item.id] = ref)}
               >
-                <Pressable
-                  style={[styles.subjectBox, { backgroundColor: item.color }]}
-                  onPress={() =>
-                    navigation.navigate("GenericScreen", {
-                      subject: item.subject,
-                      color: item.color,
-                    })
-                  }
-                >
-                  <Icon.FontAwesome name={item.icon} size={30} color="white" />
-                  <Text style={styles.subjectText}>{item.subject}</Text>
-                </Pressable>
+                <View style={styles.homeworkButtonBox}>
+                  {item.items > 0 ? (
+                    <View style={styles.homeworkIndicator}>
+                      <Text style={styles.homeworkIndicatorText}>
+                        {item.items}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <Pressable
+                    style={[styles.subjectBox, { backgroundColor: item.color }]}
+                    onPress={() =>
+                      navigation.navigate("GenericScreen", {
+                        subject: item.subject,
+                        color: item.color,
+                      })
+                    }
+                  >
+                    <Icon.FontAwesome
+                      name={item.icon}
+                      size={30}
+                      color="white"
+                    />
+                    <Text
+                      style={styles.subjectText}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {item.subject}
+                    </Text>
+                  </Pressable>
+                </View>
               </AppleStyleSwipeableRow>
             )
           }
@@ -324,8 +388,29 @@ const HomeworkScreen = ({ navigation }) => {
                   />
                 </View>
               );
+            } else if (!loading) {
+              return (
+                <View style={styles.editBox}>
+                  <Pressable
+                    onPress={() => {
+                      toggleEditMode();
+                    }}
+                    style={({ pressed }) => [
+                      {
+                        opacity: pressed ? 0.4 : 1,
+                      },
+                    ]}
+                    hitSlop={30}
+                  >
+                    <Icon.MaterialIcons
+                      name="mode-edit"
+                      size={26}
+                      color={"black"}
+                    />
+                  </Pressable>
+                </View>
+              );
             }
-            return null;
           }}
           style={{ paddingVertical: 8 }}
           showsVerticalScrollIndicator={false}
@@ -366,7 +451,7 @@ const HomeworkScreen = ({ navigation }) => {
             }}
             placeholder="Name des Fachs"
             defaultValue={subjectName} // Unkontrolliert setzen
-            onEndEditing={(e) => setSubjectName(e.nativeEvent.text)} 
+            onEndEditing={(e) => setSubjectName(e.nativeEvent.text)}
             autoOpen={true}
           />
 
@@ -475,7 +560,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 15,
   },
   subjectText: {
     marginLeft: 15,
@@ -548,5 +632,31 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(2.31),
     fontWeight: "600",
     color: "white",
+  },
+  homeworkIndicator: {
+    position: "absolute",
+    top: 0,
+    right: 6,
+    borderRadius: 50,
+    backgroundColor: "#FF3B30",
+    minWidth: 25,
+    minHeight: 25,
+    paddingHorizontal: 5,
+    zIndex: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  homeworkIndicatorText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: RFPercentage(2),
+  },
+  homeworkButtonBox: {
+    paddingVertical: 7.5,
+  },
+  editBox: {
+    alignItems: "flex-end",
+    marginRight: 14,
+    margin: 3,
   },
 });

@@ -44,10 +44,10 @@ import {
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 import { eventEmitter } from "../../eventBus";
 import { checkDeadlineRemainingTime } from "../../externMethods/checkDeadlineRemainingTime";
 import HomeworkModal from "../../modals/HomeworkModal";
+import { SegmentedControl } from "../../components/SegmentedControl";
 
 const GenericScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -56,6 +56,8 @@ const GenericScreen = function ({ navigation }) {
   const [homeworkItem, setHomeworkItem] = useState([]);
   const [homeworkList, setHomeworkList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [selectedOption, setSelectedOption] = useState("Alle");
 
   const route = useRoute();
   const { params } = route;
@@ -87,6 +89,11 @@ const GenericScreen = function ({ navigation }) {
     ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
   };
 
+  const parseDateString = (dateString) => {
+    const [day, month, year] = dateString.split(".").map(Number);
+    return new Date(2000 + year, month - 1, day, 7, 0, 0);
+  };
+
   const fetchHomework = async (subject) => {
     if (user) {
       try {
@@ -99,6 +106,7 @@ const GenericScreen = function ({ navigation }) {
         const fetchedHomework = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          status: doc.data().status || false,
           canDelete:
             checkDeadlineRemainingTime(formatTimestamp(doc.data().dueDate))
               .time === "delete"
@@ -106,7 +114,31 @@ const GenericScreen = function ({ navigation }) {
               : false,
         }));
 
-        setHomeworkList(fetchedHomework);
+        const currentDate = new Date();
+
+        const upcomingDues = fetchedHomework
+          .filter(
+            (d) => parseDateString(formatTimestamp(d.dueDate)) >= currentDate
+          )
+          .sort(
+            (a, b) =>
+              parseDateString(formatTimestamp(a.dueDate)) -
+              parseDateString(formatTimestamp(b.dueDate))
+          );
+
+        const pastDues = fetchedHomework
+          .filter(
+            (d) => parseDateString(formatTimestamp(d.dueDate)) < currentDate
+          )
+          .sort(
+            (a, b) =>
+              parseDateString(formatTimestamp(b.dueDate)) -
+              parseDateString(formatTimestamp(a.dueDate))
+          );
+
+        const sortedHomework = [...upcomingDues, ...pastDues];
+
+        setHomeworkList(sortedHomework);
         for (const homework of fetchedHomework) {
           if (homework.canDelete) {
             await deleteHomework(homework.id);
@@ -144,6 +176,7 @@ const GenericScreen = function ({ navigation }) {
           dueDate: dueDate,
           description: description,
           timestamp: serverTimestamp(),
+          status: false,
         });
       } catch (e) {
         Toast.show({
@@ -218,29 +251,157 @@ const GenericScreen = function ({ navigation }) {
     }
   };
 
+  const updateHomework = async (title, description, eventCategory, itemId) => {
+    console.log({ title, description, eventCategory, itemId });
+    if (user) {
+      try {
+        const userAppointmentsRef = doc(firestoreDB, "appointments", user.uid);
+        let appointmentDocRef;
+        if (eventCategory === 1)
+          appointmentDocRef = doc(userAppointmentsRef, "singleEvents", itemId);
+        else
+          appointmentDocRef = doc(userAppointmentsRef, "eventPeriods", itemId);
+
+        await setDoc(
+          appointmentDocRef,
+          {
+            name: title,
+            description: description,
+            timestamp: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: e.message || "Unbekannter Fehler",
+          visibilityTime: 4000,
+        });
+      } finally {
+        fetchAppointments(params.date);
+      }
+    }
+  };
+
+  const updateHomeworkStatus = async (id) => {
+    if (user) {
+      setHomeworkList((prev) =>
+        prev.map((hw) => (hw.id === id ? { ...hw, status: true } : hw))
+      );
+      try {
+        const homeworkRef = doc(
+          firestoreDB,
+          "subjects",
+          user.uid + params?.subject,
+          "homework",
+          id
+        );
+
+        await setDoc(
+          homeworkRef,
+          {
+            status: true,
+          },
+          { merge: true }
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: e.message || "Unbekannter Fehler",
+          visibilityTime: 4000,
+        });
+      }
+    }
+  };
+
   const renderItem = ({ item }) => (
     <Pressable
-    style={({ pressed }) => [
-      styles.deadlineResult,
-      {
-        shadowColor: 2 === 1 ? "#e02225" : "black",
-        shadowOpacity: 2 === 1 ? 1 : 0.3,
-        shadowRadius: 2 === 1 ? 9 : 4,
-        opacity: pressed ? 0.4 : 1,
-      },
-    ]}
+      style={({ pressed }) => [
+        styles.deadlineResult,
+        {
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 3,
+          shadowColor:
+            checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+              .isWithinTwoDays === 1 && !item.status
+              ? "#e02225"
+              : "#000",
+          shadowOpacity:
+            checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+              .isWithinTwoDays === 1 && !item.status
+              ? 1
+              : 0.1,
+          shadowRadius:
+            checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+              .isWithinTwoDays === 1 && !item.status
+              ? 9
+              : 4,
+          opacity: pressed ? 0.4 : 1,
+        },
+      ]}
       onPress={() => {
         setHomeworkItem(item);
         setIsDetailedModalVisible(true);
       }}
+      onLongPress={() =>
+        item.status == true ? null : updateHomeworkStatus(item.id)
+      }
     >
       <View
-        style={[styles.deadlineTaskBox, { borderLeftColor: params?.color }]}
+        style={[
+          styles.deadlineTaskBox,
+          {
+            borderLeftColor: params?.color,
+            backgroundColor: "#ffffff",
+          },
+        ]}
       >
-        <Icon.MaterialIcons name="task" size={28} color="black" />
+        <View
+          style={[
+            styles.statusIconBox,
+            {
+              backgroundColor: item.status
+                ? "#D2F8D2"
+                : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                    .isWithinTwoDays == 0
+                ? "#FDDCDC"
+                : "#E4E4E7",
+            },
+          ]}
+        >
+          <Icon.FontAwesome
+            name={
+              item.status
+                ? "check"
+                : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                    .isWithinTwoDays == 0
+                ? "times"
+                : "dot-circle-o"
+            }
+            size={28}
+            color={
+              item.status
+                ? "#3FCF63"
+                : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                    .isWithinTwoDays == 0
+                ? "#F44336"
+                : "#A0A0A5"
+            }
+          />
+        </View>
         <View style={styles.deadlineDetails}>
-          <Text style={styles.subjectText}>{item.title}:</Text>
-          <Text style={styles.taskText}>{item.description}</Text>
+          <Text
+            style={styles.subjectText}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item.title}:
+          </Text>
+          <Text style={styles.taskText} numberOfLines={1} ellipsizeMode="tail">
+            {item.description}
+          </Text>
           <Text
             style={[
               styles.dueDateText,
@@ -249,7 +410,7 @@ const GenericScreen = function ({ navigation }) {
               },
             ]}
           >
-            <Text style={styles.dueDateDescriptionText}>Abgabedatum:</Text>
+            <Text style={styles.dueDateDescriptionText}>Abgabedatum: </Text>
             {item.dueDate
               ? new Date(item.dueDate.seconds * 1000).toLocaleDateString(
                   "de-DE",
@@ -266,18 +427,34 @@ const GenericScreen = function ({ navigation }) {
     </Pressable>
   );
 
+  const filteredHomeworkList =
+    selectedOption == "offen"
+      ? homeworkList.filter((item) => item.status == false)
+      : selectedOption == "erledigt"
+      ? homeworkList.filter((item) => item.status == true)
+      : homeworkList;
+
   return (
     <View style={[styles.container, { paddingBottom: tabBarHeight + 6 }]}>
+      <View style={styles.segmentedControlBox}>
+        <SegmentedControl
+          options={["Alle", "offen", "erledigt"]}
+          selectedOption={selectedOption}
+          onOptionPress={setSelectedOption}
+        />
+      </View>
       <FlatList
-        data={homeworkList}
+        data={filteredHomeworkList}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
         ListEmptyComponent={
           loading ? (
             <ActivityIndicator size="small" color="#333" />
-          ) : homeworkList.length < 1 ? (
+          ) : filteredHomeworkList.length < 1 ? (
             <Text style={styles.emptyListText}>
-              Keine Hausaufgaben vorhanden
+              {selectedOption == "erledigt"
+                ? "Keine erledigten Hausaufgaben"
+                : "Alle Aufgaben erledigt!"}
             </Text>
           ) : null
         }
@@ -289,6 +466,7 @@ const GenericScreen = function ({ navigation }) {
         addHomework={addHomework}
         addDeadline={addDeadline}
         subject={params.subject}
+        color={params?.color}
       />
       <HomeworkModal
         visible={isDetailedModalVisible}
@@ -296,6 +474,7 @@ const GenericScreen = function ({ navigation }) {
         item={homeworkItem}
         color={params?.color}
         onDelete={deleteHomework}
+        changeStatus={updateHomeworkStatus}
       />
     </View>
   );
@@ -303,7 +482,7 @@ const GenericScreen = function ({ navigation }) {
 
 export default GenericScreen;
 
-const InputModal = ({ visible, onClose, addHomework }) => {
+const InputModal = ({ visible, onClose, addHomework, color }) => {
   const [multiInputFocused, setMultiInputFocused] = useState(0);
   const [startDate, setStartDate] = useState(new Date());
   const [dueDate, setDueDate] = useState(new Date());
@@ -311,6 +490,45 @@ const InputModal = ({ visible, onClose, addHomework }) => {
   const [description, setDescription] = useState("");
   const [isDeadline, setIsDeadline] = useState(false);
   const titleInputRef = useRef(null);
+
+  const hexToHsla = (hex, alpha = 0.15) => {
+    let r = parseInt(hex.substring(1, 3), 16);
+    let g = parseInt(hex.substring(3, 5), 16);
+    let b = parseInt(hex.substring(5, 7), 16);
+
+    //RGB in HSL Umwandlung
+    (r /= 255), (g /= 255), (b /= 255);
+    let max = Math.max(r, g, b),
+      min = Math.min(r, g, b);
+    let h,
+      s,
+      l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0; //Graustufen
+    } else {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h *= 60;
+    }
+
+    l = Math.min(0.92, l + 0.25);
+
+    return `hsla(${Math.round(h)}, ${Math.round(s * 100)}%, ${Math.round(
+      l * 100
+    )}%, ${alpha})`;
+  };
 
   const animatedModalStyle = useAnimatedStyle(() => {
     return {
@@ -351,11 +569,19 @@ const InputModal = ({ visible, onClose, addHomework }) => {
                   color="#333"
                 />
               </TouchableOpacity>
-              <View style={styles.modalHeader}>
+              <View
+                style={[
+                  styles.modalHeader,
+                  {
+                    backgroundColor:
+                      color === "#333" ? "#F0F0F0" : hexToHsla(color),
+                  },
+                ]}
+              >
                 <TextInput
                   ref={titleInputRef}
                   autoFocus
-                  style={styles.deadlineModalTitle}
+                  style={[styles.deadlineModalTitle, { color: color }]}
                   value={title}
                   onChangeText={(text) => setTitle(text)}
                   placeholder="Titel..."
@@ -419,10 +645,10 @@ const InputModal = ({ visible, onClose, addHomework }) => {
                   style={styles.finishButton}
                   onPress={() => {
                     addHomework(
-                      title,
+                      title || "Unbenannt",
                       startDate,
                       dueDate,
-                      description,
+                      description || "-",
                       isDeadline
                     );
                     onClose();
@@ -438,36 +664,28 @@ const InputModal = ({ visible, onClose, addHomework }) => {
     </Modal>
   );
 };
+
 const InputField = ({ onFocused, onBlur, onChangeText }) => {
   const [text, setText] = useState("");
-  const scrollViewRef = useRef(null);
 
   return (
     <View style={styles.containerInput}>
       <Text style={styles.charCount}>{text.length} / 200</Text>
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        keyboardShouldPersistTaps="handled"
-        onContentSizeChange={() =>
-          scrollViewRef.current?.scrollToEnd({ animated: true })
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        <TextInput
-          style={styles.input}
-          placeholder="Gib deinen Text ein..."
-          multiline
-          maxLength={200}
-          onFocus={() => onFocused()}
-          onBlur={() => onBlur()}
-          value={text}
-          onChangeText={(text) => {
-            setText(text);
-            onChangeText(text);
-          }}
-        />
-      </ScrollView>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Gib deinen Text ein..."
+        placeholderTextColor="gray"
+        multiline
+        maxLength={200}
+        onFocus={() => onFocused()}
+        onBlur={() => onBlur()}
+        value={text}
+        onChangeText={(text) => {
+          setText(text);
+          onChangeText(text);
+        }}
+      />
     </View>
   );
 };
@@ -533,7 +751,7 @@ const styles = StyleSheet.create({
   finishButton: {
     width: 120,
     height: 40,
-    backgroundColor: "#429e1b",
+    backgroundColor: "#0066cc",
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
@@ -560,17 +778,13 @@ const styles = StyleSheet.create({
   addButton: {
     marginRight: 15,
   },
-  containerInput: {},
-  scrollView: {
-    maxHeight: 140,
-    borderRadius: 15,
-  },
   input: {
     backgroundColor: "#f0f0f0",
     borderRadius: 15,
     padding: 12,
     fontSize: RFPercentage(2.18),
     textAlignVertical: "top",
+    maxHeight: 140,
   },
   charCount: {
     textAlign: "right",
@@ -591,7 +805,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#E4E4E7",
     padding: 15,
     borderRadius: 14,
     borderLeftWidth: 5,
@@ -636,5 +850,22 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(2.05),
     fontWeight: "500",
     color: "#333",
+  },
+  segmentedControlBox: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  statusIconBox: {
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 15,
+    width: 42,
+    height: 42,
   },
 });

@@ -8,17 +8,50 @@ import {
   StyleSheet,
   ActivityIndicator,
   Text,
+  TextInput,
 } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import * as Icon from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#E5B800", "#A568E0"];
 const eventTypeBackgroundColorList = ["#F2F2F2", "#FFF9E5", "#F7EDFF"];
 
-const AppointmentModal = ({ visible, onClose, item, onDelete }) => {
+const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
   const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  const [title, setTitle] = useState(item?.name);
+  const [description, setDescription] = useState(item?.description);
+
+  const [multiInputFocused, setMultiInputFocused] = useState(false);
+  const titleRef = useRef(null);
+
+  useEffect(() => {
+    setTitle(item?.name || "");
+    setDescription(item?.description || "");
+    setTimeout(() => {
+      setEditing(false);
+    }, 250);
+  }, [visible]);
+
+  const animatedModalStyle = useAnimatedStyle(() => {
+    return {
+      marginBottom: withSpring(multiInputFocused ? 150 : 0, {
+        damping: 15,
+        stiffness: 100,
+        mass: 1,
+        easing: Easing.ease,
+      }),
+    };
+  });
 
   const handleDelete = async () => {
     setLoading(true);
@@ -26,8 +59,37 @@ const AppointmentModal = ({ visible, onClose, item, onDelete }) => {
     const singleEvent = item?.endDate ? false : true;
 
     Promise.resolve(onDelete(singleEvent, item?.id))
-      .catch((error) => console.error("Fehler beim Löschen:", error))
+      .catch((error) => {
+        console.error("Fehler beim Löschen:", error);
+        setLoading(false);
+      })
       .finally(() => setLoading(false));
+  };
+
+  const handleUpdate = async () => {
+    setSaveLoading(true);
+
+    Promise.resolve(onUpdate(title, description, item?.eventCategory, item?.id))
+      .catch((error) => {
+        console.error("Fehler beim Löschen:", error);
+        setSaveLoading(false);
+        setEditing(false);
+      })
+      .finally(() => {
+        setSaveLoading(false);
+        setEditing(false);
+      });
+  };
+
+  const handleEdit = () => {
+    setEditing(true);
+    setTimeout(() => {
+      titleRef?.current.focus();
+    }, 50);
+  };
+
+  const handleDescriptionFocus = () => {
+    setMultiInputFocused(true);
   };
 
   return (
@@ -35,7 +97,12 @@ const AppointmentModal = ({ visible, onClose, item, onDelete }) => {
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, animatedModalStyle]}>
+              {editing ? (
+                <View style={styles.editIcon}>
+                  <Text style={styles.editText}>[ Bearbeitungsmodus ]</Text>
+                </View>
+              ) : null}
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Icon.Ionicons
                   name="close-circle-sharp"
@@ -52,14 +119,20 @@ const AppointmentModal = ({ visible, onClose, item, onDelete }) => {
                   },
                 ]}
               >
-                <Text
+                <TextInput
+                  ref={titleRef}
+                  editable={editing}
                   style={[
                     styles.title,
+                    styles.inputStyle,
+                    editing && styles.underlineInput,
+                    editing && { paddingVertical: 6 },
                     { color: eventTypeColorList[item?.eventType] },
                   ]}
-                >
-                  {item?.name}
-                </Text>
+                  value={title}
+                  onChangeText={setTitle}
+                />
+
                 <Text style={styles.remainingTimeText}>
                   {eventTypesList[item?.eventType]}
                 </Text>
@@ -75,32 +148,110 @@ const AppointmentModal = ({ visible, onClose, item, onDelete }) => {
               <View style={styles.divider} />
               <ScrollView style={styles.scrollView}>
                 <Text style={styles.taskTextHeader}>Beschreibung:</Text>
-                <Text style={styles.taskText}>{item?.description}</Text>
-              </ScrollView>
-              <View style={styles.deleteButtonView}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.deleteButton,
-                    { opacity: pressed ? 0.4 : 1 },
+                <TextInput
+                  style={[
+                    styles.taskText,
+                    styles.inputStyle,
+                    editing && styles.underlineInput,
+                    editing && { paddingVertical: 6 },
                   ]}
-                  disabled={loading ? true : false}
-                  onPress={handleDelete}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <View style={styles.deleteButtonSubBox}>
-                      <Text style={styles.deleteButtonText}>Löschen</Text>
-                      <Icon.MaterialIcons
-                        name="delete"
-                        size={25}
-                        color="white"
-                      />
-                    </View>
-                  )}
-                </Pressable>
+                  multiline
+                  numberOfLines={3}
+                  maxLength={200}
+                  value={description}
+                  onChangeText={setDescription}
+                  editable={editing}
+                  onFocus={handleDescriptionFocus}
+                  onBlur={() => setMultiInputFocused(false)}
+                />
+              </ScrollView>
+              <View style={styles.buttonsBottomBox}>
+                {editing ? (
+                  <>
+                    <Pressable
+                      style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+                      onPress={() => {
+                        setTitle(item?.name);
+                        setDescription(item?.description);
+                        setEditing(false);
+                      }}
+                    >
+                      <Text
+                        style={[styles.editButtonsText, { color: "#8E8E93" }]}
+                      >
+                        Abbrechen
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+                      onPress={() => {
+                        if (
+                          !(
+                            title === item?.name &&
+                            description === item?.description
+                          )
+                        ) {
+                          handleUpdate();
+                        } else {
+                          console.log("no");
+                          console.log(title);
+                          console.log(item?.name);
+                          console.log(description);
+                          console.log(item?.description);
+                        }
+                      }}
+                      disabled={saveLoading}
+                    >
+                      <Text
+                        style={[styles.editButtonsText, { color: "#0066cc" }]}
+                      >
+                        Speichern
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.editButton,
+                        { opacity: pressed ? 0.4 : 1 },
+                      ]}
+                      disabled={loading ? true : false}
+                      onPress={handleEdit}
+                    >
+                      <View style={styles.deleteButtonSubBox}>
+                        <Icon.MaterialIcons
+                          name="edit"
+                          size={22}
+                          color="white"
+                        />
+                      </View>
+                    </Pressable>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.deleteButton,
+                        { opacity: pressed ? 0.4 : 1 },
+                      ]}
+                      disabled={loading}
+                      onPress={handleDelete}
+                    >
+                      {loading ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <View style={styles.deleteButtonSubBox}>
+                          <Text style={styles.deleteButtonText}>Löschen</Text>
+                          <Icon.MaterialIcons
+                            name="delete"
+                            size={22}
+                            color="white"
+                          />
+                        </View>
+                      )}
+                    </Pressable>
+                  </>
+                )}
               </View>
-            </View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -162,14 +313,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#EFEEF6",
   },
-  deleteButtonView: {
-    justifyContent: "center",
-    alignItems: "flex-end",
+  buttonsBottomBox: {
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row",
   },
   deleteButton: {
     width: "auto",
     height: "auto",
     backgroundColor: "#d13030",
+    borderRadius: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    paddingHorizontal: 15,
+    marginTop: 15,
+  },
+  editButton: {
+    width: "auto",
+    height: "auto",
+    backgroundColor: "gray",
     borderRadius: 15,
     flexDirection: "row",
     justifyContent: "center",
@@ -196,5 +360,45 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  taskTextHeader: {
+    fontWeight: "600",
+    marginBottom: 5,
+    fontSize: RFPercentage(1.92),
+  },
+  editButtonsText: {
+    fontSize: RFPercentage(2.32),
+    fontWeight: "600",
+  },
+  editableInput: {
+    borderWidth: 1,
+    borderColor: "#D1D1D6",
+    borderRadius: 6,
+    padding: 6,
+    minHeight: 38,
+  },
+  inputStyle: {
+    color: "#333",
+  },
+  underlineInput: {
+    borderBottomWidth: 1,
+    borderColor: "#C7C7CC",
+  },
+  taskText: {
+    maxHeight: 100,
+  },
+  editIcon: {
+    position: "absolute",
+    left: 20,
+    top: 2,
+    zIndex: 10,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    gap: 10,
+  },
+  editText: {
+    fontWeight: "600",
+    color: "black",
   },
 });

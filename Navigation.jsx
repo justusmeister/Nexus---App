@@ -121,9 +121,7 @@ const Navigation = function () {
     };
     const loadAndFetchEmails = async () => {
       const cachedEmails = await loadEmailsFromStorage();
-      if (cachedEmails) {
-        setMailData(cachedEmails);
-      } else setMailData(null);
+      setMailData(cachedEmails ?? ["loading"]);
 
       fetchEmails(setMailData, setRefreshing);
     };

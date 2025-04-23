@@ -132,7 +132,9 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
     navigation.setOptions({
       headerRight: () => (
         <Pressable
-          onPress={({}) => fetchEmails(setMailData, setRefreshing)}
+          onPress={() =>
+            fetchEmails(setMailData, setRefreshing, setPullRefresh)
+          }
           style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
           hitSlop={12}
         >
@@ -247,7 +249,7 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
             {refreshing && !pullRefresh ? (
               <ActivityIndicator
                 size="small"
-                color="grey"
+                color="black"
                 style={styles.indicator}
               />
             ) : null}
@@ -257,14 +259,16 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
           </View>
         }
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              fetchEmails(setMailData, setRefreshing, setPullRefresh);
-            }}
-            colors={["grey"]}
-            progressBackgroundColor={"black"}
-          />
+          refreshing && !pullRefresh ? null : (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                fetchEmails(setMailData, setRefreshing, setPullRefresh);
+              }}
+              colors={["grey"]}
+              progressBackgroundColor={"black"}
+            />
+          )
         }
       />
       <EmailModal

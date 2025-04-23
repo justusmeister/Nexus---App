@@ -175,6 +175,7 @@ const SettingsScreen = function ({ navigation }) {
             } catch (e) {
               console.error(`Error:${e}`);
             } finally {
+              navigation.goBack();
               navigation.navigate("SplashScreen");
               console.log("Erfolgreich ausgeloggt!");
             }

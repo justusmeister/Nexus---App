@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, useCallback, useEffect } from "react";
+import { useLayoutEffect, useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -38,6 +38,24 @@ const NotesScreen = function ({ navigation }) {
   const [notesList, setNotesList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const swipeableRefs = useRef({});
+  const activeSwipeRef = useRef(null);
+  const [editMode, setEditMode] = useState(false);
+
+  const setActiveSwipe = (id) => {
+    if (activeSwipeRef.current && activeSwipeRef.current !== id) {
+      const prevRef = swipeableRefs.current[activeSwipeRef.current];
+      prevRef?.close();
+    }
+    activeSwipeRef.current = id;
+  };
+
+  const clearActiveSwipe = (id) => {
+    if (activeSwipeRef.current === id) {
+      activeSwipeRef.current = null;
+    }
+  };
+
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -66,7 +84,7 @@ const NotesScreen = function ({ navigation }) {
           style={styles.addButton}
           onPress={() => navigation.navigate("NotesInputScreen")}
         >
-          <Icon.Feather name="edit" size={30} color="#007AFF" />
+          <Icon.FontAwesome6 name="edit" size={30} color="#007AFF" />
         </TouchableOpacity>
       ),
     });
@@ -125,7 +143,14 @@ const NotesScreen = function ({ navigation }) {
         elevation: 5,
       }}
     >
-      <AppleStyleSwipeableRow onPressDelete={() => deleteNote(item.id)}>
+      <AppleStyleSwipeableRow
+        onPressDelete={() => deleteNote(item.id)}
+        id={item.id}
+        setActiveSwipe={setActiveSwipe}
+        clearActiveSwipe={clearActiveSwipe}
+        editMode={editMode}
+        swipeableRef={(ref) => (swipeableRefs.current[item.id] = ref)}
+      >
         <View style={styles.deadlineResult}>
           <Pressable
             onPress={() => {
@@ -138,7 +163,13 @@ const NotesScreen = function ({ navigation }) {
             style={styles.deadlineTaskBox}
           >
             <View style={styles.deadlineDetails}>
-              <Text style={styles.subjectText}>{item.title}</Text>
+              <Text
+                style={styles.subjectText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.title}
+              </Text>
               <Text
                 style={styles.taskText}
                 numberOfLines={1}
@@ -167,6 +198,29 @@ const NotesScreen = function ({ navigation }) {
               Keine Hausaufgaben vorhanden
             </Text>
           ) : null
+        }
+        ListHeaderComponent={
+          loading ? null : notesList.length < 1 ? null : (
+            <View style={styles.editBox}>
+              <Pressable
+                onPress={() => {
+                  setEditMode((prev) => !prev);
+                }}
+                style={({ pressed }) => [
+                  {
+                    opacity: pressed ? 0.4 : 1,
+                  },
+                ]}
+                hitSlop={30}
+              >
+                <Icon.MaterialIcons
+                  name="mode-edit"
+                  size={26}
+                  color={"black"}
+                />
+              </Pressable>
+            </View>
+          )
         }
         style={{ padding: 8 }}
       />
@@ -220,5 +274,10 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: RFPercentage(1.92),
     marginBottom: 16,
+  },
+  editBox: {
+    alignItems: "flex-end",
+    marginRight: 14,
+    margin: 3,
   },
 });

@@ -10,11 +10,25 @@ import {
   Text,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
 
-const HomeworkModal = ({ visible, onClose, item, color, onDelete }) => {
+const HomeworkModal = ({
+  visible,
+  onClose,
+  item,
+  color,
+  onDelete,
+  changeStatus,
+}) => {
   const [loading, setLoading] = useState(false);
+
+  const [status, setStatus] = useState(item?.status);
+
+  useEffect(() => {
+    setStatus(item?.status);
+  }, [item]);
 
   const handleDelete = async () => {
     setLoading(true);
@@ -25,9 +39,11 @@ const HomeworkModal = ({ visible, onClose, item, color, onDelete }) => {
   };
 
   const formatTimestamp = (timestamp) => {
-    if(!timestamp) return;
+    if (!timestamp) return "00.00.00";
     const date = timestamp.toDate();
-    return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getFullYear()).slice(2)}`;
+    return `${String(date.getDate()).padStart(2, "0")}.${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}.${String(date.getFullYear()).slice(2)}`;
   };
 
   const hexToHsla = (hex, alpha = 0.15) => {
@@ -36,28 +52,38 @@ const HomeworkModal = ({ visible, onClose, item, color, onDelete }) => {
     let b = parseInt(hex.substring(5, 7), 16);
 
     //RGB in HSL Umwandlung
-    r /= 255, g /= 255, b /= 255;
-    let max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
+    (r /= 255), (g /= 255), (b /= 255);
+    let max = Math.max(r, g, b),
+      min = Math.min(r, g, b);
+    let h,
+      s,
+      l = (max + min) / 2;
 
     if (max === min) {
-        h = s = 0; //Graustufen
+      h = s = 0; //Graustufen
     } else {
-        let d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h *= 60;
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h *= 60;
     }
 
     l = Math.min(0.92, l + 0.25);
 
-    return `hsla(${Math.round(h)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%, ${alpha})`;
-};
-    
+    return `hsla(${Math.round(h)}, ${Math.round(s * 100)}%, ${Math.round(
+      l * 100
+    )}%, ${alpha})`;
+  };
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
@@ -81,23 +107,79 @@ const HomeworkModal = ({ visible, onClose, item, color, onDelete }) => {
                   },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.title,
-                    { color: color },
-                  ]}
-                >
+                <Text style={[styles.title, { color: color }]}>
                   {item?.title}
                 </Text>
-                <Text style={styles.motivationText}>
-                  Aufgabedatum: {" "}
-                  {formatTimestamp(item?.startDate)}
+                <Text style={styles.dateText}>
+                  Aufgabedatum: {formatTimestamp(item?.startDate)}
                 </Text>
-                <Text style={styles.motivationText}>
-                  Abgabedatum: {" "}
-                  {formatTimestamp(item?.dueDate)}
+                <Text style={[styles.dateText, { fontWeight: "700" }]}>
+                  Abgabedatum: {formatTimestamp(item?.dueDate)}
                 </Text>
+                <View style={styles.statusBox}>
+                  <Text style={styles.statusText}>Status:</Text>
+                  <Icon.FontAwesome
+                    name={
+                      status
+                        ? "check"
+                        : checkDeadlineRemainingTime(
+                            formatTimestamp(item?.dueDate)
+                          ).isWithinTwoDays == 0
+                        ? "times"
+                        : "dot-circle-o"
+                    }
+                    size={18}
+                    color={
+                      status
+                        ? "#3FCF63"
+                        : checkDeadlineRemainingTime(
+                            formatTimestamp(item?.dueDate)
+                          ).isWithinTwoDays == 0
+                        ? "#F44336"
+                        : "#A0A0A5"
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.statusIndicatorText,
+                      {
+                        color: status
+                          ? "#3FCF63"
+                          : checkDeadlineRemainingTime(
+                              formatTimestamp(item?.dueDate)
+                            ).isWithinTwoDays == 0
+                          ? "#F44336"
+                          : "#A0A0A5",
+                      },
+                    ]}
+                  >
+                    {status
+                      ? "erledigt"
+                      : checkDeadlineRemainingTime(
+                          formatTimestamp(item?.dueDate)
+                        ).isWithinTwoDays == 0
+                      ? "abgelaufen"
+                      : "ausstehend"}
+                  </Text>
+                </View>
               </View>
+              {!status && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.checkButton,
+                    { opacity: pressed ? 0.4 : 1 },
+                  ]}
+                  onPress={() => {
+                    setStatus(true);
+                    changeStatus(item.id);
+                  }}
+                >
+                  <Icon.FontAwesome size={18} name="check" color="#3FCF63" />
+                  <Text style={styles.checkButtonText}>
+                    Als erledigt makieren
+                  </Text>
+                </Pressable>
+              )}
               <View style={styles.divider} />
               <ScrollView style={styles.scrollView}>
                 <Text style={styles.taskTextHeader}>Beschreibung:</Text>
@@ -145,7 +227,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "90%",
-    height: "40%",
+    height: "50%",
     backgroundColor: "#fff",
     borderRadius: 14,
     padding: 20,
@@ -175,9 +257,11 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(1.92),
     color: "#333",
   },
-  motivationText: {
+  dateText: {
     fontSize: RFPercentage(1.67),
+    fontWeight: "400",
     color: "#666",
+    marginVertical: 1,
   },
   divider: {
     height: 1,
@@ -222,5 +306,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  statusBox: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 7,
+    paddingVertical: 3.5,
+    borderTopWidth: 0.5,
+    borderTopColor: "#ddd",
+  },
+  statusText: {
+    fontSize: RFPercentage(2.05),
+    color: "#333",
+    fontWeight: "600",
+  },
+  statusIndicatorText: {
+    fontSize: RFPercentage(1.92),
+    fontWeight: "600",
+  },
+  checkButton: {
+    flexDirection: "row",
+    width: "auto",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#D2F8D2",
+    padding: 7,
+    marginTop: -10,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  checkButtonText: {
+    fontSize: RFPercentage(1.67),
+    fontWeight: "600",
+    color: "#3FCF63",
   },
 });

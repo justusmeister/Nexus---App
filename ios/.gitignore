@@ -1,9 +1,18 @@
 # OSX
-#
 .DS_Store
 
+# Node.js
+node_modules/
+
+# Expo
+.expo/
+web-build/
+
+# Native (do not ignore `ios/` folder itself, but exclude build/ and Pods)
+ios/Pods/
+ios/build/
+
 # Xcode
-#
 build/
 *.pbxuser
 !default.pbxuser
@@ -28,3 +37,11 @@ project.xcworkspace
 
 # CocoaPods
 /Pods/
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# local env files
+.env*.local

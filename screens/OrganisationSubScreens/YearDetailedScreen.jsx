@@ -25,6 +25,7 @@ import {
   collection,
   getDocs,
   addDoc,
+  setDoc,
   deleteDoc,
   doc,
   query,
@@ -49,6 +50,7 @@ function createEventMap(events) {
 
   events.singleEvents.forEach((event) => {
     const singleEvent = {
+      day: event.day,
       date: event.day,
       eventType: event.eventType,
       title: event.title,
@@ -70,6 +72,7 @@ function createEventMap(events) {
       const formattedDate = currentDate.toISOString().split("T")[0];
 
       const periodEvent = {
+        day: period.day,
         date: formattedDate,
         eventType: 2,
         name: period.title,
@@ -148,6 +151,7 @@ const YearDetailedScreen = function ({ navigation }) {
         id: doc.id,
         ...doc.data(),
         day: formatTimestamp(doc.data().day),
+        eventCategory: 1,
       }));
 
       const eventPeriodsQuery1 = query(
@@ -176,8 +180,10 @@ const YearDetailedScreen = function ({ navigation }) {
           id: doc.id,
           ...doc.data(),
           title: doc.name,
+          date: doc.day,
           day: formatTimestamp(doc.data().day),
           endDate: formatTimestamp(doc.data().endDate),
+          eventCategory: 2,
         }))
         .filter(
           (event, index, self) =>
@@ -299,6 +305,44 @@ const YearDetailedScreen = function ({ navigation }) {
     }
   };
 
+  const updateAppointment = async (
+    title,
+    description,
+    eventCategory,
+    itemId
+  ) => {
+    console.log({ title, description, eventCategory, itemId });
+    if (user) {
+      try {
+        const userAppointmentsRef = doc(firestoreDB, "appointments", user.uid);
+        let appointmentDocRef;
+        if (eventCategory === 1)
+          appointmentDocRef = doc(userAppointmentsRef, "singleEvents", itemId);
+        else
+          appointmentDocRef = doc(userAppointmentsRef, "eventPeriods", itemId);
+
+        await setDoc(
+          appointmentDocRef,
+          {
+            name: title,
+            description: description,
+            timestamp: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      } catch (e) {
+        Toast.show({
+          type: "error",
+          text1: "Fehler:",
+          text2: e.message || "Unbekannter Fehler",
+          visibilityTime: 4000,
+        });
+      } finally {
+        fetchAppointments(params.date);
+      }
+    }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: params?.month,
@@ -414,7 +458,9 @@ const YearDetailedScreen = function ({ navigation }) {
                     color: "#8E8E93",
                   }}
                 >
-                  Keine Fristen an diesem Tag
+                  {selectedDay
+                    ? "Keine Fristen an diesem Tag"
+                    : "Keine Fristen in diesem Monat"}
                 </Text>
               )
             }
@@ -431,6 +477,7 @@ const YearDetailedScreen = function ({ navigation }) {
         onClose={() => setIsModalVisible(false)}
         item={modalAppointmentItem}
         onDelete={deleteAppointment}
+        onUpdate={updateAppointment}
       />
     </View>
   );

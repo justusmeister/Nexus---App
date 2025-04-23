@@ -130,7 +130,7 @@ const convertToISOTime = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const Column = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
+const SubjectColumn = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentLessonData, setCurrentLessonData] = useState();
   const { holidayData } = useHolidayData();
@@ -308,6 +308,7 @@ const TimeColumn = ({ content }) => {
             {
               height: cellHeight,
               borderBottomWidth: index === content.length - 1 ? 0 : 1,
+              paddingVertical: 10,
             },
           ]}
         >
@@ -412,7 +413,7 @@ const TimeTable = ({ currentWeek }) => {
       >
         <TimeColumn content={lessonStartTime} />
         {[0, 1, 2, 3, 4].map((dayIndex) => (
-          <Column
+          <SubjectColumn
             key={dayIndex}
             data={dummyStundenplan[dayIndex]?.stunden}
             indexColumn={dayIndex}

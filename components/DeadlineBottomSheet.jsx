@@ -39,7 +39,6 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [activeField, setActiveField] = useState(null);
   const titleInputRef = useRef(null);
-  const descriptionInputRef = useRef(null);
   const scrollViewRef = useRef(null);
 
   const windowWidth = useWindowDimensions().width;
@@ -57,7 +56,7 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
           } else if (activeField === "title") {
             scrollViewRef.current?.scrollTo({ y: 0, animated: true });
           }
-        }, 100);
+        }, 20);
       }
     );
 
@@ -269,7 +268,6 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Beschreibung:</Text>
           <TextInput
-            ref={descriptionInputRef}
             style={styles.descriptionField}
             placeholder="Beschreibung hinzufügen..."
             multiline

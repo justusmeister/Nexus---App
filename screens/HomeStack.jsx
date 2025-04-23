@@ -107,7 +107,7 @@ const HomeStack = function ({ navigation }) {
 
   const parseDateString = (dateString) => {
     const [day, month, year] = dateString.split(".").map(Number);
-    return new Date(2000 + year, month - 1, day);
+    return new Date(2000 + year, month - 1, day, 7, 0, 0);
   };
 
   const deleteDeadline = async (deadlineId) => {
@@ -456,16 +456,18 @@ const DeadlineDetailedScreen = function () {
           styles.deadlineResult,
           { transform: [{ scale: activeAnimation === index ? scale : 1 }] },
           {
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 3,
             shadowColor:
               checkDeadlineRemainingTime(deadlinesData[index].dueDate)
                 .isWithinTwoDays === 1
                 ? "#e02225"
-                : "black",
+                : "#000",
             shadowOpacity:
               checkDeadlineRemainingTime(deadlinesData[index].dueDate)
                 .isWithinTwoDays === 1
                 ? 1
-                : 0.3,
+                : 0.1,
             shadowRadius:
               checkDeadlineRemainingTime(deadlinesData[index].dueDate)
                 .isWithinTwoDays === 1
@@ -570,7 +572,7 @@ export const HomeScreen = function ({ navigation }) {
   const truncateText = (text, maxLength) => {
     text = text || " ";
     if (text.length > maxLength) {
-      return text.substring(0, maxLength) + "...";
+      return text.substring(0, maxLength) + "…";
     }
     return text;
   };
@@ -843,10 +845,10 @@ export const HomeScreen = function ({ navigation }) {
             icon="inbox"
             titleStyle={{
               borderBottomWidth:
-                mailData.length > 0 && mailData[0] !== "loading" ? 0 : 1,
+                mailData?.length > 0 && mailData[0] !== "loading" ? 0 : 1,
               borderBottomColor: "#b3b3ba",
             }}
-            isLoading={mailData[0] === "loading"}
+            isLoading={ mailData[0] ? mailData[0] === "loading" : true}
             isRefreshing={refreshing}
             content={[
               {
@@ -1158,7 +1160,7 @@ const styles = StyleSheet.create({
   finishButton: {
     width: 120,
     height: 40,
-    backgroundColor: "#429e1b",
+    backgroundColor: "#0066cc",
     borderRadius: 15,
     marginBottom: 12,
     justifyContent: "center",

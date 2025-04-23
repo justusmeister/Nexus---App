@@ -141,11 +141,15 @@ const YearCalendarScreen = function ({ navigation }) {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "";
-    const date = timestamp.toDate();
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(date.getDate()).padStart(2, "0")}`;
+    try {
+      const date = timestamp.toDate();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(date.getDate()).padStart(2, "0")}`;
+    } catch {
+      console.log(`Fehler bei Timestamp: ${timestamp}`);
+    }
   };
 
   const fetchAppointments = async () => {

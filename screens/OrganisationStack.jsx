@@ -238,7 +238,7 @@ const TimeTableScreen = function ({ navigation }) {
           <TouchableOpacity
             style={{
               paddingRight: 10,
-              height: 43,
+              paddingVertical: 5,
               marginVertical: 10,
               marginLeft: 8,
               alignSelf: "flex-start",
