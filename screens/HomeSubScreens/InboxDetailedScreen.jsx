@@ -11,9 +11,10 @@ import {
   ScrollView,
   Animated,
   TouchableWithoutFeedback,
-  TextInput,
+  Linking,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
@@ -21,6 +22,8 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import FileViewer from "react-native-file-viewer";
+import ParsedText from "react-native-parsed-text";
 import { useEmailData } from "../../contexts/EmailContext";
 
 const saveEmailsToStorage = async (emails) => {
@@ -240,7 +243,7 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
   return (
     <View style={{ flex: 1, paddingBottom: tabBarHeight + 6 }}>
       <FlatList
-        data={data}
+        data={data[0] === "loading" ? [] : data}
         renderItem={resultBox}
         keyExtractor={(item, index) => index.toString()}
         style={{ padding: 8 }}
@@ -256,6 +259,15 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
             <Text style={styles.lastUpdatedFont}>
               zuletzt aktualisiert: {loadEmailsLastUpdatedFromStorage()}
             </Text>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.listHeader}>
+            <ActivityIndicator
+              size="small"
+              color="black"
+              style={styles.indicator}
+            />
           </View>
         }
         refreshControl={
@@ -319,26 +331,30 @@ const EmailModal = ({ visible, email, onClose }) => {
               <View style={styles.divider} />
               <View style={styles.bodyContainer}>
                 {0 === 0 ? (
-                  <ScrollView>
+                  <ScrollView style={styles.mailContentScrollView}>
                     <Pressable>
-                      <TextInput
+                      <ParsedText
                         style={styles.emailContentText}
-                        multiline={true}
-                        editable={false}
+                        parse={[
+                          {
+                            type: "url",
+                            style: {
+                              color: "#1A73E8",
+                            },
+                            onPress: (url) => {
+                              Linking.openURL(url);
+                            },
+                          },
+                        ]}
                       >
                         {email?.text}
-                      </TextInput>
+                      </ParsedText>
                       {email?.attachments.length > 0 && (
                         <View>
                           {email?.attachments.map((attachment, index) => (
                             <TouchableOpacity
                               key={index}
-                              onPress={() =>
-                                openAttachment(
-                                  attachment.filename,
-                                  attachment.data
-                                )
-                              }
+                              onPress={() => previewAttachment(attachment)}
                               style={{
                                 padding: 8,
                                 marginTop: 5,
@@ -387,10 +403,10 @@ const EmailModal = ({ visible, email, onClose }) => {
   );
 };
 
-const openAttachment = async (filename, base64Data) => {
+const openAttachment = async (attachment) => {
   try {
-    const path = `${FileSystem.cacheDirectory}${filename}`;
-    await FileSystem.writeAsStringAsync(path, base64Data, {
+    const path = `${FileSystem.cacheDirectory}${attachment.filename}`;
+    await FileSystem.writeAsStringAsync(path, attachment.data, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
@@ -403,6 +419,32 @@ const openAttachment = async (filename, base64Data) => {
   } catch (error) {
     console.error("Fehler beim Öffnen des Anhangs:", error);
   }
+};
+
+const previewAttachment = async (attachment) => {
+  Alert.alert("Datei öffnen", attachment.filename, [
+    { text: "Abbrechen", style: "cancel" },
+    {
+      text: "Vorschau laden",
+      onPress: async () => {
+        try {
+          const fileUri = FileSystem.cacheDirectory + attachment.filename;
+          await FileSystem.writeAsStringAsync(fileUri, attachment.data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          await FileViewer.open(fileUri, { showOpenWithDialog: false });
+        } catch (error) {
+          console.error("Fehler beim Öffnen der Datei:", error);
+        }
+      },
+    },
+    {
+      text: "Herunterladen",
+      onPress: () => {
+        openAttachment(attachment);
+      },
+    },
+  ]);
 };
 
 const styles = StyleSheet.create({
@@ -420,10 +462,10 @@ const styles = StyleSheet.create({
     padding: 15,
     position: "relative",
     shadowColor: "#000",
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3,
   },
   closeButton: {
     position: "absolute",
@@ -516,6 +558,9 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     margin: 8,
   },
+  mailContentScrollView: {
+    paddingRight: 5,
+  }
 });
 
 export default InboxDetailedScreen;

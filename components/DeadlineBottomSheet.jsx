@@ -26,7 +26,6 @@ import DateTimePicker, {
 import { SegmentedControl } from "./SegmentedControl";
 import SingleRadioButton from "./SingleRadioButton";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import FormalSignleLineInputField from "./FormalSingleLineInputField";
 
 const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
   const [selectedOption, setSelectedOption] = useState("Event");
@@ -102,10 +101,6 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
     }
   }, []);
 
-  const handleDescriptionChange = useCallback((text) => {
-    setDescription(text);
-  }, []);
-
   const toggleIsAllDay = useCallback(() => {
     setIsAllDay((prev) => !prev);
   }, []);
@@ -158,7 +153,6 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
         ref={scrollViewRef}
         contentContainerStyle={[
           styles.sheetContainer,
-          // Nur Padding hinzufügen, wenn das Beschreibungsfeld aktiv ist
           activeField === "description" &&
             keyboardHeight > 0 && { paddingBottom: keyboardHeight + 20 },
         ]}
@@ -176,6 +170,7 @@ const DeadlineBottomSheet = memo(function ({ sheetRef, addAppointment }) {
             onEndEditing={(e) => setDeadlineTitle(e.nativeEvent.text)}
             onFocus={handleTitleFocus}
             onBlur={handleInputBlur}
+            maxLength={40}
           />
         </View>
 

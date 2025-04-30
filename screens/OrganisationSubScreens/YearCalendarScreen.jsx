@@ -574,7 +574,7 @@ const DayRow = memo(
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
         for (const event of events) {
-          if (event.eventCategory === 1) return 1;
+          if (event.eventCategory === 1  && event.eventType !== 0) return 1;
         }
         0;
       }
@@ -595,11 +595,16 @@ const DayRow = memo(
       const isClasstestBefore = isEvent(day - 1, month, year) === 1;
       const isClasstestNext = isEvent(day + 1, month, year) === 1;
 
+      const isSingleEventToday = isSingleEvent(day, month, year) === 1;
+      const isSingleEventBefore = isSingleEvent(day - 1, month, year) === 1;
+      const isSingleEventNext = isSingleEvent(day + 1, month, year) === 1;
+
       const isEventStart =
         isEvent(day, month, year) === 2 &&
         (!isEvent(day - 1, month, year) ||
           isSingleEvent(day, month, year) == 1 ||
           isClasstestBefore ||
+          isSingleEventBefore ||
           day === startDay);
 
       const isEventEnd =
@@ -609,6 +614,7 @@ const DayRow = memo(
           !isEvent(day + 1, month, year) ||
           isSingleEvent(day, month, year) == 1 ||
           isClasstestNext ||
+          isSingleEventNext ||
           index === 4 ||
           day === endDay);
 
@@ -809,7 +815,7 @@ const DayRow = memo(
                   {
                     color: isToday(day, month, year) ? "red" : "#333",
                     fontSize: RFPercentage(1.41),
-                    fontWeight: isToday(day, month, year) ? "700" : "600",
+                    fontWeight: isToday(day, month, year) ? "600" : "600",
                   },
                 ]}
               >

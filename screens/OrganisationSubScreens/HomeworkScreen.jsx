@@ -75,14 +75,11 @@ const HomeworkScreen = ({ navigation }) => {
   const [editMode, setEditMode] = useState(false);
 
   const setActiveSwipe = (id) => {
-    // Im Edit-Modus sollten wir keine Swipeables schließen
-    if (!editMode) {
-      if (activeSwipeRef.current && activeSwipeRef.current !== id) {
-        const prevRef = swipeableRefs.current[activeSwipeRef.current];
-        prevRef?.close();
-      }
-      activeSwipeRef.current = id;
+    if (activeSwipeRef.current && activeSwipeRef.current !== id) {
+      const prevRef = swipeableRefs.current[activeSwipeRef.current];
+      prevRef?.close();
     }
+    activeSwipeRef.current = id;
   };
 
   const clearActiveSwipe = (id) => {
@@ -91,14 +88,8 @@ const HomeworkScreen = ({ navigation }) => {
     }
   };
 
-  // Hilfsfunktion um den Edit-Modus umzuschalten
   const toggleEditMode = () => {
     setEditMode((prev) => !prev);
-
-    // Wenn Edit-Modus ausgeschaltet wird, aktiven Swipe zurücksetzen
-    if (editMode) {
-      activeSwipeRef.current = null;
-    }
   };
 
   const sheetRef = useRef(null);
@@ -331,7 +322,13 @@ const HomeworkScreen = ({ navigation }) => {
                 setActiveSwipe={setActiveSwipe}
                 clearActiveSwipe={clearActiveSwipe}
                 editMode={editMode}
-                swipeableRef={(ref) => (swipeableRefs.current[item.id] = ref)}
+                swipeableRef={(ref) => {
+                  if (ref) {
+                    swipeableRefs.current[item.id] = ref;
+                  } else {
+                    delete swipeableRefs.current[item.id];
+                  }
+                }}
               >
                 <View style={styles.homeworkButtonBox}>
                   {item.items > 0 ? (

@@ -10,10 +10,12 @@ import {
   ScrollView,
   Pressable,
   Image,
+  Linking,
 } from "react-native";
 import { firebaseAuth } from "../firebaseConfig";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import LicenseModal from "../modals/LicenseModal";
+
 
 const SettingsScreen = function ({ navigation }) {
   const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
@@ -32,6 +34,10 @@ const SettingsScreen = function ({ navigation }) {
         ) : null,
     });
   }, [navigation]);
+
+  const openFeedbackMail = () => {
+    Linking.openURL('mailto:feedback.nexus.app@gmail.com?subject=Feedback-Mail');
+  }
 
   return (
     <ScrollView
@@ -113,7 +119,7 @@ const SettingsScreen = function ({ navigation }) {
                 color={"white"}
                 style={[styles.buttonIcon, { backgroundColor: "#47b334" }]}
               />
-              <Text style={styles.buttonText}>Appdarstellung</Text>
+              <Text style={styles.buttonText}>App-Darstellung</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -137,6 +143,31 @@ const SettingsScreen = function ({ navigation }) {
                 style={[styles.buttonIcon, { backgroundColor: "#cf4f36" }]}
               />
               <Text style={styles.buttonText}>Mitteilungsverwaltung</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Kontakt</Text>
+          <View style={styles.buttonsBox}>
+            <TouchableOpacity
+              style={[
+                styles.pressable,
+                {
+                  borderColor: "white",
+                  backgroundColor: "#525252",
+                  borderRadius: 15,
+                },
+              ]}
+              activeOpacity={0.4}
+              onPress={() => openFeedbackMail()}
+            >
+              <Icon.MaterialIcons
+                name="feedback"
+                size={24}
+                color={"white"}
+                style={[styles.buttonIcon, { backgroundColor: "#6366F1" }]}
+              />
+              <Text style={styles.buttonText}>Feedback geben</Text>
             </TouchableOpacity>
           </View>
         </View>

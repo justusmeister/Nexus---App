@@ -7,13 +7,38 @@ import { EmailContextProvider } from "./contexts/EmailContext";
 import Toast from "react-native-toast-message";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import LogRocket from '@logrocket/react-native';
+LogRocket.init('lb7h2h/nexus')
 
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
-const USERNAME = "username";
-const PASSWORD = "password";
+const USERNAME = "justus.meister";
+const PASSWORD = "u.g.i!JM08";
 const CLIENT = "WebUntis";
 
 let sessionId = null;
+
+const getCurrentWeekDates = () => {
+  const now = new Date();
+  const currentDay = now.getDay();
+  const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+  const monday = new Date(now.setDate(diff));
+
+  // Format: YYYYMMDD
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+
+  return {
+    startDate: formatDate(monday),
+    endDate: formatDate(friday)
+  };
+};
 
 const getSession = async () => {
   if (sessionId) return sessionId;
@@ -41,6 +66,7 @@ const getSession = async () => {
 };
 
 const getTimetable = async () => {
+  const { startDate, endDate } = getCurrentWeekDates();
   try {
     const session = await getSession();
     if (!session) return;
@@ -58,8 +84,8 @@ const getTimetable = async () => {
               id: 1676,
               type: 5,
             },
-            startDate: "20250217",
-            endDate: "20250221",
+            startDate: startDate,
+            endDate: endDate,
           },
         },
         jsonrpc: "2.0",

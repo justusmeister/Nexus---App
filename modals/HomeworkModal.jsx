@@ -8,11 +8,19 @@ import {
   StyleSheet,
   ActivityIndicator,
   Text,
+  TextInput,
+  Platform,
 } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import * as Icon from "@expo/vector-icons";
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+import { Timestamp } from "firebase/firestore";
 
 const HomeworkModal = ({
   visible,
@@ -20,15 +28,48 @@ const HomeworkModal = ({
   item,
   color,
   onDelete,
+  onUpdate,
   changeStatus,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const [status, setStatus] = useState(item?.status);
+
+  const [title, setTitle] = useState(item?.title);
+  const [description, setDescription] = useState(item?.description);
+
+  const [multiInputFocused, setMultiInputFocused] = useState(false);
+  const titleRef = useRef(null);
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [dueDate, setDueDate] = useState(new Date());
+
+  useEffect(() => {
+    setTitle(item?.title || "");
+    setDescription(item?.description || "");
+    setStartDate(item?.startDate);
+    setDueDate(item?.dueDate);
+    if (visible && editing) {
+      setEditing(false);
+    }
+  }, [visible]);
 
   useEffect(() => {
     setStatus(item?.status);
   }, [item]);
+
+  const animatedModalStyle = useAnimatedStyle(() => {
+    return {
+      marginBottom: withSpring(multiInputFocused ? 150 : 0, {
+        damping: 15,
+        stiffness: 100,
+        mass: 1,
+        easing: Easing.ease,
+      }),
+    };
+  });
 
   const handleDelete = async () => {
     setLoading(true);
@@ -38,12 +79,61 @@ const HomeworkModal = ({
       .finally(() => setLoading(false));
   };
 
+  const handleUpdate = async () => {
+    setSaveLoading(true);
+    try {
+      await onUpdate(title, description, startDate, dueDate, item?.id);
+    } catch (error) {
+      console.error("Fehler beim Update:", error);
+    } finally {
+      setSaveLoading(false);
+      setEditing(false);
+    }
+  };
+
+  const handleEdit = () => {
+    setEditing(true);
+    setTimeout(() => {
+      titleRef?.current.focus();
+    }, 50);
+  };
+
+  const handleCancel = () => {
+    setTitle(item?.title);
+    setDescription(item?.description);
+    setStartDate(item?.startDate ?? item?.dueDate);
+    setDueDate(item?.dueDate);
+    setEditing(false);
+  };
+
+  const handleDescriptionFocus = () => {
+    setMultiInputFocused(true);
+  };
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return "00.00.00";
-    const date = timestamp.toDate();
-    return `${String(date.getDate()).padStart(2, "0")}.${String(
-      date.getMonth() + 1
-    ).padStart(2, "0")}.${String(date.getFullYear()).slice(2)}`;
+    if (!timestamp) {
+      return "";
+    }
+
+    try {
+      if (timestamp instanceof Timestamp) {
+        const date = timestamp.toDate();
+        return `${String(date.getDate()).padStart(2, "0")}.${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
+      }
+
+      // Falls der Timestamp schon ein Date-Objekt ist
+      if (timestamp instanceof Date) {
+        const date = timestamp;
+        return `${String(date.getDate()).padStart(2, "0")}.${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}.${String(date.getFullYear()).slice(-2)}`;
+      }
+      return "";
+    } catch (error) {
+      console.error("Error while formatting timestamp:", error);
+      return "";
+    }
   };
 
   const hexToHsla = (hex, alpha = 0.15) => {
@@ -85,12 +175,16 @@ const HomeworkModal = ({
     )}%, ${alpha})`;
   };
 
+  const getDateWithoutTime = (date) => {
+    return date.toISOString().split("T")[0]; //Gibt nur 'yyyy-mm-dd' zurück
+  };
+
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+            <Animated.View style={[styles.modalContent, animatedModalStyle]}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Icon.Ionicons
                   name="close-circle-sharp"
@@ -107,63 +201,73 @@ const HomeworkModal = ({
                   },
                 ]}
               >
-                <Text style={[styles.title, { color: color }]}>
-                  {item?.title}
-                </Text>
+                <TextInput
+                  ref={titleRef}
+                  editable={editing}
+                  style={[
+                    styles.title,
+                    styles.inputStyle,
+                    editing && styles.underlineInput,
+                    editing && { paddingVertical: 6 },
+                    { color: color },
+                  ]}
+                  value={title}
+                  onChangeText={setTitle}
+                  maxLength={40}
+                />
                 <Text style={styles.dateText}>
-                  Aufgabedatum: {formatTimestamp(item?.startDate)}
+                  Aufgabedatum: {formatTimestamp(startDate)}
                 </Text>
                 <Text style={[styles.dateText, { fontWeight: "700" }]}>
-                  Abgabedatum: {formatTimestamp(item?.dueDate)}
+                  Abgabedatum: {formatTimestamp(dueDate)}
                 </Text>
-                <View style={styles.statusBox}>
-                  <Text style={styles.statusText}>Status:</Text>
-                  <Icon.FontAwesome
-                    name={
-                      status
-                        ? "check"
-                        : checkDeadlineRemainingTime(
-                            formatTimestamp(item?.dueDate)
-                          ).isWithinTwoDays == 0
-                        ? "times"
-                        : "dot-circle-o"
-                    }
-                    size={18}
-                    color={
-                      status
-                        ? "#3FCF63"
-                        : checkDeadlineRemainingTime(
-                            formatTimestamp(item?.dueDate)
-                          ).isWithinTwoDays == 0
-                        ? "#F44336"
-                        : "#A0A0A5"
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.statusIndicatorText,
-                      {
-                        color: status
+                {!editing && (
+                  <View style={styles.statusBox}>
+                    <Text style={styles.statusText}>Status:</Text>
+                    <Icon.FontAwesome
+                      name={
+                        status
+                          ? "check"
+                          : checkDeadlineRemainingTime(formatTimestamp(dueDate))
+                              .isWithinTwoDays == 0
+                          ? "times"
+                          : "dot-circle-o"
+                      }
+                      size={18}
+                      color={
+                        status
                           ? "#3FCF63"
-                          : checkDeadlineRemainingTime(
-                              formatTimestamp(item?.dueDate)
-                            ).isWithinTwoDays == 0
+                          : checkDeadlineRemainingTime(formatTimestamp(dueDate))
+                              .isWithinTwoDays == 0
                           ? "#F44336"
-                          : "#A0A0A5",
-                      },
-                    ]}
-                  >
-                    {status
-                      ? "erledigt"
-                      : checkDeadlineRemainingTime(
-                          formatTimestamp(item?.dueDate)
-                        ).isWithinTwoDays == 0
-                      ? "abgelaufen"
-                      : "ausstehend"}
-                  </Text>
-                </View>
+                          : "#A0A0A5"
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.statusIndicatorText,
+                        {
+                          color: status
+                            ? "#3FCF63"
+                            : checkDeadlineRemainingTime(
+                                formatTimestamp(dueDate)
+                              ).isWithinTwoDays == 0
+                            ? "#F44336"
+                            : "#A0A0A5",
+                        },
+                      ]}
+                    >
+                      {status
+                        ? "erledigt"
+                        : checkDeadlineRemainingTime(formatTimestamp(dueDate))
+                            .isWithinTwoDays == 0
+                        ? "abgelaufen"
+                        : "ausstehend"}
+                    </Text>
+                  </View>
+                )}
               </View>
-              {!status && (
+              {!status && !editing && (
                 <Pressable
                   style={({ pressed }) => [
                     styles.checkButton,
@@ -182,33 +286,109 @@ const HomeworkModal = ({
               )}
               <View style={styles.divider} />
               <ScrollView style={styles.scrollView}>
-                <Text style={styles.taskTextHeader}>Beschreibung:</Text>
-                <Text style={styles.taskText}>{item?.description}</Text>
-              </ScrollView>
-              <View style={styles.deleteButtonView}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.deleteButton,
-                    { opacity: pressed ? 0.4 : 1 },
-                  ]}
-                  disabled={loading ? true : false}
-                  onPress={handleDelete}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <View style={styles.deleteButtonSubBox}>
-                      <Text style={styles.deleteButtonText}>Löschen</Text>
-                      <Icon.MaterialIcons
-                        name="delete"
-                        size={25}
-                        color="white"
-                      />
-                    </View>
-                  )}
+                <Pressable>
+                  <Text style={styles.taskTextHeader}>Beschreibung:</Text>
+                  <TextInput
+                    style={[
+                      styles.taskText,
+                      styles.inputStyle,
+                      editing && styles.underlineInput,
+                      editing && { paddingVertical: 6 },
+                    ]}
+                    multiline
+                    numberOfLines={3}
+                    maxLength={200}
+                    value={description}
+                    onChangeText={setDescription}
+                    editable={editing}
+                    onFocus={handleDescriptionFocus}
+                    onBlur={() => setMultiInputFocused(false)}
+                  />
                 </Pressable>
+              </ScrollView>
+              <View style={styles.buttonsBottomBox}>
+                {editing ? (
+                  <>
+                    <Pressable
+                      style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+                      onPress={() => {
+                        handleCancel();
+                      }}
+                    >
+                      <Text
+                        style={[styles.editButtonsText, { color: "#8E8E93" }]}
+                      >
+                        Abbrechen
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+                      onPress={() => {
+                        if (
+                          !(
+                            title === item?.title &&
+                            description === item?.description &&
+                            startDate === item?.startDate &&
+                            dueDate === item?.dueDate
+                          )
+                        ) {
+                          handleUpdate();
+                        } else {
+                          handleCancel();
+                        }
+                      }}
+                      disabled={saveLoading}
+                    >
+                      <Text
+                        style={[styles.editButtonsText, { color: "#0066cc" }]}
+                      >
+                        Speichern
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.editButton,
+                        { opacity: pressed ? 0.4 : 1 },
+                      ]}
+                      disabled={loading ? true : false}
+                      onPress={handleEdit}
+                    >
+                      <View style={styles.deleteButtonSubBox}>
+                        <Icon.MaterialIcons
+                          name="edit"
+                          size={22}
+                          color="white"
+                        />
+                      </View>
+                    </Pressable>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.deleteButton,
+                        { opacity: pressed ? 0.4 : 1 },
+                      ]}
+                      disabled={loading ? true : false}
+                      onPress={handleDelete}
+                    >
+                      {loading ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <View style={styles.deleteButtonSubBox}>
+                          <Text style={styles.deleteButtonText}>Löschen</Text>
+                          <Icon.MaterialIcons
+                            name="delete"
+                            size={25}
+                            color="white"
+                          />
+                        </View>
+                      )}
+                    </Pressable>
+                  </>
+                )}
               </View>
-            </View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -342,5 +522,89 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(1.67),
     fontWeight: "600",
     color: "#3FCF63",
+  },
+  buttonsBottomBox: {
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  deleteButton: {
+    width: "auto",
+    height: "auto",
+    backgroundColor: "#d13030",
+    borderRadius: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    paddingHorizontal: 15,
+    marginTop: 15,
+  },
+  editButton: {
+    width: "auto",
+    height: "auto",
+    backgroundColor: "gray",
+    borderRadius: 15,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    paddingHorizontal: 15,
+    marginTop: 15,
+  },
+  deleteButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: RFPercentage(2.05),
+    marginRight: 8,
+  },
+  loadingBox: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollView: {
+    height: "auto",
+  },
+  deleteButtonSubBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  taskTextHeader: {
+    fontWeight: "600",
+    marginBottom: 5,
+    fontSize: RFPercentage(1.92),
+  },
+  editButtonsText: {
+    fontSize: RFPercentage(2.32),
+    fontWeight: "600",
+  },
+  editableInput: {
+    borderWidth: 1,
+    borderColor: "#D1D1D6",
+    borderRadius: 6,
+    padding: 6,
+    minHeight: 38,
+  },
+  inputStyle: {
+    color: "#333",
+  },
+  underlineInput: {
+    borderBottomWidth: 1,
+    borderColor: "#C7C7CC",
+  },
+  taskText: {
+    maxHeight: 120,
+  },
+  editIcon: {
+    position: "absolute",
+    left: 20,
+    top: 2,
+    zIndex: 10,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    gap: 10,
   },
 });

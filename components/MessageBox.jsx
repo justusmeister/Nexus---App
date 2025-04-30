@@ -5,6 +5,7 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
+import { useState, useEffect } from "react";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
@@ -18,18 +19,39 @@ const MessageBox = function ({
   isLoading,
   isRefreshing,
 }) {
+  const [dots, setDots] = useState("...");
+
+  useEffect(() => {
+    let goesForward = true;
+    if (title !== "Postfach") return;
+
+    const interval = setInterval(() => {
+      setDots((prev) => {
+        if (prev === "...") {
+          goesForward = false;
+          return "..";
+        }
+        if (prev === ".." && !goesForward) return ".";
+        if (prev === "." && !goesForward) return "";
+        if (prev === "") {
+          goesForward = true;
+          return ".";
+        }
+        if (prev === ".." && goesForward) return "...";
+        return "..";
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [title]);
+
   return (
     <TouchableOpacity
       style={[styles.boxSize, style]}
       activeOpacity={0.4}
       onPress={onPress}
     >
-      <View
-        style={[
-          styles.titleBox,
-          titleStyle,
-        ]}
-      >
+      <View style={[styles.titleBox, titleStyle]}>
         <View style={styles.title}>
           <Icon.FontAwesome
             name={icon}
@@ -48,9 +70,7 @@ const MessageBox = function ({
             {title}
           </Text>
         </View>
-        {isRefreshing && (
-        <ActivityIndicator size="small" color="white" />
-      )}
+        {isRefreshing && !isLoading && <ActivityIndicator size="small" color="white" />}
         <Icon.Entypo
           name="chevron-right"
           size={23}
@@ -61,6 +81,12 @@ const MessageBox = function ({
       {isLoading ? (
         <View style={styles.loadingBox}>
           <ActivityIndicator size={"small"} color={"white"} />
+          {title === "Postfach" ? (
+            <View style={styles.loadingTextRow}>
+              <Text style={styles.loadingMailText}>Postfach wird geladen</Text>
+              <Text style={styles.dots}>{dots}</Text>
+            </View>
+          ) : null}
         </View>
       ) : (
         <View style={styles.infoBoxOuterView}>
@@ -123,5 +149,23 @@ const styles = StyleSheet.create({
     height: "70%",
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingTextRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 15,
+  },
+  dots: {
+    color: "white",
+    fontWeight: "400",
+    fontSize: RFPercentage(1.79),
+    width: RFPercentage(3),
+    textAlign: "left",
+  },
+  loadingMailText: {
+    color: "white",
+    fontWeight: "400",
+    fontSize: RFPercentage(1.79),
   },
 });

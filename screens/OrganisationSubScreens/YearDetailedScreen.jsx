@@ -74,6 +74,7 @@ function createEventMap(events) {
       const periodEvent = {
         day: period.day,
         date: formattedDate,
+        endDate: period.endDate,
         eventType: 2,
         name: period.title,
         eventCategory: 2,
@@ -125,79 +126,83 @@ const YearDetailedScreen = function ({ navigation }) {
     end: parseDateToTimestamp(endDate),
   });
 
-  const fetchAppointments = async (startDate) => {
-    if (!user) return;
+  const fetchAppointments = useCallback(
+    async (startDate) => {
+      if (!user) return;
 
-    try {
-      const userDocRef = doc(firestoreDB, "appointments", user.uid);
-      const singleEventsRef = collection(userDocRef, "singleEvents");
-      const eventPeriodsRef = collection(userDocRef, "eventPeriods");
+      try {
+        const userDocRef = doc(firestoreDB, "appointments", user.uid);
+        const singleEventsRef = collection(userDocRef, "singleEvents");
+        const eventPeriodsRef = collection(userDocRef, "eventPeriods");
 
-      const { start, end } = parseDateToTimestampRange(
-        startDate,
-        `${new Date(startDate).getFullYear()}-${
-          new Date(startDate).getMonth() + 1
-        }-${params.monthLength}`
-      );
-
-      const singleEventsQuery = query(
-        singleEventsRef,
-        where("day", ">=", start),
-        where("day", "<=", end),
-        orderBy("day")
-      );
-      const singleEventsSnapshot = await getDocs(singleEventsQuery);
-      const singleEvents = singleEventsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        day: formatTimestamp(doc.data().day),
-        eventCategory: 1,
-      }));
-
-      const eventPeriodsQuery1 = query(
-        eventPeriodsRef,
-        where("day", ">=", start),
-        where("day", "<=", end),
-        orderBy("day")
-      );
-
-      const eventPeriodsQuery2 = query(
-        eventPeriodsRef,
-        where("endDate", ">=", start),
-        where("endDate", "<=", end)
-      );
-
-      const [eventPeriodsSnapshot1, eventPeriodsSnapshot2] = await Promise.all([
-        getDocs(eventPeriodsQuery1),
-        getDocs(eventPeriodsQuery2),
-      ]);
-
-      const eventPeriods = [
-        ...eventPeriodsSnapshot1.docs,
-        ...eventPeriodsSnapshot2.docs,
-      ]
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          title: doc.name,
-          date: doc.day,
-          day: formatTimestamp(doc.data().day),
-          endDate: formatTimestamp(doc.data().endDate),
-          eventCategory: 2,
-        }))
-        .filter(
-          (event, index, self) =>
-            index === self.findIndex((e) => e.id === event.id) // Duplikate rausfiltern
+        const { start, end } = parseDateToTimestampRange(
+          startDate,
+          `${new Date(startDate).getFullYear()}-${
+            new Date(startDate).getMonth() + 1
+          }-${params.monthLength}`
         );
 
-      setAppointments(createEventMap({ singleEvents, eventPeriods }));
-      setDeadlinesList([...singleEvents, ...eventPeriods]);
-    } catch (error) {
-      console.error("Fehler beim Abrufen der Termine:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const singleEventsQuery = query(
+          singleEventsRef,
+          where("day", ">=", start),
+          where("day", "<=", end),
+          orderBy("day")
+        );
+        const singleEventsSnapshot = await getDocs(singleEventsQuery);
+        const singleEvents = singleEventsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          day: formatTimestamp(doc.data().day),
+          eventCategory: 1,
+        }));
+
+        const eventPeriodsQuery1 = query(
+          eventPeriodsRef,
+          where("day", ">=", start),
+          where("day", "<=", end),
+          orderBy("day")
+        );
+
+        const eventPeriodsQuery2 = query(
+          eventPeriodsRef,
+          where("endDate", ">=", start),
+          where("endDate", "<=", end)
+        );
+
+        const [eventPeriodsSnapshot1, eventPeriodsSnapshot2] =
+          await Promise.all([
+            getDocs(eventPeriodsQuery1),
+            getDocs(eventPeriodsQuery2),
+          ]);
+
+        const eventPeriods = [
+          ...eventPeriodsSnapshot1.docs,
+          ...eventPeriodsSnapshot2.docs,
+        ]
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            title: doc.name,
+            date: doc.day,
+            day: formatTimestamp(doc.data().day),
+            endDate: formatTimestamp(doc.data().endDate),
+            eventCategory: 2,
+          }))
+          .filter(
+            (event, index, self) =>
+              index === self.findIndex((e) => e.id === event.id) // Duplikate rausfiltern
+          );
+
+        setAppointments(createEventMap({ singleEvents, eventPeriods }));
+        setDeadlinesList([...singleEvents, ...eventPeriods]);
+      } catch (error) {
+        console.error("Fehler beim Abrufen der Termine:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, params.monthLength]
+  );
 
   const addAppointment = async (
     name,
@@ -308,10 +313,11 @@ const YearDetailedScreen = function ({ navigation }) {
   const updateAppointment = async (
     title,
     description,
+    dueDate,
+    endDate,
     eventCategory,
     itemId
   ) => {
-    console.log({ title, description, eventCategory, itemId });
     if (user) {
       try {
         const userAppointmentsRef = doc(firestoreDB, "appointments", user.uid);
@@ -326,6 +332,8 @@ const YearDetailedScreen = function ({ navigation }) {
           {
             name: title,
             description: description,
+            day: dueDate,
+            endDate: eventCategory === 2 ? endDate : null,
             timestamp: serverTimestamp(),
           },
           { merge: true }
@@ -357,7 +365,7 @@ const YearDetailedScreen = function ({ navigation }) {
   useEffect(() => {
     fetchAppointments(params?.date);
     setSelectedDay(null);
-  }, [params]);
+  }, [params.date]);
 
   const sheetRef = useRef(null);
 
@@ -560,7 +568,7 @@ const WeekRow = memo(
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
         for (const event of events) {
-          if (event.eventCategory === 1) return 1;
+          if (event.eventCategory === 1 && event.eventType !== 0) return 1;
         }
         0;
       }
@@ -594,11 +602,16 @@ const WeekRow = memo(
       const isClasstestBefore = isEvent(day - 1, month, year) === 1;
       const isClasstestNext = isEvent(day + 1, month, year) === 1;
 
+      const isSingleEventToday = isSingleEvent(day, month, year) === 1;
+      const isSingleEventBefore = isSingleEvent(day - 1, month, year) === 1;
+      const isSingleEventNext = isSingleEvent(day + 1, month, year) === 1;
+
       const isEventStart =
         isEvent(day, month, year) === 2 &&
         (!isEvent(day - 1, month, year) ||
           isSingleEvent(day, month, year) == 1 ||
           isClasstestBefore ||
+          isSingleEventBefore ||
           day === startDay);
 
       const isEventEnd =
@@ -608,6 +621,7 @@ const WeekRow = memo(
           isSingleEvent(day, month, year) == 1 ||
           !isEvent(day + 1, month, year) ||
           isClasstestNext ||
+          isSingleEventNext ||
           index === 4 ||
           day === endDay);
 

@@ -78,7 +78,6 @@ const fetchEmails = async (setEmails, setRefreshing) => {
     }
 
     const data = await response.json();
-    console.log("📩 E-Mails erhalten:", JSON.stringify(data, null, 2));
 
     const sortedEmails = data.sort(
       (a, b) => new Date(b.date) - new Date(a.date)

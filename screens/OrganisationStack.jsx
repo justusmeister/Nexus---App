@@ -111,7 +111,7 @@ const MaterialTopTabs = function () {
           tabBarActiveTintColor: "#333",
           tabBarInactiveTintColor: "#888",
           tabBarLabelStyle: {
-            fontSize: RFPercentage(1.79),
+            fontSize: 13.5,
             fontWeight: "600",
           },
           tabBarStyle: {
@@ -243,7 +243,6 @@ const TimeTableScreen = function ({ navigation }) {
               marginLeft: 8,
               alignSelf: "flex-start",
               justifyContent: "center",
-              backgroundColor: "#7d7d7d",
               borderRadius: 18,
               shadowOffset: {
                 width: 0,

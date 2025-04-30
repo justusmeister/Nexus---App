@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Text,
   TextInput,
+  Platform,
 } from "react-native";
 import Animated, {
   Easing,
@@ -18,6 +19,7 @@ import Animated, {
 import * as Icon from "@expo/vector-icons";
 import { useEffect, useState, useRef } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import DatePickerModal from "../components/DatePickerModal"; // Importiere das neue DatePickerModal
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#E5B800", "#A568E0"];
@@ -34,12 +36,25 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
   const [multiInputFocused, setMultiInputFocused] = useState(false);
   const titleRef = useRef(null);
 
+  const [dueDate, setDueDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+
+  //States für die DatePicker Modals
+  const [dueDatePickerVisible, setDueDatePickerVisible] = useState(false);
+  const [endDatePickerVisible, setEndDatePickerVisible] = useState(false);
+
   useEffect(() => {
     setTitle(item?.name || "");
     setDescription(item?.description || "");
-    setTimeout(() => {
+    if (item?.day) {
+      setDueDate(new Date(item?.day));
+    }
+    if (item?.endDate) {
+      setEndDate(new Date(item?.endDate));
+    } else setEndDate(null);
+    if (visible && editing) {
       setEditing(false);
-    }, 250);
+    }
   }, [visible]);
 
   const animatedModalStyle = useAnimatedStyle(() => {
@@ -55,30 +70,37 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
 
   const handleDelete = async () => {
     setLoading(true);
-
-    const singleEvent = item?.endDate ? false : true;
-
-    Promise.resolve(onDelete(singleEvent, item?.id))
-      .catch((error) => {
-        console.error("Fehler beim Löschen:", error);
-        setLoading(false);
-      })
-      .finally(() => setLoading(false));
+    const singleEvent = !item?.endDate;
+    try {
+      await onDelete(singleEvent, item?.id);
+    } catch (error) {
+      console.error("Fehler beim Löschen:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdate = async () => {
     setSaveLoading(true);
+    try {
+      await onUpdate(
+        title,
+        description,
+        dueDate,
+        endDate,
+        item?.eventCategory,
+        item?.id
+      );
+    } catch (error) {
+      console.error("Fehler beim Update:", error);
+    } finally {
+      setSaveLoading(false);
+      setEditing(false);
+    }
+  };
 
-    Promise.resolve(onUpdate(title, description, item?.eventCategory, item?.id))
-      .catch((error) => {
-        console.error("Fehler beim Löschen:", error);
-        setSaveLoading(false);
-        setEditing(false);
-      })
-      .finally(() => {
-        setSaveLoading(false);
-        setEditing(false);
-      });
+  const getDateWithoutTime = (date) => {
+    return date.toISOString().split("T")[0]; //Gibt nur 'yyyy-mm-dd' zurück
   };
 
   const handleEdit = () => {
@@ -92,17 +114,29 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
     setMultiInputFocused(true);
   };
 
+  const handleCancel = () => {
+    setTitle(item?.name);
+    setDescription(item?.description);
+    setDueDate(new Date(item?.day));
+    setEndDate(new Date(item?.endDate) ?? new Date());
+    setEditing(false);
+  };
+
+  // Formatiert das Datum für die Anzeige
+  const formatDate = (date) => {
+    return date.toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    });
+  };
+
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <Animated.View style={[styles.modalContent, animatedModalStyle]}>
-              {editing ? (
-                <View style={styles.editIcon}>
-                  <Text style={styles.editText}>[ Bearbeitungsmodus ]</Text>
-                </View>
-              ) : null}
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Icon.Ionicons
                   name="close-circle-sharp"
@@ -131,39 +165,80 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
                   ]}
                   value={title}
                   onChangeText={setTitle}
+                  maxLength={40}
                 />
 
                 <Text style={styles.remainingTimeText}>
                   {eventTypesList[item?.eventType]}
                 </Text>
-                <Text style={styles.motivationText}>
-                  Datum:{" "}
-                  {new Date(item?.day).toLocaleString("de-DE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  })}
-                </Text>
+                {!editing ? (
+                  <Text style={styles.motivationText}>
+                    Datum:{" "}
+                    {new Date(dueDate).toLocaleString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })}
+                    {item?.eventCategory == 2
+                      ? ` - ${new Date(endDate).toLocaleString("de-DE", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "2-digit",
+                        })}`
+                      : null}
+                  </Text>
+                ) : (
+                  <View style={styles.datePickerBox}>
+                    <View style={styles.datePickerContainer}>
+                      <Text style={[styles.dateLabel]}>Datum: </Text>
+                      <Pressable
+                        onPress={() => setDueDatePickerVisible(true)}
+                        style={styles.dateButton}
+                        hitSlop={10}
+                      >
+                        <Text style={styles.dateText}>
+                          {formatDate(dueDate)}
+                        </Text>
+                      </Pressable>
+                      {item?.eventCategory == 2 ? (
+                        <Text style={styles.dateText}> - </Text>
+                      ) : null}
+                      <Pressable
+                        onPress={() => setEndDatePickerVisible(true)}
+                        style={styles.dateButton}
+                        hitSlop={10}
+                      >
+                        <Text style={styles.dateText}>
+                          {item?.eventCategory == 2
+                            ? formatDate(endDate)
+                            : null}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
               </View>
               <View style={styles.divider} />
               <ScrollView style={styles.scrollView}>
-                <Text style={styles.taskTextHeader}>Beschreibung:</Text>
-                <TextInput
-                  style={[
-                    styles.taskText,
-                    styles.inputStyle,
-                    editing && styles.underlineInput,
-                    editing && { paddingVertical: 6 },
-                  ]}
-                  multiline
-                  numberOfLines={3}
-                  maxLength={200}
-                  value={description}
-                  onChangeText={setDescription}
-                  editable={editing}
-                  onFocus={handleDescriptionFocus}
-                  onBlur={() => setMultiInputFocused(false)}
-                />
+                <Pressable>
+                  <Text style={styles.taskTextHeader}>Beschreibung:</Text>
+                  <TextInput
+                    style={[
+                      styles.taskText,
+                      styles.inputStyle,
+                      editing && styles.underlineInput,
+                      editing && { paddingVertical: 6 },
+                    ]}
+                    multiline
+                    numberOfLines={3}
+                    maxLength={200}
+                    value={description}
+                    onChangeText={setDescription}
+                    editable={editing}
+                    onFocus={handleDescriptionFocus}
+                    onBlur={() => setMultiInputFocused(false)}
+                  />
+                </Pressable>
               </ScrollView>
               <View style={styles.buttonsBottomBox}>
                 {editing ? (
@@ -171,9 +246,7 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
                     <Pressable
                       style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
                       onPress={() => {
-                        setTitle(item?.name);
-                        setDescription(item?.description);
-                        setEditing(false);
+                        handleCancel();
                       }}
                     >
                       <Text
@@ -188,16 +261,20 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
                         if (
                           !(
                             title === item?.name &&
-                            description === item?.description
+                            description === item?.description &&
+                            getDateWithoutTime(dueDate) === item?.day
                           )
                         ) {
-                          handleUpdate();
+                          if (
+                            item?.eventCategory === 2 &&
+                            getDateWithoutTime(endDate) === item?.endDate
+                          ) {
+                            handleCancel();
+                          } else {
+                            handleUpdate();
+                          }
                         } else {
-                          console.log("no");
-                          console.log(title);
-                          console.log(item?.name);
-                          console.log(description);
-                          console.log(item?.description);
+                          handleCancel();
                         }
                       }}
                       disabled={saveLoading}
@@ -251,6 +328,23 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
                   </>
                 )}
               </View>
+
+              {/* DatePicker Modals */}
+              <DatePickerModal
+                visible={dueDatePickerVisible}
+                onClose={() => setDueDatePickerVisible(false)}
+                date={dueDate}
+                onDateChange={setDueDate}
+                title="Startdatum wählen"
+              />
+
+              <DatePickerModal
+                visible={endDatePickerVisible}
+                onClose={() => setEndDatePickerVisible(false)}
+                date={endDate}
+                onDateChange={setEndDate}
+                title="Enddatum wählen"
+              />
             </Animated.View>
           </TouchableWithoutFeedback>
         </View>
@@ -270,7 +364,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "90%",
-    height: "40%",
+    height: "50%",
     backgroundColor: "#fff",
     borderRadius: 14,
     padding: 20,
@@ -303,6 +397,27 @@ const styles = StyleSheet.create({
   motivationText: {
     fontSize: RFPercentage(1.67),
     color: "#666",
+  },
+  datePickerBox: {
+    height: 17,
+  },
+  datePickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  dateLabel: {
+    fontSize: RFPercentage(1.67),
+    color: "#666",
+  },
+  dateButton: {
+    borderBottomWidth: 1,
+    borderColor: "#C7C7CC",
+    paddingVertical: 2,
+  },
+  dateText: {
+    fontSize: RFPercentage(1.67),
+    color: "#0066cc",
   },
   divider: {
     height: 1,
@@ -385,7 +500,7 @@ const styles = StyleSheet.create({
     borderColor: "#C7C7CC",
   },
   taskText: {
-    maxHeight: 100,
+    maxHeight: 120,
   },
   editIcon: {
     position: "absolute",
@@ -396,9 +511,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignItems: "center",
     gap: 10,
-  },
-  editText: {
-    fontWeight: "600",
-    color: "black",
   },
 });

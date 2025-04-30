@@ -14,14 +14,11 @@ import {
   ActivityIndicator,
   Platform,
   Keyboard,
+  Animated,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
+import { Easing, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
@@ -56,6 +53,8 @@ const GenericScreen = function ({ navigation }) {
   const [homeworkItem, setHomeworkItem] = useState([]);
   const [homeworkList, setHomeworkList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeAnimation, setActiveAnimation] = useState(null);
+  const buttonScale = useState(new Animated.Value(1))[0];
 
   const [selectedOption, setSelectedOption] = useState("Alle");
 
@@ -82,7 +81,9 @@ const GenericScreen = function ({ navigation }) {
   }, [navigation]);
 
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return "";
+    if (!timestamp) {
+      return "";
+    }
     const date = timestamp.toDate();
     return `${String(date.getDate()).padStart(2, "0")}.${String(
       date.getMonth() + 1
@@ -251,22 +252,50 @@ const GenericScreen = function ({ navigation }) {
     }
   };
 
-  const updateHomework = async (title, description, eventCategory, itemId) => {
-    console.log({ title, description, eventCategory, itemId });
+  const updateHomework = async (title, description, startDate, dueDate, id) => {
+    console.log(
+      `updateHomework ->`,
+      title,
+      "|",
+      description,
+      "|",
+      startDate,
+      "|",
+      dueDate,
+      "|",
+      id
+    );
+
     if (user) {
+      setHomeworkList((prev) =>
+        prev.map((hw) =>
+          hw.id === id
+            ? {
+                ...hw,
+                title: title,
+                description: description,
+                startDate: startDate,
+                dueDate: dueDate,
+              }
+            : hw
+        )
+      );
       try {
-        const userAppointmentsRef = doc(firestoreDB, "appointments", user.uid);
-        let appointmentDocRef;
-        if (eventCategory === 1)
-          appointmentDocRef = doc(userAppointmentsRef, "singleEvents", itemId);
-        else
-          appointmentDocRef = doc(userAppointmentsRef, "eventPeriods", itemId);
+        const homeworkRef = doc(
+          firestoreDB,
+          "subjects",
+          user.uid + params?.subject,
+          "homework",
+          id
+        );
 
         await setDoc(
-          appointmentDocRef,
+          homeworkRef,
           {
-            name: title,
+            title: title,
             description: description,
+            startDate: startDate,
+            dueDate: dueDate,
             timestamp: serverTimestamp(),
           },
           { merge: true }
@@ -274,12 +303,10 @@ const GenericScreen = function ({ navigation }) {
       } catch (e) {
         Toast.show({
           type: "error",
-          text1: "Fehler:",
+          text1: "Fehler hier:",
           text2: e.message || "Unbekannter Fehler",
           visibilityTime: 4000,
         });
-      } finally {
-        fetchAppointments(params.date);
       }
     }
   };
@@ -316,116 +343,154 @@ const GenericScreen = function ({ navigation }) {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <Pressable
-      style={({ pressed }) => [
-        styles.deadlineResult,
-        {
-          shadowOffset: { width: 0, height: 2 },
-          elevation: 3,
-          shadowColor:
-            checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
-              .isWithinTwoDays === 1 && !item.status
-              ? "#e02225"
-              : "#000",
-          shadowOpacity:
-            checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
-              .isWithinTwoDays === 1 && !item.status
-              ? 1
-              : 0.1,
-          shadowRadius:
-            checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
-              .isWithinTwoDays === 1 && !item.status
-              ? 9
-              : 4,
-          opacity: pressed ? 0.4 : 1,
-        },
-      ]}
-      onPress={() => {
-        setHomeworkItem(item);
-        setIsDetailedModalVisible(true);
-      }}
-      onLongPress={() =>
-        item.status == true ? null : updateHomeworkStatus(item.id)
-      }
-    >
-      <View
+  const renderItem = ({ item, index }) => {
+    const handlePressIn = () => {
+      setActiveAnimation(index);
+      Animated.spring(buttonScale, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 10,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(buttonScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 10,
+      }).start(() => {
+        setActiveAnimation(null);
+      });
+    };
+    return (
+      <Animated.View
         style={[
-          styles.deadlineTaskBox,
           {
-            borderLeftColor: params?.color,
-            backgroundColor: "#ffffff",
+            transform: [
+              {
+                scale: activeAnimation === index ? buttonScale : 1,
+              },
+            ],
           },
         ]}
       >
-        <View
+        <Pressable
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
           style={[
-            styles.statusIconBox,
+            styles.deadlineResult,
             {
-              backgroundColor: item.status
-                ? "#D2F8D2"
-                : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
-                    .isWithinTwoDays == 0
-                ? "#FDDCDC"
-                : "#E4E4E7",
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 3,
+              shadowColor:
+                checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                  .isWithinTwoDays === 1 && !item.status
+                  ? "#e02225"
+                  : "#000",
+              shadowOpacity:
+                checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                  .isWithinTwoDays === 1 && !item.status
+                  ? 1
+                  : 0.1,
+              shadowRadius:
+                checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                  .isWithinTwoDays === 1 && !item.status
+                  ? 9
+                  : 4,
             },
           ]}
+          onPress={() => {
+            setHomeworkItem(item);
+            setIsDetailedModalVisible(true);
+          }}
+          onLongPress={() =>
+            item.status == true ? null : updateHomeworkStatus(item.id)
+          }
         >
-          <Icon.FontAwesome
-            name={
-              item.status
-                ? "check"
-                : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
-                    .isWithinTwoDays == 0
-                ? "times"
-                : "dot-circle-o"
-            }
-            size={28}
-            color={
-              item.status
-                ? "#3FCF63"
-                : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
-                    .isWithinTwoDays == 0
-                ? "#F44336"
-                : "#A0A0A5"
-            }
-          />
-        </View>
-        <View style={styles.deadlineDetails}>
-          <Text
-            style={styles.subjectText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item.title}:
-          </Text>
-          <Text style={styles.taskText} numberOfLines={1} ellipsizeMode="tail">
-            {item.description}
-          </Text>
-          <Text
+          <View
             style={[
-              styles.dueDateText,
+              styles.deadlineTaskBox,
               {
-                color: 2 === 1 ? "#e02225" : "grey",
+                borderLeftColor: params?.color,
+                backgroundColor: "#ffffff",
               },
             ]}
           >
-            <Text style={styles.dueDateDescriptionText}>Abgabedatum: </Text>
-            {item.dueDate
-              ? new Date(item.dueDate.seconds * 1000).toLocaleDateString(
-                  "de-DE",
+            <View
+              style={[
+                styles.statusIconBox,
+                {
+                  backgroundColor: item.status
+                    ? "#D2F8D2"
+                    : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                        .isWithinTwoDays == 0
+                    ? "#FDDCDC"
+                    : "#E4E4E7",
+                },
+              ]}
+            >
+              <Icon.FontAwesome
+                name={
+                  item.status
+                    ? "check"
+                    : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                        .isWithinTwoDays == 0
+                    ? "times"
+                    : "dot-circle-o"
+                }
+                size={28}
+                color={
+                  item.status
+                    ? "#3FCF63"
+                    : checkDeadlineRemainingTime(formatTimestamp(item.dueDate))
+                        .isWithinTwoDays == 0
+                    ? "#F44336"
+                    : "#A0A0A5"
+                }
+              />
+            </View>
+            <View style={styles.deadlineDetails}>
+              <Text
+                style={styles.subjectText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.title}:
+              </Text>
+              <Text
+                style={styles.taskText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.description}
+              </Text>
+              <Text
+                style={[
+                  styles.dueDateText,
                   {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  }
-                )
-              : "Datum nicht angegeben"}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
+                    color: 2 === 1 ? "#e02225" : "grey",
+                  },
+                ]}
+              >
+                <Text style={styles.dueDateDescriptionText}>Abgabedatum: </Text>
+                {item.dueDate
+                  ? new Date(item.dueDate.seconds * 1000).toLocaleDateString(
+                      "de-DE",
+                      {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                      }
+                    )
+                  : "Datum nicht angegeben"}
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      </Animated.View>
+    );
+  };
 
   const filteredHomeworkList =
     selectedOption == "offen"
@@ -474,6 +539,7 @@ const GenericScreen = function ({ navigation }) {
         item={homeworkItem}
         color={params?.color}
         onDelete={deleteHomework}
+        onUpdate={updateHomework}
         changeStatus={updateHomeworkStatus}
       />
     </View>
@@ -605,7 +671,9 @@ const InputModal = ({ visible, onClose, addHomework, color }) => {
                   </Pressable>
                 )}
 
-                <Text style={styles.motivationText}>Abgabedatum: </Text>
+                <Text style={[styles.motivationText, { fontWeight: "700" }]}>
+                  Abgabedatum:{" "}
+                </Text>
                 {Platform.OS === "ios" ? (
                   <DateTimePicker
                     value={dueDate}

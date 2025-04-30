@@ -14,52 +14,18 @@ const AppleStyleSwipeableRow = ({
   swipeableRef: externalSwipeableRef,
 }) => {
   const localSwipeRef = useRef(null);
-  const prevEditModeRef = useRef(editMode);
-  const openByEditModeRef = useRef(false);
-
-  // Connect to external ref system
   useEffect(() => {
     if (externalSwipeableRef) {
       externalSwipeableRef(localSwipeRef.current);
     }
   }, [externalSwipeableRef]);
 
-  // Handle editMode changes
-  useEffect(() => {
-    // Edit mode activated: open all swipeables
-    if (editMode && !prevEditModeRef.current) {
-      if (localSwipeRef.current) {
-        localSwipeRef.current.openRight();
-        openByEditModeRef.current = true;
-      }
-    }
-    // Edit mode deactivated: close all swipeables that were opened by edit mode
-    else if (!editMode && prevEditModeRef.current) {
-      if (localSwipeRef.current && openByEditModeRef.current) {
-        localSwipeRef.current.close();
-        openByEditModeRef.current = false;
-      }
-    }
-    
-    prevEditModeRef.current = editMode;
-  }, [editMode]);
-
   const handleSwipeOpen = () => {
-    // If not opened by edit mode and not in edit mode, set as active swipe
-    if (!openByEditModeRef.current && !editMode) {
-      setActiveSwipe(id);
-    }
+    setActiveSwipe(id);
   };
 
   const handleSwipeClose = () => {
-    // Only manage active state if not in edit mode
-    if (!editMode) {
-      clearActiveSwipe(id);
-    }
-    // Reset the edit mode open flag if closed manually while in edit mode
-    if (editMode) {
-      openByEditModeRef.current = false;
-    }
+    clearActiveSwipe(id);
   };
 
   const renderRightActions = () => (
@@ -68,7 +34,6 @@ const AppleStyleSwipeableRow = ({
         style={styles.deleteButton}
         onPress={() => {
           onPressDelete();
-          // Only auto-close if not in edit mode
           if (!editMode) {
             localSwipeRef.current?.close();
           }

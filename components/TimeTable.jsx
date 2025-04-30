@@ -46,59 +46,237 @@ const monthList = [
 const dummyStundenplan = [
   {
     stunden: [
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
-      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
-      { fach: "Biologie", raum: "103", lehrer: "Herr Braun" },
-      { fach: "Biologie", raum: "103", lehrer: "Herr Braun" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Sport", raum: "105", lehrer: "Herr Schulz" },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      {
+        fach: "Deutsch",
+        raum: "102",
+        lehrer: "Frau Schmidt",
+        status: "vertretung",
+        vertretungslehrer: "Herr Meier",
+        vertretungsraum: "104",
+        vertretungsfach: "Deutsch (V)",
+      },
+      {
+        fach: "Deutsch",
+        raum: "102",
+        lehrer: "Frau Schmidt",
+        status: "vertretung",
+        vertretungslehrer: "Herr Meier",
+        vertretungsraum: "104",
+        vertretungsfach: "Deutsch (V)",
+      },
+      {
+        fach: "Biologie",
+        raum: "103",
+        lehrer: "Herr Braun",
+        status: "entfall",
+      },
+      {
+        fach: "Biologie",
+        raum: "103",
+        lehrer: "Herr Braun",
+        status: "entfall",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      { fach: "Sport", raum: "105", lehrer: "Herr Schulz", status: "prüfung" },
     ],
   },
   {
     stunden: [
-      { fach: "Englisch", raum: "201", lehrer: "Herr Keller" },
-      { fach: "Englisch", raum: "201", lehrer: "Herr Keller" },
-      { fach: "Chemie", raum: "202", lehrer: "Frau Weber" },
-      { fach: "Chemie", raum: "202", lehrer: "Frau Weber" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Chemie", raum: "202", lehrer: "Frau Weber" },
-      { fach: "Französisch", raum: "204", lehrer: "Herr Dupont" },
-      { fach: "Französisch", raum: "204", lehrer: "Herr Dupont" },
+      {
+        fach: "Englisch",
+        raum: "201",
+        lehrer: "Herr Keller",
+        status: "normal",
+      },
+      {
+        fach: "Englisch",
+        raum: "201",
+        lehrer: "Herr Keller",
+        status: "normal",
+      },
+      { fach: "Chemie", raum: "202", lehrer: "Frau Weber", status: "normal" },
+      {
+        fach: "Chemie",
+        raum: "202",
+        lehrer: "Frau Weber",
+        status: "vertretung",
+        vertretungslehrer: "Frau Braun",
+        vertretungsraum: "205",
+        vertretungsfach: "Biologie",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      { fach: "Chemie", raum: "202", lehrer: "Frau Weber", status: "entfall" },
+      {
+        fach: "Französisch",
+        raum: "204",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
+      {
+        fach: "Französisch",
+        raum: "204",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
     ],
   },
   {
     stunden: [
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Sport", raum: "301", lehrer: "Herr Schulz" },
-      { fach: "Sport", raum: "301", lehrer: "Herr Schulz" },
-      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
-      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      {
+        fach: "Sport",
+        raum: "301",
+        lehrer: "Herr Schulz",
+        status: "vertretung",
+        vertretungslehrer: "Herr Reiter",
+        vertretungsraum: "302",
+        vertretungsfach: "Bewegung",
+      },
+      {
+        fach: "Sport",
+        raum: "301",
+        lehrer: "Herr Schulz",
+        status: "vertretung",
+        vertretungslehrer: "Herr Reiter",
+        vertretungsraum: "302",
+        vertretungsfach: "Bewegung",
+      },
+      {
+        fach: "Französisch",
+        raum: "401",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
+      {
+        fach: "Französisch",
+        raum: "401",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
     ],
   },
   {
     stunden: [
-      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
-      { fach: "Französisch", raum: "401", lehrer: "Herr Dupont" },
-      { fach: "Erdkunde", raum: "402", lehrer: "Frau Schneider" },
-      { fach: "Französisch", raum: "204", lehrer: "Herr Dupont" },
-      { fach: "Informatik", raum: "403", lehrer: "Herr Hoffmann" },
-      { fach: "Informatik", raum: "403", lehrer: "Herr Hoffmann" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
+      {
+        fach: "Französisch",
+        raum: "401",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
+      {
+        fach: "Französisch",
+        raum: "401",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
+      {
+        fach: "Erdkunde",
+        raum: "402",
+        lehrer: "Frau Schneider",
+        status: "prüfung",
+      },
+      {
+        fach: "Französisch",
+        raum: "204",
+        lehrer: "Herr Dupont",
+        status: "normal",
+      },
+      {
+        fach: "Informatik",
+        raum: "403",
+        lehrer: "Herr Hoffmann",
+        status: "entfall",
+      },
+      {
+        fach: "Informatik",
+        raum: "403",
+        lehrer: "Herr Hoffmann",
+        status: "entfall",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "normal",
+      },
     ],
   },
   {
     stunden: [
-      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
-      { fach: "Deutsch", raum: "102", lehrer: "Frau Schmidt" },
-      { fach: "Physik", raum: "501", lehrer: "Herr Müller" },
-      { fach: "Physik", raum: "501", lehrer: "Herr Müller" },
-      { fach: "Mathematik", raum: "101", lehrer: "Herr Müller" },
-      { fach: "Englisch", raum: "201", lehrer: "Herr Keller" },
+      {
+        fach: "Deutsch",
+        raum: "102",
+        lehrer: "Frau Schmidt",
+        status: "normal",
+      },
+      {
+        fach: "Deutsch",
+        raum: "102",
+        lehrer: "Frau Schmidt",
+        status: "normal",
+      },
+      { fach: "Physik", raum: "501", lehrer: "Herr Müller", status: "normal" },
+      { fach: "Physik", raum: "501", lehrer: "Herr Müller", status: "normal" },
+      {
+        fach: "Mathematik",
+        raum: "101",
+        lehrer: "Herr Müller",
+        status: "vertretung",
+        vertretungslehrer: "Herr Becker",
+        vertretungsraum: "106",
+        vertretungsfach: "Mathematik (V)",
+      },
+      {
+        fach: "Englisch",
+        raum: "201",
+        lehrer: "Herr Keller",
+        status: "normal",
+      },
     ],
   },
 ];
@@ -130,7 +308,12 @@ const convertToISOTime = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const SubjectColumn = ({ data, indexColumn, currentWeekMonday, onPressLessonBox }) => {
+const SubjectColumn = ({
+  data,
+  indexColumn,
+  currentWeekMonday,
+  onPressLessonBox,
+}) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentLessonData, setCurrentLessonData] = useState();
   const { holidayData } = useHolidayData();
@@ -202,10 +385,25 @@ const SubjectColumn = ({ data, indexColumn, currentWeekMonday, onPressLessonBox 
             return (
               <View
                 key={index}
-                style={[styles.cell, { height: cellHeight * 2, }]}
+                style={[styles.cell, { height: cellHeight * 2 }]}
               >
                 <TouchableOpacity
-                  style={styles.lessonBox}
+                  style={[
+                    styles.lessonBox,
+                    {
+                      backgroundColor:
+                        dummyStundenplan[indexColumn].stunden[index]?.status ===
+                        "normal"
+                          ? "#3b82f6" // helles, kräftiges Blau
+                          : dummyStundenplan[indexColumn].stunden[index]
+                              ?.status === "vertretung"
+                          ? "#7c4dff" // lebendiges, helleres Lila
+                          : dummyStundenplan[indexColumn].stunden[index]
+                              ?.status === "entfall"
+                          ? "#f87171" // sanftes Rot
+                          : "#F9D566", // schönes Gelb für Prüfungen
+                    },
+                  ]}
                   activeOpacity={0.4}
                   onPress={() => {
                     setCurrentLessonData(data[index]);
@@ -356,12 +554,9 @@ const TimeTable = ({ currentWeek }) => {
   return (
     <View style={styles.container}>
       {currentWeek === 0 && (
-        <Icon.FontAwesome
-          name="circle"
-          size={13}
-          color={"#d17002"}
-          style={{ position: "absolute", top: 15, left: 15 }}
-        />
+        <View style={styles.currentWeekIndicatorBox}>
+          <Icon.FontAwesome name="circle" size={16} color={"#e37a02"} style={styles.currentWeekIndicator} />
+        </View>
       )}
       <View style={styles.daysInfoBox}>
         {["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"].map(
@@ -502,7 +697,8 @@ const styles = StyleSheet.create({
     width: "97%",
     height: "97%",
     borderRadius: 5,
-    backgroundColor: "#1d6fc2",
+    //backgroundColor: "#1d6fc2",
+    backgroundColor: "#F9D566",
     justifyContent: "space-evenly",
     alignItems: "center",
     padding: 3,
@@ -519,8 +715,8 @@ const styles = StyleSheet.create({
   },
   lessonText: {
     fontSize: RFPercentage(1.02),
-    fontWeight: "500",
-    color: "white",
+    fontWeight: "600",
+    color: "black",
   },
   overlay: {
     flex: 1,
@@ -578,6 +774,26 @@ const styles = StyleSheet.create({
   homeworkContainer: {
     flex: 1,
   },
+  currentWeekIndicatorBox: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "12%",
+    height: "9%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  currentWeekIndicator: {
+    borderRadius: 15,
+    shadowColor: "lightgray",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  }
 });
 
 export default memo(TimeTable);

@@ -332,8 +332,10 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
               </View>
               <View style={styles.divider} />
               <ScrollView>
-                <Text style={styles.taskTextHeader}>Aufgabe:</Text>
-                <Text style={styles.taskText}>{taskText}</Text>
+                <Pressable>
+                  <Text style={styles.taskTextHeader}>Aufgabe:</Text>
+                  <Text style={styles.taskText}>{taskText}</Text>
+                </Pressable>
               </ScrollView>
               <View style={styles.finishButtonView}>
                 <Pressable
@@ -836,7 +838,7 @@ export const HomeScreen = function ({ navigation }) {
             onPress={() => navigation.navigate("NewsScreen")}
           />
           <MessageBox
-            title="iServ Postfach"
+            title="Postfach"
             style={{
               height: "32%",
               backgroundColor: "#2165bf",
@@ -848,7 +850,7 @@ export const HomeScreen = function ({ navigation }) {
                 mailData?.length > 0 && mailData[0] !== "loading" ? 0 : 1,
               borderBottomColor: "#b3b3ba",
             }}
-            isLoading={ mailData[0] ? mailData[0] === "loading" : true}
+            isLoading={mailData[0] ? mailData[0] === "loading" : true}
             isRefreshing={refreshing}
             content={[
               {
