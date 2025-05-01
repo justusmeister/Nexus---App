@@ -36,10 +36,10 @@ const DatePickerModal = ({
             <View style={styles.modalContent}>
               {/* Date Picker */}
               <DateTimePicker
-                value={date}
+                value={date || new Date()}
                 mode="date"
                 display={Platform.OS === "ios" ? "inline" : "calendar"}
-                onChange={(_, selectedDate) => nDateChange(selectedDate)}
+                onChange={(_, selectedDate) => onDateChange(selectedDate)}
                 minimumDate={minimumDate}
                 themeVariant="light"
                 style={styles.picker}

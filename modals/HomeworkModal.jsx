@@ -21,6 +21,7 @@ import { useEffect, useState, useRef } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
 import { Timestamp } from "firebase/firestore";
+import DatePickerModal from "../components/DatePickerModal";
 
 const HomeworkModal = ({
   visible,
@@ -45,6 +46,10 @@ const HomeworkModal = ({
 
   const [startDate, setStartDate] = useState(new Date());
   const [dueDate, setDueDate] = useState(new Date());
+
+  //States für die DatePicker Modals
+  const [startDatePickerVisible, setStartDatePickerVisible] = useState(false);
+  const [dueDatePickerVisible, setDueDatePickerVisible] = useState(false);
 
   useEffect(() => {
     setTitle(item?.title || "");
@@ -175,10 +180,6 @@ const HomeworkModal = ({
     )}%, ${alpha})`;
   };
 
-  const getDateWithoutTime = (date) => {
-    return date.toISOString().split("T")[0]; //Gibt nur 'yyyy-mm-dd' zurück
-  };
-
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
@@ -215,12 +216,51 @@ const HomeworkModal = ({
                   onChangeText={setTitle}
                   maxLength={40}
                 />
-                <Text style={styles.dateText}>
-                  Aufgabedatum: {formatTimestamp(startDate)}
-                </Text>
-                <Text style={[styles.dateText, { fontWeight: "700" }]}>
-                  Abgabedatum: {formatTimestamp(dueDate)}
-                </Text>
+                {!editing ? (
+                  <View>
+                    <Text style={styles.dateText}>
+                      Aufgabedatum: {formatTimestamp(startDate)}
+                    </Text>
+                    <Text style={[styles.dateText, { fontWeight: "700" }]}>
+                      Abgabedatum: {formatTimestamp(dueDate)}
+                    </Text>
+                  </View>
+                ) : (
+                  <View>
+                    <View style={styles.datesEditBox}>
+                      <Text style={styles.dateText}>Aufgabedatum: </Text>
+                      <Pressable
+                        onPress={() => setStartDatePickerVisible(true)}
+                        style={styles.dateButton}
+                        hitSlop={10}
+                      >
+                        <Text style={[styles.dateText, styles.dateEditingText]}>
+                          {formatTimestamp(startDate)}
+                        </Text>
+                      </Pressable>
+                    </View>
+                    <View style={styles.datesEditBox}>
+                      <Text style={[styles.dateText, { fontWeight: "700" }]}>
+                        Abgabedatum:{" "}
+                      </Text>
+                      <Pressable
+                        onPress={() => setDueDatePickerVisible(true)}
+                        style={styles.dateButton}
+                        hitSlop={10}
+                      >
+                        <Text
+                          style={[
+                            styles.dateText,
+                            styles.dateEditingText,
+                            { fontWeight: "700" },
+                          ]}
+                        >
+                          {formatTimestamp(dueDate)}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
                 {!editing && (
                   <View style={styles.statusBox}>
                     <Text style={styles.statusText}>Status:</Text>
@@ -388,6 +428,23 @@ const HomeworkModal = ({
                   </>
                 )}
               </View>
+
+              {/* DatePicker Modals */}
+              <DatePickerModal
+                visible={startDatePickerVisible}
+                onClose={() => setStartDatePickerVisible(false)}
+                date={startDate}
+                onDateChange={setStartDate}
+                title="Aufgabedatum wählen"
+              />
+
+              <DatePickerModal
+                visible={dueDatePickerVisible}
+                onClose={() => setDueDatePickerVisible(false)}
+                date={dueDate}
+                onDateChange={setDueDate}
+                title="Abgabedatum wählen"
+              />
             </Animated.View>
           </TouchableWithoutFeedback>
         </View>
@@ -607,4 +664,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
+  dateButton: {
+    borderBottomWidth: 1,
+    borderColor: "#C7C7CC",
+    paddingVertical: 2,
+  },
+  datesEditBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  dateEditingText: {
+    color: "#0066cc",
+  }
 });

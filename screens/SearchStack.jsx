@@ -20,7 +20,6 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import * as SQLite from "expo-sqlite";
 import { RFPercentage } from "react-native-responsive-fontsize";
-
 let dbLocal;
 
 const loadDatabase = async () => {

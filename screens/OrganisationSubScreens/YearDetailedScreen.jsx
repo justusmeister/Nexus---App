@@ -35,12 +35,13 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { FlashList } from "@shopify/flash-list";
-import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
+import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomSheet/DeadlineBottomSheet";
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import AppointmentModal from "../../modals/AppointmentModal";
 import { eventEmitter } from "../../eventBus";
+import WeekRow from "../../components/YearDetailed/WeekRow";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
@@ -101,6 +102,9 @@ const YearDetailedScreen = function ({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAppointmentItem, setModalAppointmentItem] = useState(null);
+
+  const sheetRef = useRef(null);
+  const titleInputRef = useRef(null);
 
   const route = useRoute();
   const { params } = route;
@@ -367,10 +371,11 @@ const YearDetailedScreen = function ({ navigation }) {
     setSelectedDay(null);
   }, [params.date]);
 
-  const sheetRef = useRef(null);
-
   const handleOpen = () => {
     sheetRef.current?.present();
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+    }, 200);
   };
 
   const handleSetSelectedDay = useCallback((day) => {
@@ -467,8 +472,8 @@ const YearDetailedScreen = function ({ navigation }) {
                   }}
                 >
                   {selectedDay
-                    ? "Keine Fristen an diesem Tag"
-                    : "Keine Fristen in diesem Monat"}
+                    ? "Keine Termine an diesem Tag"
+                    : "Keine Termine in diesem Monat"}
                 </Text>
               )
             }
@@ -478,6 +483,7 @@ const YearDetailedScreen = function ({ navigation }) {
       </View>
       <DeadlineBottomSheet
         sheetRef={sheetRef}
+        titleInputRef={titleInputRef}
         addAppointment={addAppointment}
       />
       <AppointmentModal
@@ -492,311 +498,6 @@ const YearDetailedScreen = function ({ navigation }) {
 };
 
 export default memo(YearDetailedScreen);
-
-const WeekRow = memo(
-  ({
-    id,
-    monthLength,
-    firstDayDistance,
-    date,
-    eventMap,
-    selectedDay,
-    setSelectedDay,
-  }) => {
-    const { holidayData } = useHolidayData();
-
-    const startDay = id === 0 ? 1 : id * 7 - firstDayDistance + 1;
-    let lastRow = false;
-
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const day =
-        id === 0
-          ? i >= firstDayDistance
-            ? i - firstDayDistance + 1
-            : null
-          : startDay + i;
-      if (day === monthLength) lastRow = true;
-      return day > 0 && day <= monthLength ? day : null;
-    });
-
-    if (startDay > monthLength) return null;
-
-    const month = new Date(date).getMonth();
-
-    const year = new Date(date).getFullYear();
-
-    const isToday = (d, m, y) => {
-      if (d === null) return false;
-      const today = new Date();
-      return (
-        d === today.getDate() &&
-        m === today.getMonth() &&
-        y === today.getFullYear()
-      );
-    };
-
-    const isHoliday = (day, month, year) => {
-      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
-        day < 10 ? `0${day}` : day
-      }`;
-      return holidayData[0].data.has(date) || holidayData[1].data.has(date);
-    };
-
-    const isEvent = (day, month, year, deadline) => {
-      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
-        day < 10 ? `0${day}` : day
-      }`;
-      if (eventMap.has(date)) {
-        const events = eventMap.get(date);
-        let isDeadlineIn = false;
-        let isEventIn = false;
-        for (const event of events) {
-          if (event.eventType === 1) return 1;
-          else if (event.eventType === 2) isEventIn = true;
-          else if (event.eventType === 0 && deadline) isDeadlineIn = true;
-        }
-        if (isDeadlineIn && deadline) return 0;
-        return isEventIn ? 2 : 0;
-      }
-      return 0;
-    };
-
-    const isSingleEvent = (day, month, year) => {
-      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
-        day < 10 ? `0${day}` : day
-      }`;
-      if (eventMap.has(date)) {
-        const events = eventMap.get(date);
-        for (const event of events) {
-          if (event.eventCategory === 1 && event.eventType !== 0) return 1;
-        }
-        0;
-      }
-      return -1;
-    };
-
-    const isDeadline = (day, month, year) => {
-      const date = `${year}-${month + 1 < 10 ? `0${month + 1}` : month + 1}-${
-        day < 10 ? `0${day}` : day
-      }`;
-      if (eventMap.has(date)) {
-        const events = eventMap.get(date);
-        for (const event of events) {
-          if (event.eventType === 0) return 0;
-        }
-        return 1;
-      }
-    };
-
-    const getBorderRadius = (
-      day,
-      month,
-      year,
-      index,
-      isHoliday,
-      startDay,
-      endDay,
-      filter
-    ) => {
-      const isClasstest = isEvent(day, month, year) === 1;
-      const isClasstestBefore = isEvent(day - 1, month, year) === 1;
-      const isClasstestNext = isEvent(day + 1, month, year) === 1;
-
-      const isSingleEventToday = isSingleEvent(day, month, year) === 1;
-      const isSingleEventBefore = isSingleEvent(day - 1, month, year) === 1;
-      const isSingleEventNext = isSingleEvent(day + 1, month, year) === 1;
-
-      const isEventStart =
-        isEvent(day, month, year) === 2 &&
-        (!isEvent(day - 1, month, year) ||
-          isSingleEvent(day, month, year) == 1 ||
-          isClasstestBefore ||
-          isSingleEventBefore ||
-          day === startDay);
-
-      const isEventEnd =
-        isEvent(day, month, year) === 2 &&
-        ((isDeadline(day + 1, month, year) === 0 &&
-          isEvent(day + 1, month, year) === 0) ||
-          isSingleEvent(day, month, year) == 1 ||
-          !isEvent(day + 1, month, year) ||
-          isClasstestNext ||
-          isSingleEventNext ||
-          index === 4 ||
-          day === endDay);
-
-      const isWeekendStart = index === 5 || (index === 6 && day === 1);
-      const isWeekendEnd = index === 6 || (index === 5 && day === endDay);
-
-      const isHolidayStart = (extraArgument) => {
-        return (
-          isHoliday(day, month, year) &&
-          (!isHoliday(day - 1, month, year) ||
-            extraArgument ||
-            day === startDay)
-        );
-      };
-      const isHolidayEnd = (extraArgument) => {
-        return (
-          (isHoliday(day, month, year) &&
-            (!isHoliday(day + 1, month, year) ||
-              extraArgument ||
-              day === endDay)) ||
-          index === 4
-        );
-      };
-
-      return {
-        borderTopLeftRadius:
-          isClasstest && !isWeekendEnd
-            ? 50
-            : isWeekendStart ||
-              (isHolidayStart(
-                isClasstestBefore ||
-                  (isEvent(day, month, year) !== 2 &&
-                    isEvent(day - 1, month, year) === 2)
-              ) &&
-                index !== 6) ||
-              (isEventStart && index !== 6)
-            ? 50
-            : 0,
-        borderBottomLeftRadius:
-          isClasstest && !isWeekendEnd
-            ? 50
-            : isWeekendStart ||
-              (isHolidayStart(
-                isClasstestBefore ||
-                  (isEvent(day, month, year) !== 2 &&
-                    isEvent(day - 1, month, year) === 2)
-              ) &&
-                index !== 6) ||
-              (isEventStart && index !== 6)
-            ? 50
-            : 0,
-        borderTopRightRadius:
-          isClasstest && !isWeekendStart
-            ? 50
-            : isWeekendEnd ||
-              (isHolidayEnd(
-                isClasstestNext ||
-                  (isEvent(day, month, year) !== 2 &&
-                    isEvent(day + 1, month, year) === 2)
-              ) &&
-                index !== 5) ||
-              (isEventEnd && index !== 5)
-            ? 50
-            : 0,
-        borderBottomRightRadius:
-          isClasstest && !isWeekendStart
-            ? 50
-            : isWeekendEnd ||
-              (isHolidayEnd(
-                isClasstestNext ||
-                  (isEvent(day, month, year) !== 2 &&
-                    isEvent(day + 1, month, year) === 2)
-              ) &&
-                index !== 5) ||
-              (isEventEnd && index !== 5)
-            ? 50
-            : 0,
-      };
-    };
-
-    const getDayColors = (
-      day,
-      month,
-      year,
-      index,
-      isHoliday,
-      startDay,
-      endDay,
-      filter
-    ) => {
-      return {
-        backgroundColor:
-          isEvent(day, month, year) === 1 || isEvent(day, month, year) === 2
-            ? isEvent(day, month, year) === 1
-              ? "#F9D566"
-              : "#C08CFF"
-            : index === 5 || index === 6
-            ? "#BFBFC4"
-            : isHoliday(day, month, year)
-            ? "#A4C8FF"
-            : null,
-      };
-    };
-
-    return (
-      <View style={[styles.weekRow, { borderBottomWidth: lastRow ? 0 : 0.5 }]}>
-        {days.map((day, index) => {
-          if (day > monthLength || day < 1)
-            return <View key={index} style={styles.dayButton} />;
-          return (
-            <View
-              style={[
-                styles.dayButton,
-                getDayColors(
-                  day,
-                  month,
-                  year,
-                  index,
-                  isHoliday,
-                  startDay,
-                  monthLength
-                ),
-                getBorderRadius(
-                  day,
-                  month,
-                  year,
-                  index,
-                  isHoliday,
-                  startDay,
-                  monthLength,
-                  0
-                ),
-              ]}
-              key={index}
-            >
-              <TouchableOpacity
-                style={{
-                  width: "95%",
-                  alignItems: "center",
-                  borderRadius: 50,
-                  backgroundColor: selectedDay === day ? "white" : null,
-                }}
-                onPress={() =>
-                  day !== selectedDay
-                    ? setSelectedDay(day)
-                    : setSelectedDay(null)
-                }
-              >
-                <Text
-                  style={[
-                    styles.dayText,
-                    {
-                      color: isToday(day, month, year) ? "red" : "black",
-                    },
-                  ]}
-                >
-                  {day}
-                </Text>
-                <Icon.FontAwesome
-                  name="circle"
-                  size={6}
-                  color={"#656565"}
-                  style={{
-                    margin: 2,
-                    opacity: isDeadline(day, month, year) === 0 ? 1 : 0,
-                  }}
-                />
-              </TouchableOpacity>
-            </View>
-          );
-        })}
-      </View>
-    );
-  }
-);
 
 const styles = StyleSheet.create({
   screen: {
@@ -820,26 +521,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     backgroundColor: "#EFEEF6",
-  },
-  weekRow: {
-    height: `${100 / 6}%`,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderColor: "#E0E0E0",
-  },
-  dayButton: {
-    width: `${100 / 7}%`,
-    height: "80%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dayText: {
-    fontSize: RFPercentage(2.44),
-    fontWeight: "600",
-    borderRadius: 50,
-    padding: 7,
-    paddingHorizontal: 12,
   },
   deadlineItem: {
     height: 75,

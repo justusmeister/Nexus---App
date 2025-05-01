@@ -41,7 +41,7 @@ import {
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { BlurView } from "expo-blur";
-import DeadlineBottomSheet from "../../components/DeadlineBottomSheet";
+import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomSheet/DeadlineBottomSheet";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { eventEmitter } from "../../eventBus";
 
@@ -120,6 +120,7 @@ const YearCalendarScreen = function ({ navigation }) {
   const opacity = useSharedValue(0);
 
   const sheetRef = useRef(null);
+  const titleInputRef = useRef(null);
 
   const [appointments, setAppointments] = useState(new Map());
   const [loading, setLoading] = useState(true);
@@ -291,7 +292,11 @@ const YearCalendarScreen = function ({ navigation }) {
 
   const handleOpen = () => {
     sheetRef.current?.present();
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+    }, 200);
   };
+
 
   const years = [currentYear, currentYear + 1];
 
@@ -414,6 +419,7 @@ const YearCalendarScreen = function ({ navigation }) {
       </View>
       <DeadlineBottomSheet
         sheetRef={sheetRef}
+        titleInputRef={titleInputRef}
         addAppointment={addAppointment}
       />
     </View>
@@ -574,7 +580,7 @@ const DayRow = memo(
       if (eventMap.has(date)) {
         const events = eventMap.get(date);
         for (const event of events) {
-          if (event.eventCategory === 1  && event.eventType !== 0) return 1;
+          if (event.eventCategory === 1 && event.eventType !== 0) return 1;
         }
         0;
       }

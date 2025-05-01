@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, memo } from "react";
+import React, { useCallback, useState, useRef, memo } from "react";
 import {
   StyleSheet,
   View,
@@ -12,6 +12,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +20,7 @@ import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
 import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
 import YearCalendarScreen from "./OrganisationSubScreens/YearCalendarScreen";
-import GenericScreen from "./OrganisationSubScreens/GenericScreen";
+import GenericScreen from "./OrganisationSubScreens/GenericSubjectScreen";
 import NotesScreen from "./OrganisationSubScreens/NotesScreen";
 import NotesInputScreen from "./OrganisationSubScreens/NotesInputScreen";
 import YearDetailedScreen from "./OrganisationSubScreens/YearDetailedScreen";
@@ -178,8 +179,9 @@ const TimeTableScreen = function ({ navigation }) {
       minute: "2-digit",
     })
   );
-  useEffect(() => {
-    const updateCurrentTime = () => {
+
+  useFocusEffect(
+    useCallback(() => { const updateCurrentTime = () => {
       InteractionManager.runAfterInteractions(() => {
         setCurrentDate(
           new Date().toLocaleString("de-DE", {
@@ -194,7 +196,7 @@ const TimeTableScreen = function ({ navigation }) {
     };
     const timer = setInterval(updateCurrentTime, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, []));
 
   let isGeneratingWeeks = false;
 

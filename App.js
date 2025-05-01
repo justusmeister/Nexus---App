@@ -95,7 +95,6 @@ const getTimetable = async () => {
       }
     );
 
-    console.log("Stundenplan:", JSON.stringify(response.data.result, null, 2));
   } catch (error) {
     console.log("Stundenplan fehlerhaft:", error);
   }

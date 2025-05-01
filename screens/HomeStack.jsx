@@ -838,7 +838,7 @@ export const HomeScreen = function ({ navigation }) {
             onPress={() => navigation.navigate("NewsScreen")}
           />
           <MessageBox
-            title="Postfach"
+            title="Mail Postfach"
             style={{
               height: "32%",
               backgroundColor: "#2165bf",
@@ -910,7 +910,7 @@ export const HomeScreen = function ({ navigation }) {
             onPress={() => navigation.navigate("InboxScreen")}
           />
           <MessageBox
-            title="anstehende Fristen"
+            title="anstehende Termine"
             style={{
               height: "32%",
               backgroundColor: "#e02225",
@@ -935,7 +935,7 @@ export const HomeScreen = function ({ navigation }) {
                         deadlinesData[0].dueDate,
                         0
                       )
-                    : noEntryTemplate("Alle Fristen abgeschlossen! 💪"),
+                    : noEntryTemplate("Alle Termine erledigt! 💪"),
                 style: [
                   styles.iservContent,
                   {
@@ -967,7 +967,7 @@ export const HomeScreen = function ({ navigation }) {
                       )
                     : deadlinesData.length > 0
                     ? noEntryTemplate(
-                        "Alle restlichen Fristen abgeschlossen! 💪"
+                        "Keine weiteren Termine mehr"
                       )
                     : null,
                 style: [
@@ -1001,7 +1001,7 @@ export const HomeScreen = function ({ navigation }) {
                       )
                     : deadlinesData.length > 1
                     ? noEntryTemplate(
-                        "Alle restlichen Fristen abgeschlossen! 💪"
+                      "Keine weiteren Termine mehr"
                       )
                     : null,
                 style: [

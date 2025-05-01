@@ -14,7 +14,7 @@ const NewsDetailedScreen = function ({ data }) {
             color: "#8E8E93",
           }}
         >
-          Aktuell gbit es keine Neuigkeiten!
+          Aktuell gbit es keine Nachrichten!
         </Text>
       </ScrollView>
     );

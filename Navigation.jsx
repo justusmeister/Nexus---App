@@ -70,8 +70,6 @@ const fetchEmails = async (setEmails, setRefreshing) => {
       }
     );
 
-    console.log("📨 Antwort erhalten:", response.status);
-
     if (!response.ok) {
       setRefreshing(false);
       return;
