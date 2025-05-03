@@ -34,7 +34,7 @@ const SubjectListFooterComponent = memo(({ handleOpen }) => {
           style={styles.notesButton}
           onPress={() => navigation.navigate("NotesScreen")}
         >
-          <Icon.FontAwesome6 name="note-sticky" size={30} color="white" />
+          <Icon.FontAwesome name="sticky-note-o" size={30} color="white" />
           <Text style={styles.notesButtonText}>allgemeine Notizen</Text>
         </Pressable>
       </View>

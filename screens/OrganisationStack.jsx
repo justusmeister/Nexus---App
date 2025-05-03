@@ -18,11 +18,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Icon from "@expo/vector-icons";
 import TimeTable from "../components/TimeTable";
-import HomeworkScreen from "./OrganisationSubScreens/HomeworkScreen";
 import YearCalendarScreen from "./OrganisationSubScreens/YearCalendarScreen";
-import GenericScreen from "./OrganisationSubScreens/GenericSubjectScreen";
-import NotesScreen from "./OrganisationSubScreens/NotesScreen";
-import NotesInputScreen from "./OrganisationSubScreens/NotesInputScreen";
 import YearDetailedScreen from "./OrganisationSubScreens/YearDetailedScreen";
 import { FlashList } from "@shopify/flash-list";
 import { RFPercentage } from "react-native-responsive-fontsize";
@@ -40,36 +36,6 @@ const OrganisationStack = function ({ navigation }) {
         name="MaterialTopTabs"
         component={MaterialTopTabs}
         options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="GenericScreen"
-        component={GenericScreen}
-        options={{
-          title: "Fach",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
-        }}
-      />
-      <Stack.Screen
-        name="NotesScreen"
-        component={NotesScreen}
-        options={{
-          title: "allgemeine Notizen",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
-        }}
-      />
-      <Stack.Screen
-        name="NotesInputScreen"
-        component={NotesInputScreen}
-        options={{
-          title: "Notizen",
-          headerShadowVisible: false,
-          presentation: Platform.OS === "ios" ? "modal" : "fullScreenModal",
-          headerStyle: {
-            backgroundColor: "#EFEEF6",
-          },
-        }}
       />
       <Stack.Screen
         name="YearDetailedScreen"
@@ -123,7 +89,6 @@ const MaterialTopTabs = function () {
             backgroundColor: "#333",
             height: 3,
           },
-          tabBarScrollEnabled: true,
         }}
       >
         <Tab.Screen
@@ -138,13 +103,6 @@ const MaterialTopTabs = function () {
           component={YearCalendarScreen}
           options={{
             tabBarLabel: "Jahreskalender",
-          }}
-        />
-        <Tab.Screen
-          name="HomeworkScreen"
-          component={HomeworkScreen}
-          options={{
-            tabBarLabel: "Hausaufgaben",
           }}
         />
       </Tab.Navigator>

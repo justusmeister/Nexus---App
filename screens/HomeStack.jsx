@@ -224,7 +224,7 @@ const HomeStack = function ({ navigation }) {
                 style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
                 hitSlop={12}
               >
-                <Icon.Ionicons name="settings" size={31} />
+                <Icon.Feather name="settings" size={25 * 1.1} />
               </Pressable>
             ),
           }}
@@ -762,7 +762,7 @@ export const HomeScreen = function ({ navigation }) {
               backgroundColor: "#0d7a18",
               borderRadius: 20,
             }}
-            icon="newspaper-o"
+            icon="message-square"
             titleStyle={{
               borderBottomWidth: newsBoxDummyData.length > 0 ? 0 : 1,
               borderBottomColor: "#b3b3ba",
@@ -838,7 +838,7 @@ export const HomeScreen = function ({ navigation }) {
             onPress={() => navigation.navigate("NewsScreen")}
           />
           <MessageBox
-            title="Mail Postfach"
+            title="E-Mail Postfach"
             style={{
               height: "32%",
               backgroundColor: "#2165bf",
@@ -916,7 +916,7 @@ export const HomeScreen = function ({ navigation }) {
               backgroundColor: "#e02225",
               borderRadius: 20,
             }}
-            icon="hourglass-1"
+            icon="clock"
             titleStyle={{
               borderBottomWidth:
                 deadlinesData.length > 0 && deadlinesData[0] !== "loading"

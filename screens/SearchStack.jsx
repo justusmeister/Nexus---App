@@ -321,7 +321,7 @@ const OpenedSearchScreen = function ({ navigation }) {
                     OnSearchAbbrevation(dbLocal, "", setResult);
                   }}
                 >
-                  <Icon.MaterialIcons name="clear" size={20} color="black" />
+                  <Icon.Feather name="x" size={20} color="black" />
                 </TouchableOpacity>
               )}
             </View>

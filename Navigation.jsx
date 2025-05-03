@@ -16,6 +16,10 @@ import { useEmailData } from "./contexts/EmailContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoginScreen from "./screens/LoginScreen";
 import SplashScreen from "./screens/SplashScreen";
+import GradesScreen from "./screens/GradesScreen";
+import TodosScreen from "./screens/TasksSubScreens/TodosScreen";
+import TasksStack from "./screens/TasksStack";
+import OnboardingScreen from "./screens/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -135,7 +139,12 @@ const Navigation = function () {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="SplashScreen">
+      <Stack.Navigator initialRouteName="OnboardingScreen">
+        <Stack.Screen
+          name="OnboardingScreen"
+          component={OnboardingScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="SplashScreen"
           component={SplashScreen}
@@ -149,7 +158,12 @@ const Navigation = function () {
         <Stack.Screen
           name="SettingsScreen"
           component={SettingsScreen}
-          options={{ presentation: "modal", title: "Einstellungen" }}
+          options={{
+            presentation: "modal",
+            title: "Einstellungen",
+            headerLargeTitle: true,
+            headerStyle: { backgroundColor: "#EFEEF6" },
+          }}
         />
         <Stack.Screen
           name="Tabs"
@@ -168,23 +182,31 @@ const Tabs = function () {
     return {
       tabBarIcon: ({ focused, size, color }) => {
         let icon;
-        let Family = Icon.Ionicons;
         switch (route.name) {
           case "Home":
-            icon = focused ? "newspaper" : "newspaper-outline";
+            icon = focused ? "home" : "home";
             break;
 
           case "Organisation":
-            Family = Icon.SimpleLineIcons;
-            icon = focused ? "organization" : "organization";
+            icon = focused ? "calendar" : "calendar";
             break;
 
-          case "Search":
-            icon = focused ? "search" : "search-outline";
+          case "Tasks":
+            icon = focused ? "check-square" : "check-square";
+            break;
+
+          case "Grades":
+            icon = focused ? "award" : "award";
             break;
         }
 
-        return <Family name={icon} size={size} color={color} />;
+        return (
+          <Icon.Feather
+            name={icon}
+            size={focused ? size * 1.1 : size}
+            color={color}
+          />
+        );
       },
       tabBarActiveTintColor: "black",
       tabBarStyle: {
@@ -211,13 +233,6 @@ const Tabs = function () {
   return (
     <Tab.Navigator initialRouteName="Home" screenOptions={setTabBarIcons}>
       <Tab.Screen
-        name="Organisation"
-        component={OrganisationStack}
-        options={{
-          title: "Organisation",
-        }}
-      />
-      <Tab.Screen
         name="Home"
         component={HomeStack}
         options={{
@@ -225,10 +240,24 @@ const Tabs = function () {
         }}
       />
       <Tab.Screen
-        name="Search"
-        component={SearchStack}
+        name="Organisation"
+        component={OrganisationStack}
         options={{
-          title: "Suche",
+          title: "Zeitplanung",
+        }}
+      />
+      <Tab.Screen
+        name="Tasks"
+        component={TasksStack}
+        options={{
+          title: "Aufgaben",
+        }}
+      />
+      <Tab.Screen
+        name="Grades"
+        component={GradesScreen}
+        options={{
+          title: "Noten",
         }}
       />
     </Tab.Navigator>

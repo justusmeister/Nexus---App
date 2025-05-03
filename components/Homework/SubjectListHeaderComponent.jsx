@@ -27,7 +27,7 @@ const SubjectListHeaderComponent = memo(function ({
           ]}
           hitSlop={30}
         >
-          <Icon.MaterialIcons name="mode-edit" size={26} color={"black"} />
+          <Icon.Feather name="edit-2" size={26} color={"black"} />
         </Pressable>
       </View>
     );

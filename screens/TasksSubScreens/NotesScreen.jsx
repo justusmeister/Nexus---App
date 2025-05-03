@@ -84,7 +84,7 @@ const NotesScreen = function ({ navigation }) {
           style={styles.addButton}
           onPress={() => navigation.navigate("NotesInputScreen")}
         >
-          <Icon.FontAwesome6 name="edit" size={30} color="#007AFF" />
+          <Icon.Feather name="edit" size={30} color="#007AFF" />
         </TouchableOpacity>
       ),
     });
@@ -213,8 +213,8 @@ const NotesScreen = function ({ navigation }) {
                 ]}
                 hitSlop={30}
               >
-                <Icon.MaterialIcons
-                  name="mode-edit"
+                <Icon.Feather
+                  name="edit-2"
                   size={26}
                   color={"black"}
                 />

@@ -225,7 +225,7 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
               />
             )}
             {item.attachments.length > 0 ? (
-              <Icon.FontAwesome
+              <Icon.Feather
                 name="paperclip"
                 size={20}
                 color={"black"}
@@ -340,6 +340,7 @@ const EmailModal = ({ visible, email, onClose }) => {
                             type: "url",
                             style: {
                               color: "#1A73E8",
+                              textDecorationLine: "underline",
                             },
                             onPress: (url) => {
                               Linking.openURL(url);
@@ -364,7 +365,7 @@ const EmailModal = ({ visible, email, onClose }) => {
                                 alignItems: "center",
                               }}
                             >
-                              <Icon.FontAwesome
+                              <Icon.Feather
                                 name="paperclip"
                                 size={16}
                                 color="black"
@@ -560,7 +561,7 @@ const styles = StyleSheet.create({
   },
   mailContentScrollView: {
     paddingRight: 5,
-  }
+  },
 });
 
 export default InboxDetailedScreen;

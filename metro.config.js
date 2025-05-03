@@ -10,4 +10,4 @@ defaultConfig.resolver.sourceExts.push('cjs');
 
 module.exports = defaultConfig;
 
-module.exports = config;
+module.exports = config; 

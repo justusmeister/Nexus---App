@@ -23,7 +23,7 @@ const MessageBox = function ({
 
   useEffect(() => {
     let goesForward = true;
-    if (title !== "Postfach") return;
+    if (title !== "E-Mail Postfach") return;
 
     const interval = setInterval(() => {
       setDots((prev) => {
@@ -53,16 +53,17 @@ const MessageBox = function ({
     >
       <View style={[styles.titleBox, titleStyle]}>
         <View style={styles.title}>
-          <Icon.FontAwesome
+          <Icon.Feather
             name={icon}
-            size={20}
+            size={22}
             color="white"
             style={{ marginRight: 8 }}
           />
           <Text
             style={{
               color: "white",
-              fontSize: RFPercentage(2.69),
+              fontSize: RFPercentage(2.54),
+              fontFamily: "Inter_600SemiBold",
               marginBottom: 5,
               paddingTop: 3,
             }}
@@ -71,9 +72,9 @@ const MessageBox = function ({
           </Text>
         </View>
         {isRefreshing && !isLoading && <ActivityIndicator size="small" color="white" />}
-        <Icon.Entypo
+        <Icon.Feather
           name="chevron-right"
-          size={23}
+          size={20}
           color="white"
           style={{ alignSelf: "center" }}
         />
@@ -81,7 +82,7 @@ const MessageBox = function ({
       {isLoading ? (
         <View style={styles.loadingBox}>
           <ActivityIndicator size={"small"} color={"white"} />
-          {title === "Postfach" ? (
+          {title === "E-Mail Postfach" ? (
             <View style={styles.loadingTextRow}>
               <Text style={styles.loadingMailText}>Postfach wird geladen</Text>
               <Text style={styles.dots}>{dots}</Text>

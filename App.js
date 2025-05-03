@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect } from "react";
+import { Text, TextInput } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Navigation from "./Navigation";
 import { HolidayDataContextProvider } from "./contexts/HolidayDataContext";
@@ -7,12 +8,16 @@ import { EmailContextProvider } from "./contexts/EmailContext";
 import Toast from "react-native-toast-message";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import LogRocket from '@logrocket/react-native';
-LogRocket.init('lb7h2h/nexus')
+import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
+/*import LogRocket from '@logrocket/react-native';
+LogRocket.init('lb7h2h/nexus')*/
 
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
 const USERNAME = "justus.meister";
-const PASSWORD = "u.g.i!JM08";
+const PASSWORD = "pswd";
 const CLIENT = "WebUntis";
 
 let sessionId = null;
@@ -101,9 +106,20 @@ const getTimetable = async () => {
 };
 
 const App = function () {
+  const [loaded, error] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+  });
+
   useEffect(() => {
-    getTimetable();
-  }, []);
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView>
