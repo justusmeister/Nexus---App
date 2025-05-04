@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import SvgWelcome from "../../assets/illustrations/welcome.svg";
 import { useNavigation } from "@react-navigation/native";
+import { setAsyncItem } from "../../utils/asyncStorage";
 
 const { width } = Dimensions.get("window");
 
@@ -35,6 +36,9 @@ const WelcomeScreen = () => {
           <Text style={styles.loginLink}> Login</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity onPress={() => setAsyncItem("onboarded", "false")}>
+        <Text>reset onboarding</Text>
+      </TouchableOpacity>
     </View>
   );
 };

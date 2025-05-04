@@ -85,7 +85,7 @@ const RegistrationScreen = function ({ navigation }) {
           <Text style={styles.buttonText}>Registrieren</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.googleButton}>
-          <Icon.AntDesign name="google" size={20} color="#ffffff" />
+          <Icon.FontAwesome name="google" size={20} color="#ffffff" />
           <Text style={[styles.buttonText, { marginLeft: 8 }]}>
             Mit Google anmelden
           </Text>

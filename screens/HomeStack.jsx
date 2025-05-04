@@ -494,6 +494,7 @@ const DeadlineDetailedScreen = function () {
           }}
           style={styles.deadlineTaskBox}
         >
+          <Checkbox onConfirm={() => deleteDeadline(item.id)} />
           <View style={styles.deadlineDetails}>
             <Text style={styles.subjectText}>{item.subject}:</Text>
             <Text
@@ -519,7 +520,6 @@ const DeadlineDetailedScreen = function () {
               {item.dueDate}
             </Text>
           </View>
-          <Checkbox onConfirm={() => deleteDeadline(item.id)} />
         </Pressable>
       </Animated.View>
     );
@@ -694,6 +694,7 @@ export const HomeScreen = function ({ navigation }) {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        gap: 5,
         opacity:
           checkDeadlineRemainingTime(date).isWithinTwoDays === 0 ||
           checkDeadlineRemainingTime(date).isWithinTwoDays === -1
@@ -702,6 +703,7 @@ export const HomeScreen = function ({ navigation }) {
       }}
       onPress={() => navigation.navigate("DeadlineScreen", { taskId: place })}
     >
+      <Checkbox onConfirm={() => deleteDeadline(deadlinesData[place].id)} />
       <View
         style={{
           flex: 1,
@@ -745,7 +747,6 @@ export const HomeScreen = function ({ navigation }) {
           {date}
         </Text>
       </View>
-      <Checkbox onConfirm={() => deleteDeadline(deadlinesData[place].id)} />
     </TouchableOpacity>
   );
 
@@ -966,9 +967,7 @@ export const HomeScreen = function ({ navigation }) {
                         1
                       )
                     : deadlinesData.length > 0
-                    ? noEntryTemplate(
-                        "Keine weiteren Termine mehr"
-                      )
+                    ? noEntryTemplate("Keine weiteren Termine mehr")
                     : null,
                 style: [
                   styles.iservContent,
@@ -1000,9 +999,7 @@ export const HomeScreen = function ({ navigation }) {
                         2
                       )
                     : deadlinesData.length > 1
-                    ? noEntryTemplate(
-                      "Keine weiteren Termine mehr"
-                      )
+                    ? noEntryTemplate("Keine weiteren Termine mehr")
                     : null,
                 style: [
                   styles.iservContent,
@@ -1074,6 +1071,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
     alignItems: "flex-start",
+    paddingLeft: 15,
   },
   subjectText: {
     color: "#333",

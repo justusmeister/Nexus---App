@@ -32,7 +32,8 @@
     "plugins": [
       "expo-asset",
       "@logrocket/react-native",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "extra": {
       "eas": {

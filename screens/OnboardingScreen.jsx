@@ -24,7 +24,7 @@ const OnboardingScreen = function ({ navigation }) {
         containerStyles={styles.onboardingStyle}
         pages={[
           {
-            backgroundColor: "#A7C9FF",
+            backgroundColor: "#3C82E0",
             image: (
               <FirstIllustration
                 width={size} // Macht das Bild responsiv basierend auf der Bildschirmbreite
@@ -36,7 +36,7 @@ const OnboardingScreen = function ({ navigation }) {
               "Untis Stundenplan, E-Mails, Aufgaben, Noten - alles in einer App!",
           },
           {
-            backgroundColor: "#FFD6D6",
+            backgroundColor: "#E26E6E",
             image: (
               <SecondIllustration
                 width={size} // Macht das Bild responsiv basierend auf der Bildschirmbreite

@@ -22,7 +22,7 @@ const NewsDetailedScreen = function ({ data }) {
 
   const resultBox = ({ item, index }) => (
     <View style={styles.deadlineResult}>
-      <Icon.FontAwesome name="exclamation-circle" size={24} color={"#FF6F61"} />
+      <Icon.Feather name="alert-octagon" size={24} color={"#FF6F61"} />
       <Text style={styles.text}>{item.news}</Text>
     </View>
   );
