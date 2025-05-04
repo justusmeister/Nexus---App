@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -9,17 +10,16 @@ import * as Icon from "@expo/vector-icons";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
 import SearchStack from "./screens/SearchStack";
-import { calculateHolidayAPIDates } from "./externMethods/calculateHolidayAPIDates";
+import { calculateHolidayAPIDates } from "./utils/calculateHolidayAPIDates";
 import { useHolidayData } from "./contexts/HolidayDataContext";
-import { createAdjustedHolidayDataMap } from "./externMethods/createAdjustedHolidayDataMap";
+import { createAdjustedHolidayDataMap } from "./utils/createAdjustedHolidayDataMap";
 import { useEmailData } from "./contexts/EmailContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import LoginScreen from "./screens/LoginScreen";
 import SplashScreen from "./screens/SplashScreen";
 import GradesScreen from "./screens/GradesScreen";
-import TodosScreen from "./screens/TasksSubScreens/TodosScreen";
 import TasksStack from "./screens/TasksStack";
 import OnboardingScreen from "./screens/OnboardingScreen";
+import AuthStack from "./screens/AuthStack";
+import { getAsyncItem } from "./utils/asyncStorage";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -99,37 +99,52 @@ const Navigation = function () {
   const [schoolHolidays, setHolidayPeriods] = useState(null);
   const { setMailData, setRefreshing } = useEmailData();
   const { holidayData, setHolidayData } = useHolidayData();
+  const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    const fetchHolidays = async () => {
+    const initializeApp = async () => {
       try {
+        const onboardingSeen = await getAsyncItem("onboarded");
+        if (onboardingSeen === "true") {
+          setInitialRoute("SplashScreen");
+        } else {
+          setInitialRoute("OnboardingScreen");
+        }
+      } catch {
+        setInitialRoute("OnboardingScreen");
+      }
+    };
+    initializeApp();
+  }, []);
+
+  useEffect(() => {
+    const fetchAppData = async () => {
+      try {
+        const cachedEmails = await loadEmailsFromStorage();
+        setMailData(cachedEmails ?? ["loading"]);
+        fetchEmails(setMailData, setRefreshing);
+
         const schoolHolidaysResponse = await fetch(
           `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
         );
-
         const schoolHolidaysData = await schoolHolidaysResponse.json();
         setHolidayPeriods(createAdjustedHolidayDataMap(schoolHolidaysData));
+
         const publicHolidaysResponse = await fetch(
           `https://openholidaysapi.org/PublicHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
         );
         const publicHolidaysData = await publicHolidaysResponse.json();
         setHolidayDays(createAdjustedHolidayDataMap(publicHolidaysData));
-      } catch (error) {
-        console.error("Fehler beim Abrufen der Daten:", error);
+      } catch {
         setHolidayPeriods(createAdjustedHolidayDataMap([]));
         setHolidayDays(createAdjustedHolidayDataMap([]));
       }
     };
-    const loadAndFetchEmails = async () => {
-      const cachedEmails = await loadEmailsFromStorage();
-      setMailData(cachedEmails ?? ["loading"]);
 
-      fetchEmails(setMailData, setRefreshing);
-    };
-
-    loadAndFetchEmails();
-    fetchHolidays();
-  }, []);
+    if (initialRoute && initialRoute !== "OnboardingScreen") {
+      fetchAppData();
+    }
+  }, [initialRoute]);
 
   useEffect(() => {
     if (publicHolidays && schoolHolidays) {
@@ -137,9 +152,11 @@ const Navigation = function () {
     }
   }, [publicHolidays, schoolHolidays]);
 
+  if (!initialRoute) return null;
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="OnboardingScreen">
+      <Stack.Navigator initialRouteName={initialRoute}>
         <Stack.Screen
           name="OnboardingScreen"
           component={OnboardingScreen}
@@ -151,8 +168,13 @@ const Navigation = function () {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="LoginScreen"
-          component={LoginScreen}
+          name="AuthStack"
+          component={AuthStack}
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name="Tabs"
+          component={Tabs}
           options={{ headerShown: false, gestureEnabled: false }}
         />
         <Stack.Screen
@@ -164,11 +186,6 @@ const Navigation = function () {
             headerLargeTitle: true,
             headerStyle: { backgroundColor: "#EFEEF6" },
           }}
-        />
-        <Stack.Screen
-          name="Tabs"
-          component={Tabs}
-          options={{ headerShown: false, gestureEnabled: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

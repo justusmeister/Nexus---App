@@ -30,7 +30,7 @@ import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { eventEmitter } from "../../eventBus";
-import { checkDeadlineRemainingTime } from "../../externMethods/checkDeadlineRemainingTime";
+import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
 import HomeworkBottomSheet from "../../components/BottomSheets/HomeworkBottomSheet/HomeworkBottomSheet";
 import HomeworkModal from "../../modals/HomeworkModal";
 import { SegmentedControl } from "../../components/SegmentedControl";

@@ -19,7 +19,7 @@ import Animated, {
 import * as Icon from "@expo/vector-icons";
 import { useEffect, useState, useRef } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+import { checkDeadlineRemainingTime } from "../utils/checkDeadlineRemainingTime";
 import { Timestamp } from "firebase/firestore";
 import DatePickerModal from "../components/DatePickerModal";
 

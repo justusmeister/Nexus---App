@@ -16,7 +16,7 @@ const SplashScreen = ({ navigation }) => {
       if (user) {
         navigation.navigate("Tabs");
       } else {
-        navigation.navigate("LoginScreen");
+        navigation.navigate("AuthStack");
         clearAsyncStorage();
       }
       setLoading(false);

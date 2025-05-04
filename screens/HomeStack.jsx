@@ -21,7 +21,7 @@ import Checkbox from "../components/Checkbox";
 import InboxDetailedScreen from "./HomeSubScreens/InboxDetailedScreen";
 import NewsDetailedScreen from "./HomeSubScreens/NewsDetailedScreen";
 import { useRoute } from "@react-navigation/native";
-import { checkDeadlineRemainingTime } from "../externMethods/checkDeadlineRemainingTime";
+import { checkDeadlineRemainingTime } from "../utils/checkDeadlineRemainingTime";
 import { firestoreDB } from "../firebaseConfig";
 import { getAuth } from "firebase/auth";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";

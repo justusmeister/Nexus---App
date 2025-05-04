@@ -14,7 +14,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { firebaseAuth } from "../firebaseConfig";
+import { firebaseAuth } from "../../firebaseConfig";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
 const LoginScreen = function ({ navigation }) {
@@ -56,7 +56,7 @@ const LoginScreen = function ({ navigation }) {
       <View style={styles.imageBox}>
         <Image
           style={styles.logoImage}
-          source={require("../assets/icon.png")}
+          source={require("../../assets/icon.png")}
           resizeMode="contain"
         />
       </View>

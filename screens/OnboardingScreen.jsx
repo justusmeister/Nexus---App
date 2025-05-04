@@ -3,55 +3,53 @@ import { StyleSheet, View, Text } from "react-native";
 import Onboarding from "react-native-onboarding-swiper";
 import { useWindowDimensions } from "react-native";
 
-import FirstIllustration from "../assets/illustrations/producttour.svg";  // Dein erstes SVG
-import SecondIllustration from "../assets/illustrations/organizing.svg"; // Dein zweites SVG
-import ThirdIllustration from "../assets/illustrations/pushnotifications.svg";   // Dein drittes SVG
-
+import FirstIllustration from "../assets/illustrations/producttour.svg";
+import SecondIllustration from "../assets/illustrations/pushnotifications.svg";
+import { setAsyncItem } from "../utils/asyncStorage";
 
 const OnboardingScreen = function ({ navigation }) {
-  const { width } = useWindowDimensions(); // Dynamische Breite des Screens
+  const { width } = useWindowDimensions();
+  const size = Math.min(width * 0.8, 400);
+
+  const handleDone = () => {
+    navigation.navigate("AuthStack");
+    setAsyncItem("onboarded", "true");
+  };
 
   return (
     <View style={styles.container}>
       <Onboarding
+        onDone={handleDone}
+        onSkip={handleDone}
         containerStyles={styles.onboardingStyle}
         pages={[
           {
             backgroundColor: "#A7C9FF",
             image: (
-                <FirstIllustration
-                width={width * 0.6} // Macht das Bild responsiv basierend auf der Bildschirmbreite
-                height={width * 0.6} // Höhe ebenfalls an die Breite anpassen
+              <FirstIllustration
+                width={size} // Macht das Bild responsiv basierend auf der Bildschirmbreite
+                height={size} // Höhe ebenfalls an die Breite anpassen
               />
             ),
-            title: "Nexus - Dein Hub für den Schulalltag",
+            title: "Deine Schulorganisation. Alles in einer App.",
             subtitle:
-              "Stundenplan, E-Mails, Aufgaben, Noten - alles in einer App",
-          },
-          {
-            backgroundColor: "#FFEFC2",
-            image: (
-                <SecondIllustration
-                width={width * 0.6} // Macht das Bild responsiv basierend auf der Bildschirmbreite
-                height={width * 0.6} // Höhe ebenfalls an die Breite anpassen
-              />
-            ),
-            title: "Organisiert wie du es brauchst",
-            subtitle: "sortiere Aufgaben nach Fächern, Fristen und Prioritäten",
+              "Untis Stundenplan, E-Mails, Aufgaben, Noten - alles in einer App!",
           },
           {
             backgroundColor: "#FFD6D6",
             image: (
-                <ThirdIllustration
-                width={width * 0.6} // Macht das Bild responsiv basierend auf der Bildschirmbreite
-                height={width * 0.6} // Höhe ebenfalls an die Breite anpassen
+              <SecondIllustration
+                width={size} // Macht das Bild responsiv basierend auf der Bildschirmbreite
+                height={size} // Höhe ebenfalls an die Breite anpassen
               />
             ),
             title: "Benachrichtigungen aktivieren",
             subtitle:
-              "Erhalte Benachrichtigungen für Fristen und Unterrichtsausfälle",
+              "Erhalte Benachrichtigungen für Fristen und Unterrichtsausfälle!",
           },
         ]}
+        nextLabel="Weiter"
+        skipLabel="Überspringen"
       />
     </View>
   );

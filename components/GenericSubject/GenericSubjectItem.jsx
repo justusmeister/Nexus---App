@@ -2,8 +2,8 @@ import { memo } from "react";
 import { StyleSheet, View, Text, Pressable, Animated } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import { checkDeadlineRemainingTime } from "../../externMethods/checkDeadlineRemainingTime";
-import { formatTimestamp } from "../../externMethods/formatTimestamp";
+import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
+import { formatTimestamp } from "../../utils/formatTimestamp";
 
 const GenericSubjectItem = memo(function ({
   item,
