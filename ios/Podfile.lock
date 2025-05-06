@@ -229,7 +229,9 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (18.0.12):
     - ExpoModulesCore
-  - ExpoFont (13.3.1):
+  - ExpoFont (13.0.4):
+    - ExpoModulesCore
+  - ExpoHaptics (14.0.1):
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.3):
     - ExpoModulesCore
@@ -256,11 +258,13 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoQuickActions (4.0.2):
+    - ExpoModulesCore
   - ExpoSecureStore (14.0.1):
     - ExpoModulesCore
   - ExpoSharing (13.0.1):
     - ExpoModulesCore
-  - ExpoSplashScreen (0.30.8):
+  - ExpoSplashScreen (0.29.24):
     - ExpoModulesCore
   - ExpoSQLite (15.1.4):
     - ExpoModulesCore
@@ -1754,6 +1758,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-segmented-control (2.5.4):
+    - React-Core
   - react-native-webview (13.12.5):
     - DoubleConversion
     - glog
@@ -2307,7 +2313,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNSVG (15.11.2):
+  - RNSVG (15.8.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2327,9 +2333,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.11.2)
+    - RNSVG/common (= 15.8.0)
     - Yoga
-  - RNSVG/common (15.11.2):
+  - RNSVG/common (15.8.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2369,8 +2375,10 @@ DEPENDENCIES:
   - ExpoDevice (from `../node_modules/expo-device/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoQuickActions (from `../node_modules/expo-quick-actions/ios`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -2418,6 +2426,7 @@ DEPENDENCIES:
   - "react-native-menu (from `../node_modules/@react-native-menu/menu`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-segmented-control (from `../node_modules/@react-native-segmented-control/segmented-control`)"
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2512,10 +2521,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoHaptics:
+    :path: "../node_modules/expo-haptics/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoQuickActions:
+    :path: "../node_modules/expo-quick-actions/ios"
   ExpoSecureStore:
     :path: "../node_modules/expo-secure-store/ios"
   ExpoSharing:
@@ -2607,6 +2620,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-pager-view"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-segmented-control:
+    :path: "../node_modules/@react-native-segmented-control/segmented-control"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-nativeconfig:
@@ -2714,12 +2729,14 @@ SPEC CHECKSUMS:
   ExpoBlur: 392c1207f71d0ecf22371621c1fbd44ba84d9742
   ExpoDevice: d36ab4186b6799a28fd449bb9a1c77455f23fd1a
   ExpoFileSystem: 42d363d3b96f9afab980dcef60d5657a4443c655
-  ExpoFont: abbb91a911eb961652c2b0a22eef801860425ed6
+  ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
+  ExpoHaptics: 8d199b2f33245ea85289ff6c954c7ee7c00a5b5d
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
   ExpoModulesCore: c3e810e874b33139221bea656743f106a2826f47
+  ExpoQuickActions: 3fa116b4efea5baf19edb142f0b612a75c30265f
   ExpoSecureStore: 9a3665d7161dd1031be386e278bffd623658f316
   ExpoSharing: 849a5ce9985c22598c16ec027e32969be8062e8e
-  ExpoSplashScreen: f524572afd81522e40850eaa7163e2ae99cce783
+  ExpoSplashScreen: 8261985ce9778f904abc7e31bed3538dce67ed4d
   ExpoSQLite: 10fceac6748e9e8f010c70733e0e704fa67399ab
   ExpoSystemUI: b82a45cf0f6a4fa18d07c46deba8725dd27688b4
   EXUpdatesInterface: 7c977640bdd8b85833c19e3959ba46145c5719db
@@ -2772,6 +2789,7 @@ SPEC CHECKSUMS:
   react-native-menu: 33d1628b97a0db84cb15ee66bb82b23c86b4fe74
   react-native-pager-view: 260a0ae983681a4a1fbf6a8d59e0759fcc66d931
   react-native-safe-area-context: 3ec0dbf4635e3344cb1303d15fcc4a22876b3e59
+  react-native-segmented-control: 7578bb8808205cc5d09fbb026eb32829d7b0b56f
   react-native-webview: e20ba089a590ed5a914f4c1ec9d0afdd8b3f4987
   React-nativeconfig: 415626a63057638759bcc75e0a96e2e07771a479
   React-NativeModulesApple: d33b55553c6957ff94835574636838d78121a1c6
@@ -2815,7 +2833,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: de2b7ccdbf18766609fb9490c7f11c18805705a3
   RNReanimated: 422d4a5b4b2f190607927e398e92e0789360130f
   RNScreens: 2fe3d999c2dee6ef1d5e863fec0fb6f7de60c45a
-  RNSVG: 7504520e0a93b34d49128cac7ec0459bda8bc86b
+  RNSVG: d332ea2a8540218eadc5c8f31c2b58dfba6b14b5
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 1259c7a8cbaccf7b4c3ddf8ee36ca11be9dee407
 
