@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { NativeModules } from 'react-native';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 const { EmailModule } = NativeModules;
 
@@ -126,6 +127,7 @@ const App = function () {
 
   return (
     <GestureHandlerRootView>
+      <ActionSheetProvider>
         <BottomSheetModalProvider>
           <EmailContextProvider>
             <HolidayDataContextProvider>
@@ -135,6 +137,7 @@ const App = function () {
             </HolidayDataContextProvider>
           </EmailContextProvider>
         </BottomSheetModalProvider>
+      </ActionSheetProvider>
     </GestureHandlerRootView>
   );
 };
