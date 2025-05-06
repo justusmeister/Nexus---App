@@ -43,7 +43,7 @@ const Checkbox = function ({ onConfirm, style }) {
         onPress={handlePress}
         fillColor="black"
         unfillColor="transparent"
-        iconStyle={{ borderColor: "black", borderWidth: 1.5 }}
+        iconStyle={{ borderColor: "black", borderWidth: 2, }}
         textComponent={<></>}
       />
     </View>

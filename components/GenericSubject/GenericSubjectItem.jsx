@@ -46,17 +46,9 @@ const GenericSubjectItem = memo(function ({
     shadowRadius: isUrgent ? 9 : 4,
   };
 
-  const iconName = item.status
-    ? "check"
-    : isOverDue
-    ? "times"
-    : "dot-circle-o";
+  const iconName = item.status ? "check" : isOverDue ? "times" : "dot-circle-o";
 
-  const iconColor = item.status
-    ? "#3FCF63"
-    : isOverDue
-    ? "#F44336"
-    : "#A0A0A5";
+  const iconColor = item.status ? "#3FCF63" : isOverDue ? "#F44336" : "#A0A0A5";
 
   const iconBgColor = item.status
     ? "#D2F8D2"
@@ -121,11 +113,22 @@ const GenericSubjectItem = memo(function ({
             >
               {item.description}
             </Text>
-            <Text style={[styles.dueDateText, { color: isUrgent ? "#e02225" : "grey" }]}>
+            <Text
+              style={[
+                styles.dueDateText,
+                { color: isUrgent ? "#e02225" : "grey" },
+              ]}
+            >
               <Text style={styles.dueDateDescriptionText}>Abgabedatum: </Text>
               {formattedDueDate}
             </Text>
           </View>
+          {item.priority > 0 && (
+            <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+          )}
+          {item.priority > 1 && (
+            <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+          )}
         </View>
       </Pressable>
     </Animated.View>

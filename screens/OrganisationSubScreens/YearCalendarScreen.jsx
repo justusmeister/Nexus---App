@@ -44,6 +44,7 @@ import { BlurView } from "expo-blur";
 import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomSheet/DeadlineBottomSheet";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { eventEmitter } from "../../eventBus";
+import FilterDropDownMenu from "../../components/YearCalendar/FilterDropDownMenu";
 
 const months = [
   "Januar",
@@ -282,14 +283,6 @@ const YearCalendarScreen = function ({ navigation }) {
     setIsFilterMenuVisible(isOpening);
   }, [isFilterMenuVisible]);
 
-  const animatedDropdownStyle = useAnimatedStyle(() => {
-    return {
-      width: width.value,
-      height: height.value,
-      opacity: interpolate(height.value, [0, 150], [0, 1]),
-    };
-  });
-
   const handleOpen = () => {
     sheetRef.current?.present();
     setTimeout(() => {
@@ -297,8 +290,11 @@ const YearCalendarScreen = function ({ navigation }) {
     }, 200);
   };
 
-
   const years = [currentYear, currentYear + 1];
+
+  const handleFilterNone = () => setFilter(0);
+  const handleFilterHolidays = () => setFilter(1);
+  const handleFilterEvents = () => setFilter(2);
 
   const renderItem = ({ item }) => (
     <View style={[styles.yearCalendarBox, { height: containerHeight }]}>
@@ -343,65 +339,14 @@ const YearCalendarScreen = function ({ navigation }) {
             <Pressable style={styles.overlay} onPress={toggleDropdown} />
           )}
           <View style={styles.containerYearCalendar}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.filterButton,
-                { opacity: isFilterMenuVisible || pressed ? 0.6 : 1 },
-              ]}
-              activeOpacity={0.6}
-              onPress={() => toggleDropdown()}
-            >
-              <Icon.MaterialIcons
-                name={filter === 0 ? "filter-list-off" : "filter-list"}
-                size={30}
-                color="#333"
+            <View style={styles.dropdown}>
+              <FilterDropDownMenu
+                filter={filter}
+                onFilterNone={handleFilterNone}
+                onFilterHolidays={handleFilterHolidays}
+                onFilterEvents={handleFilterEvents}
               />
-            </Pressable>
-            <Animated.View style={[styles.dropdown, animatedDropdownStyle]}>
-              <TouchableOpacity
-                onPress={() => {
-                  toggleDropdown();
-                  setFilter(0);
-                }}
-                style={styles.filterSubButton}
-              >
-                <Text style={styles.item}>keine Filter</Text>
-                <Icon.MaterialIcons
-                  name="filter-list-off"
-                  size={26}
-                  color={"#333"}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  toggleDropdown();
-                  setFilter(1);
-                }}
-                style={styles.filterSubButton}
-              >
-                <Text style={styles.item}>Ferien</Text>
-                <Icon.MaterialIcons
-                  name="beach-access"
-                  size={26}
-                  color={"#333"}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  toggleDropdown();
-                  setFilter(2);
-                }}
-                style={styles.filterSubButton}
-              >
-                <Text style={styles.item}>Termine</Text>
-                <Icon.MaterialIcons
-                  name="calendar-month"
-                  size={26}
-                  color={"#333"}
-                />
-              </TouchableOpacity>
-            </Animated.View>
-
+            </View>
             <FlatList
               ref={flatListRef}
               data={years}
@@ -955,18 +900,9 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     position: "absolute",
-    top: 40,
-    right: 10,
-    borderRadius: 20,
-    backgroundColor: "gray",
-    elevation: 5,
-    shadowColor: "#333",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    overflow: "hidden",
+    right: -5,
+    top: -5,
     zIndex: 2,
-    justifyContent: "space-between",
   },
   overlay: {
     position: "absolute",

@@ -15,7 +15,7 @@ const DayCell = memo(({
   setSelectedDay, 
   startDay, 
   endDay, 
-  isHoliday 
+  isHoliday,
 }) => {
   if (day === null || day < 1 || day > endDay) {
     return <View key={index} style={styles.dayButton} />;

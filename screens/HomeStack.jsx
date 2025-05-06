@@ -917,7 +917,7 @@ export const HomeScreen = function ({ navigation }) {
               backgroundColor: "#e02225",
               borderRadius: 20,
             }}
-            icon="clock"
+            icon="flag"
             titleStyle={{
               borderBottomWidth:
                 deadlinesData.length > 0 && deadlinesData[0] !== "loading"

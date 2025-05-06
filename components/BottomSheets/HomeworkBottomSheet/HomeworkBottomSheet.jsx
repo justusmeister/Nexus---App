@@ -9,20 +9,21 @@ import FormField from "../../General/FormField";
 import RadioOption from "../../General/RadioOption";
 import DateTimeSelector from "../../General/DateTimeSelector";
 import SaveButton from "../../General/SaveButton";
+import ChoosePriority from "../../General/ChoosePriority";
 
 const HomeworkBottomSheet = memo(function ({
   sheetRef,
   titleInputRef,
   addHomework,
 }) {
-  const [selectedOption, setSelectedOption] = useState("Event");
-  const [isAllDay, setIsAllDay] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(true);
   const [startDate, setStartDate] = useState(new Date());
   const [dueDate, setDueDate] = useState(new Date());
   const [homeworkTitle, setHomeworkTitle] = useState("");
   const [description, setDescription] = useState("");
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [activeField, setActiveField] = useState(null);
+  const [priority, setPriority] = useState(0);
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
@@ -74,6 +75,7 @@ const HomeworkBottomSheet = memo(function ({
     setDescription("");
     setStartDate(new Date());
     setDueDate(new Date());
+    setPriority(0);
   };
 
   const toggleIsAllDay = useCallback(() => {
@@ -105,7 +107,8 @@ const HomeworkBottomSheet = memo(function ({
         startDate,
         dueDate,
         description || "-",
-        isAllDay
+        isAllDay,
+        priority
       );
     } catch (error) {
       console.log(error);
@@ -148,13 +151,13 @@ const HomeworkBottomSheet = memo(function ({
           inputRef={titleInputRef}
         />
 
-        {selectedOption !== "Zeitraum" && selectedOption !== "Frist" && (
-          <RadioOption
-            label="Als Frist speichern?"
-            value={isAllDay}
-            onToggle={toggleIsAllDay}
-          />
-        )}
+        <ChoosePriority priority={priority} onChange={setPriority} />
+
+        <RadioOption
+          label="Als Frist speichern?"
+          value={isAllDay}
+          onToggle={toggleIsAllDay}
+        />
 
         <DateTimeSelector
           label={"Aufgabedatum:"}

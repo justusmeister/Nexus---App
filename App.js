@@ -10,6 +10,9 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
+import { NativeModules } from 'react-native';
+
+const { EmailModule } = NativeModules;
 
 SplashScreen.preventAutoHideAsync();
 /*import LogRocket from '@logrocket/react-native';
@@ -123,15 +126,15 @@ const App = function () {
 
   return (
     <GestureHandlerRootView>
-      <BottomSheetModalProvider>
-        <EmailContextProvider>
-          <HolidayDataContextProvider>
-            <Navigation />
-            <StatusBar style="dark" />
-            <Toast />
-          </HolidayDataContextProvider>
-        </EmailContextProvider>
-      </BottomSheetModalProvider>
+        <BottomSheetModalProvider>
+          <EmailContextProvider>
+            <HolidayDataContextProvider>
+              <Navigation />
+              <StatusBar style="dark" />
+              <Toast />
+            </HolidayDataContextProvider>
+          </EmailContextProvider>
+        </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 };

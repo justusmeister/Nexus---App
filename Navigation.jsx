@@ -15,7 +15,7 @@ import { useHolidayData } from "./contexts/HolidayDataContext";
 import { createAdjustedHolidayDataMap } from "./utils/createAdjustedHolidayDataMap";
 import { useEmailData } from "./contexts/EmailContext";
 import SplashScreen from "./screens/SplashScreen";
-import GradesScreen from "./screens/GradesScreen";
+import GradesStack from "./screens/GradesStack";
 import TasksStack from "./screens/TasksStack";
 import OnboardingScreen from "./screens/OnboardingScreen";
 import AuthStack from "./screens/AuthStack";
@@ -272,7 +272,7 @@ const Tabs = function () {
       />
       <Tab.Screen
         name="Grades"
-        component={GradesScreen}
+        component={GradesStack}
         options={{
           title: "Noten",
         }}

@@ -104,6 +104,7 @@ const GenericScreen = function ({ navigation }) {
           id: doc.id,
           ...doc.data(),
           status: doc.data().status || false,
+          priority: doc.data().priority || 0,
           canDelete:
             checkDeadlineRemainingTime(formatTimestamp(doc.data().dueDate))
               .time === "delete"
@@ -154,7 +155,8 @@ const GenericScreen = function ({ navigation }) {
     startDate,
     dueDate,
     description,
-    isDeadline
+    isDeadline,
+    priority
   ) => {
     if (user) {
       try {
@@ -174,6 +176,7 @@ const GenericScreen = function ({ navigation }) {
           description: description,
           timestamp: serverTimestamp(),
           status: false,
+          priority: priority,
         });
       } catch (e) {
         Toast.show({

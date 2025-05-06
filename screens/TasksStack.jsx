@@ -124,7 +124,7 @@ const MaterialTopTabs = function () {
           name="TodosScreen"
           component={TodosScreen}
           options={{
-            tabBarLabel: "Todo's",
+            tabBarLabel: "allgemeine Todo's",
           }}
         />
       </Tab.Navigator>
