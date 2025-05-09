@@ -1,9 +1,36 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Button,
+  View,
+} from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 
 const GradesScreen = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { showActionSheetWithOptions } = useActionSheet();
+
+  const openSheet = () => {
+    const options = ["Option 1", "Option 2", "Abbrechen"];
+    const cancelButtonIndex = 2;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        title: "Wähle etwas aus",
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) {
+          console.log("Option 1 gewählt");
+        } else if (buttonIndex === 1) {
+          console.log("Option 2 gewählt");
+        }
+      }
+    );
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -14,6 +41,9 @@ const GradesScreen = () => {
           setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
         }}
       />
+      <View style={{ marginTop: 40 }}>
+        <Button title="Open Action Sheet" onPress={openSheet} />
+      </View>
     </ScrollView>
   );
 };
@@ -29,4 +59,3 @@ const styles = StyleSheet.create({
     padding: 24,
   },
 });
-
