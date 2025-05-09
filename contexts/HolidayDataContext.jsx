@@ -3,7 +3,7 @@ import { useState, createContext, useContext } from "react";
 const HolidayDataContext = createContext();
 
 export const HolidayDataContextProvider = ({ children }) => {
-  const [holidayData, setHolidayData] = useState([]);
+  const [holidayData, setHolidayData] = useState(new Map());
 
   return (
     <HolidayDataContext.Provider value={{ holidayData, setHolidayData }}>

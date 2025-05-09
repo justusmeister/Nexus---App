@@ -11,14 +11,18 @@ import {
   Pressable,
   Image,
   Linking,
+  Alert,
 } from "react-native";
 import { firebaseAuth } from "../firebaseConfig";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import LicenseModal from "../modals/LicenseModal";
-
+import { deleteUser, getAuth } from "firebase/auth";
 
 const SettingsScreen = function ({ navigation }) {
   const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
+
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -36,8 +40,10 @@ const SettingsScreen = function ({ navigation }) {
   }, [navigation]);
 
   const openFeedbackMail = () => {
-    Linking.openURL('mailto:feedback.nexus.app@gmail.com?subject=Feedback-Mail');
-  }
+    Linking.openURL(
+      "mailto:feedback.nexus.app@gmail.com?subject=Feedback-Mail"
+    );
+  };
 
   return (
     <ScrollView
@@ -83,7 +89,30 @@ const SettingsScreen = function ({ navigation }) {
               ]}
               activeOpacity={0.4}
               onPress={() => {
-                setIsLicenseModalVisible(true);
+                Alert.alert(
+                  "Möchten Sie das Nutzerkonto wirklich löschen?",
+                  "Das Nutzerkonto wird samt Daten unwiderruflich gelöscht!",
+                  [
+                    {
+                      text: "Abbrechen",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Bestätigen",
+                      onPress: () => {
+                        deleteUser(user)
+                          .then(() => {
+                            navigation.goBack();
+                            navigation.navigate("AuthStack");
+                          })
+                          .catch((error) => {
+                            console.log("Fehler beim löschen des Nutzerkontos");
+                          });
+                      },
+                      style: "destructive",
+                    },
+                  ]
+                );
               }}
             >
               <Icon.MaterialIcons

@@ -152,13 +152,7 @@ const HomeworkBottomSheet = memo(function ({
         />
 
         <ChoosePriority priority={priority} onChange={setPriority} />
-
-        <RadioOption
-          label="Als Frist speichern?"
-          value={isAllDay}
-          onToggle={toggleIsAllDay}
-        />
-
+        
         <DateTimeSelector
           label={"Aufgabedatum:"}
           date={startDate}

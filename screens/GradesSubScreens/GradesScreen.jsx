@@ -1,10 +1,19 @@
-import React from "react";
-import { ScrollView, Text, StyleSheet, Image } from "react-native";
+import React, { useState } from "react";
+import { ScrollView, StyleSheet } from "react-native";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 
-const GradesScreen = function () {
+const GradesScreen = () => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Coming Soon...</Text>
+      <SegmentedControl
+        values={["One", "Two"]}
+        selectedIndex={selectedIndex}
+        onChange={(event) => {
+          setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+        }}
+      />
     </ScrollView>
   );
 };
@@ -19,17 +28,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 24,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginTop: 24,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#64748B",
-    textAlign: "center",
-    marginTop: 12,
-    maxWidth: 300,
-  },
 });
+

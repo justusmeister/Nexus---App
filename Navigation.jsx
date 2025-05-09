@@ -20,6 +20,7 @@ import TasksStack from "./screens/TasksStack";
 import OnboardingScreen from "./screens/OnboardingScreen";
 import AuthStack from "./screens/AuthStack";
 import { getAsyncItem } from "./utils/asyncStorage";
+import Toast from "react-native-toast-message";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -136,8 +137,11 @@ const Navigation = function () {
         const publicHolidaysData = await publicHolidaysResponse.json();
         setHolidayDays(createAdjustedHolidayDataMap(publicHolidaysData));
       } catch {
-        setHolidayPeriods(createAdjustedHolidayDataMap([]));
-        setHolidayDays(createAdjustedHolidayDataMap([]));
+        Toast.show({
+          type: "error",
+          text1: "Fehler beim Abrufen der Feriendaten!",
+          visibilityTime: 4000,
+      });
       }
     };
 

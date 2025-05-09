@@ -333,7 +333,7 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
               <View style={styles.divider} />
               <ScrollView>
                 <Pressable>
-                  <Text style={styles.taskTextHeader}>Aufgabe:</Text>
+                  <Text style={styles.taskTextHeader}>Beschreibung:</Text>
                   <Text style={styles.taskText}>{taskText}</Text>
                 </Pressable>
               </ScrollView>
@@ -1173,7 +1173,7 @@ const styles = StyleSheet.create({
     fontSize: RFPercentage(1.92),
   },
   taskTextHeader: {
-    fontSize: RFPercentage(2.31),
+    fontSize: RFPercentage(1.92),
     fontWeight: "600",
     color: "#333",
     marginBottom: 10,
