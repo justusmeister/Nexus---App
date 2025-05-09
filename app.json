@@ -13,7 +13,7 @@
       "backgroundColor": "#000000"
     },
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.meister.Nexus",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
