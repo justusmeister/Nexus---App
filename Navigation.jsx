@@ -7,9 +7,9 @@ import HomeStack from "./screens/HomeStack";
 import { BlurView } from "expo-blur";
 import OrganisationStack from "./screens/OrganisationStack";
 import * as Icon from "@expo/vector-icons";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
-import SearchStack from "./screens/SearchStack";
+import NotesInputScreen from "./screens/TasksSubScreens/NotesInputScreen"
 import { calculateHolidayAPIDates } from "./utils/calculateHolidayAPIDates";
 import { useHolidayData } from "./contexts/HolidayDataContext";
 import { createAdjustedHolidayDataMap } from "./utils/createAdjustedHolidayDataMap";
@@ -141,7 +141,7 @@ const Navigation = function () {
           type: "error",
           text1: "Fehler beim Abrufen der Feriendaten!",
           visibilityTime: 4000,
-      });
+        });
       }
     };
 
@@ -189,6 +189,18 @@ const Navigation = function () {
             title: "Einstellungen",
             headerLargeTitle: true,
             headerStyle: { backgroundColor: "#EFEEF6" },
+          }}
+        />
+        <Stack.Screen
+          name="NotesInputScreen"
+          component={NotesInputScreen}
+          options={{
+            title: "Notizen",
+            headerShadowVisible: false,
+            presentation: Platform.OS === "ios" ? "modal" : "fullScreenModal",
+            headerStyle: {
+              backgroundColor: "#EFEEF6",
+            },
           }}
         />
       </Stack.Navigator>

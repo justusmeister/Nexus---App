@@ -158,6 +158,7 @@ const NotesScreen = function ({ navigation }) {
                 title: item.title,
                 note: item.note,
                 docId: item.id,
+                fastNotes: false,
               });
             }}
             style={styles.deadlineTaskBox}

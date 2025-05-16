@@ -44,17 +44,13 @@ const HomeworkModal = ({
   const [multiInputFocused, setMultiInputFocused] = useState(false);
   const titleRef = useRef(null);
 
-  const [startDate, setStartDate] = useState(new Date());
   const [dueDate, setDueDate] = useState(new Date());
 
-  //States für die DatePicker Modals
-  const [startDatePickerVisible, setStartDatePickerVisible] = useState(false);
   const [dueDatePickerVisible, setDueDatePickerVisible] = useState(false);
 
   useEffect(() => {
     setTitle(item?.title || "");
     setDescription(item?.description || "");
-    setStartDate(item?.startDate);
     setDueDate(item?.dueDate);
     if (visible && editing) {
       setEditing(false);
@@ -87,7 +83,7 @@ const HomeworkModal = ({
   const handleUpdate = async () => {
     setSaveLoading(true);
     try {
-      await onUpdate(title, description, startDate, dueDate, item?.id);
+      await onUpdate(title, description, dueDate, item?.id);
     } catch (error) {
       console.error("Fehler beim Update:", error);
     } finally {
@@ -106,7 +102,6 @@ const HomeworkModal = ({
   const handleCancel = () => {
     setTitle(item?.title);
     setDescription(item?.description);
-    setStartDate(item?.startDate ?? item?.dueDate);
     setDueDate(item?.dueDate);
     setEditing(false);
   };
@@ -218,27 +213,11 @@ const HomeworkModal = ({
                 />
                 {!editing ? (
                   <View>
-                    <Text style={styles.dateText}>
-                      Aufgabedatum: {formatTimestamp(startDate)}
-                    </Text>
                     <Text style={[styles.dateText, { fontWeight: "700" }]}>
                       Abgabedatum: {formatTimestamp(dueDate)}
                     </Text>
                   </View>
                 ) : (
-                  <View>
-                    <View style={styles.datesEditBox}>
-                      <Text style={styles.dateText}>Aufgabedatum: </Text>
-                      <Pressable
-                        onPress={() => setStartDatePickerVisible(true)}
-                        style={styles.dateButton}
-                        hitSlop={10}
-                      >
-                        <Text style={[styles.dateText, styles.dateEditingText]}>
-                          {formatTimestamp(startDate)}
-                        </Text>
-                      </Pressable>
-                    </View>
                     <View style={styles.datesEditBox}>
                       <Text style={[styles.dateText, { fontWeight: "700" }]}>
                         Abgabedatum:{" "}
@@ -259,7 +238,6 @@ const HomeworkModal = ({
                         </Text>
                       </Pressable>
                     </View>
-                  </View>
                 )}
                 {!editing && (
                   <View style={styles.statusBox}>
@@ -368,7 +346,6 @@ const HomeworkModal = ({
                           !(
                             title === item?.title &&
                             description === item?.description &&
-                            startDate === item?.startDate &&
                             dueDate === item?.dueDate
                           )
                         ) {
@@ -428,16 +405,6 @@ const HomeworkModal = ({
                   </>
                 )}
               </View>
-
-              {/* DatePicker Modals */}
-              <DatePickerModal
-                visible={startDatePickerVisible}
-                onClose={() => setStartDatePickerVisible(false)}
-                date={startDate}
-                onDateChange={setStartDate}
-                title="Aufgabedatum wählen"
-              />
-
               <DatePickerModal
                 visible={dueDatePickerVisible}
                 onClose={() => setDueDatePickerVisible(false)}

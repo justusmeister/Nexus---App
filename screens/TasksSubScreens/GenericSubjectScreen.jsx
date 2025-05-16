@@ -33,8 +33,9 @@ import { eventEmitter } from "../../eventBus";
 import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
 import HomeworkBottomSheet from "../../components/BottomSheets/HomeworkBottomSheet/HomeworkBottomSheet";
 import HomeworkModal from "../../modals/HomeworkModal";
-import { SegmentedControl } from "../../components/SegmentedControl";
 import GenericSubjectItem from "../../components/GenericSubject/GenericSubjectItem";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import PlusButton from "../../components/General/PlusButton";
 
 const GenericScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -55,7 +56,10 @@ const GenericScreen = function ({ navigation }) {
     }, 200);
   };
 
-  const [selectedOption, setSelectedOption] = useState("Alle");
+  const segmentedValues = ["Alle", "offen", "erledigt"];
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const selectedOption = segmentedValues[selectedIndex];
 
   const route = useRoute();
   const { params } = route;
@@ -66,11 +70,7 @@ const GenericScreen = function ({ navigation }) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: params.subject,
-      headerRight: () => (
-        <TouchableOpacity style={styles.addButton} onPress={handleOpen}>
-          <Icon.AntDesign name="pluscircle" size={35} color="#3a5f8a" />
-        </TouchableOpacity>
-      ),
+      headerRight: () => <PlusButton onPress={handleOpen} small />,
     });
 
     if (user) fetchHomework(params.subject);
@@ -152,7 +152,6 @@ const GenericScreen = function ({ navigation }) {
 
   const addHomework = async (
     title,
-    startDate,
     dueDate,
     description,
     isDeadline,
@@ -171,7 +170,6 @@ const GenericScreen = function ({ navigation }) {
 
         await addDoc(homeworkCollectionRef, {
           title: title,
-          startDate: startDate,
           dueDate: dueDate,
           description: description,
           timestamp: serverTimestamp(),
@@ -251,7 +249,7 @@ const GenericScreen = function ({ navigation }) {
     }
   };
 
-  const updateHomework = async (title, description, startDate, dueDate, id) => {
+  const updateHomework = async (title, description, dueDate, id) => {
     if (user) {
       setHomeworkList((prev) =>
         prev.map((hw) =>
@@ -260,7 +258,6 @@ const GenericScreen = function ({ navigation }) {
                 ...hw,
                 title: title,
                 description: description,
-                startDate: startDate,
                 dueDate: dueDate,
               }
             : hw
@@ -280,7 +277,6 @@ const GenericScreen = function ({ navigation }) {
           {
             title: title,
             description: description,
-            startDate: startDate,
             dueDate: dueDate,
             timestamp: serverTimestamp(),
           },
@@ -335,19 +331,22 @@ const GenericScreen = function ({ navigation }) {
   };
 
   const filteredHomeworkList =
-    selectedOption == "offen"
-      ? homeworkList.filter((item) => item.status == false)
-      : selectedOption == "erledigt"
-      ? homeworkList.filter((item) => item.status == true)
+    selectedOption === "offen"
+      ? homeworkList.filter((item) => item.status === false)
+      : selectedOption === "erledigt"
+      ? homeworkList.filter((item) => item.status === true)
       : homeworkList;
 
   return (
     <View style={[styles.container, { paddingBottom: tabBarHeight + 6 }]}>
       <View style={styles.segmentedControlBox}>
         <SegmentedControl
-          options={["Alle", "offen", "erledigt"]}
-          selectedOption={selectedOption}
-          onOptionPress={setSelectedOption}
+          values={segmentedValues}
+          selectedIndex={selectedIndex}
+          onChange={(event) => {
+            setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+          }}
+          style={{ height: 32, width: "100%" }}
         />
       </View>
       <FlatList
@@ -377,6 +376,10 @@ const GenericScreen = function ({ navigation }) {
           ) : null
         }
         style={{ padding: 8 }}
+        contentContainerStyle={{ paddingBottom: tabBarHeight }}
+        keyboardShouldPersistTaps="handled"
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
       />
       <HomeworkBottomSheet
         sheetRef={sheetRef}
@@ -410,14 +413,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 5,
   },
-  addButton: {
-    marginRight: 15,
-  },
   segmentedControlBox: {
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
+    padding: 8,
+    paddingVertical: 12,
     shadowColor: "#333",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,

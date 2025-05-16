@@ -25,6 +25,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import FileViewer from "react-native-file-viewer";
 import ParsedText from "react-native-parsed-text";
 import { useEmailData } from "../../contexts/EmailContext";
+import { useRoute } from "@react-navigation/native";
 
 const saveEmailsToStorage = async (emails) => {
   try {
@@ -75,8 +76,6 @@ const fetchEmails = async (setEmails, setRefreshing, setPullRefresh) => {
       }
     );
 
-    console.log("📨 Antwort erhalten:", response.status);
-
     if (!response.ok) {
       setRefreshing(false);
       setPullRefresh(false);
@@ -122,14 +121,17 @@ function extractName(from) {
   return match ? match[1] : from; // Falls Name existiert, bereinigt zurückgeben
 }
 
-const InboxDetailedScreen = ({ data, index, navigation }) => {
+const InboxScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentEmail, setCurrentEmail] = useState(null);
   const [activeAnimation, setActiveAnimation] = useState(null);
   const buttonScale = useState(new Animated.Value(1))[0];
-  const { refreshing, setRefreshing, setMailData } = useEmailData();
+  const { refreshing, setRefreshing, mailData, setMailData } = useEmailData();
   const [pullRefresh, setPullRefresh] = useState(false);
+  const route = useRoute();
+
+  let index = route.params?.emailId !== null ? route.params?.emailId : null;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -150,7 +152,7 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
   useEffect(() => {
     setTimeout(() => {
       if (index !== null && index !== undefined) {
-        const email = data[index];
+        const email = mailData[index];
         setCurrentEmail(email);
         setIsModalVisible(true);
       }
@@ -241,9 +243,9 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, paddingBottom: tabBarHeight + 6 }}>
+    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: tabBarHeight + 6 }}>
       <FlatList
-        data={data[0] === "loading" ? [] : data}
+        data={mailData[0] === "loading" ? [] : mailData}
         renderItem={resultBox}
         keyExtractor={(item, index) => index.toString()}
         style={{ padding: 8 }}
@@ -292,23 +294,6 @@ const InboxDetailedScreen = ({ data, index, navigation }) => {
   );
 };
 
-const emailPlainText = {
-  author: "noreply@iserv.de",
-  title: "iServ Benachrichtigung",
-  date: "24. Januar 2025",
-  isPlainText: true,
-  content: `Hallo Justus,
-
-Dies ist eine E-Mail in Plaintext. Keine Formatierung, nur reiner Text.
-Ich schreibe diese Email um ihnen einen guten Eindruck zu vermitteln wie eine 
-Email in dieser App aussehen könnte. Wenn sie die komplette Seite Scrollen möchten muss der Inhalt länger sein als die Höhe der ScrollView.
-
-Vielen Dank für ihr Verständnis und einen schönen Tag noch.
-
-Beste Grüße,
-Dein iServ Team`,
-};
-
 const EmailModal = ({ visible, email, onClose }) => {
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
@@ -330,7 +315,7 @@ const EmailModal = ({ visible, email, onClose }) => {
               </View>
               <View style={styles.divider} />
               <View style={styles.bodyContainer}>
-                {0 === 0 ? (
+                {email?.text !== null ? (
                   <ScrollView style={styles.mailContentScrollView}>
                     <Pressable>
                       <ParsedText
@@ -511,7 +496,6 @@ const styles = StyleSheet.create({
   newsBoxContainer: {
     marginVertical: 6,
     borderRadius: 10,
-    overflow: "hidden",
     backgroundColor: "#FFF",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -564,4 +548,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InboxDetailedScreen;
+export default InboxScreen;

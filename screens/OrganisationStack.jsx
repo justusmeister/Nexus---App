@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#a1a1a1",
-    borderRadius: 20,
+    borderRadius: 25,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingTop: 0,
     backgroundColor: "#a1a1a1",
-    borderRadius: 20,
+    borderRadius: 25,
   },
   addButton: {
     height: 35,

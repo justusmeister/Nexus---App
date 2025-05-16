@@ -58,7 +58,7 @@ const LoginScreen = function ({ navigation }) {
       <View style={styles.imageBox}>
         <Image
           style={styles.logoImage}
-          source={require("../../assets/icon.png")}
+          source={require("../../assets/adaptive-icon.png")}
           resizeMode="contain"
         />
       </View>

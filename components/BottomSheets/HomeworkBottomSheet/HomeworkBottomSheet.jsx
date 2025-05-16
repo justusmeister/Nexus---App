@@ -6,10 +6,11 @@ import {
   BottomSheetModal,
 } from "@gorhom/bottom-sheet";
 import FormField from "../../General/FormField";
-import RadioOption from "../../General/RadioOption";
 import DateTimeSelector from "../../General/DateTimeSelector";
 import SaveButton from "../../General/SaveButton";
 import ChoosePriority from "../../General/ChoosePriority";
+import AttachmentBar from "../../General/AttachmentBar";
+//import * as ImagePicker from "expo-image-picker";
 
 const HomeworkBottomSheet = memo(function ({
   sheetRef,
@@ -17,7 +18,6 @@ const HomeworkBottomSheet = memo(function ({
   addHomework,
 }) {
   const [isAllDay, setIsAllDay] = useState(true);
-  const [startDate, setStartDate] = useState(new Date());
   const [dueDate, setDueDate] = useState(new Date());
   const [homeworkTitle, setHomeworkTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -25,6 +25,28 @@ const HomeworkBottomSheet = memo(function ({
   const [activeField, setActiveField] = useState(null);
   const [priority, setPriority] = useState(0);
   const scrollViewRef = useRef(null);
+  const [imageUri, setImageUri] = useState(null);
+
+  /*  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        alert("Kamerazugriff wird benötigt.");
+      }
+    })();
+  }, []);*/
+
+  const openCamera = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
 
   useEffect(() => {
     const keyboardShowListener = Keyboard.addListener(
@@ -73,14 +95,9 @@ const HomeworkBottomSheet = memo(function ({
   const handleDismiss = () => {
     setHomeworkTitle("");
     setDescription("");
-    setStartDate(new Date());
     setDueDate(new Date());
     setPriority(0);
   };
-
-  const toggleIsAllDay = useCallback(() => {
-    setIsAllDay((prev) => !prev);
-  }, []);
 
   const handleTitleFocus = () => {
     setActiveField("title");
@@ -104,7 +121,6 @@ const HomeworkBottomSheet = memo(function ({
     try {
       addHomework(
         homeworkTitle || "Unbenannt",
-        startDate,
         dueDate,
         description || "-",
         isAllDay,
@@ -152,20 +168,19 @@ const HomeworkBottomSheet = memo(function ({
         />
 
         <ChoosePriority priority={priority} onChange={setPriority} />
-        
-        <DateTimeSelector
-          label={"Aufgabedatum:"}
-          date={startDate}
-          setDate={setStartDate}
-          dateType="start"
-        />
 
         <DateTimeSelector
           label="Abgabedatum:"
           date={dueDate}
           setDate={setDueDate}
-          minimumDate={startDate}
           dateType="end"
+        />
+
+        <AttachmentBar
+          onCameraPress={openCamera}
+          onGalleryPress={() => console.log("Galerie")}
+          onFilePress={() => console.log("Datei")}
+          onScanPress={() => console.log("Scan")}
         />
 
         <FormField
@@ -199,9 +214,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-  },
-  segmentedControl: {
-    marginBottom: 20,
-    width: "100%",
   },
 });

@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  collection, query, where, orderBy, getDocs, setDoc, deleteDoc, doc, serverTimestamp
+  collection, query, where, orderBy, getDocs, setDoc, deleteDoc, doc, serverTimestamp, getCountFromServer
 } from "firebase/firestore";
 import { firestoreDB } from "../firebaseConfig";
-import { getCountFromServer } from "firebase/firestore";
 
 export const useSubjects = (user) => {
   const [subjects, setSubjects] = useState([]);
@@ -20,13 +19,20 @@ export const useSubjects = (user) => {
       );
       const snapshot = await getDocs(q);
       const data = await Promise.all(
-        snapshot.docs.map(async (docSnap) => {
-          const homeworkColRef = collection(docSnap.ref, "homework");
-          const countSnap = await getCountFromServer(homeworkColRef);
-          return { id: docSnap.id, ...docSnap.data(), items: countSnap.data().count };
+        snapshot.docs.map(async (docSnap, i) => {
+          const countSnap = await getCountFromServer(collection(docSnap.ref, "homework"));
+          return { id: docSnap.id, ...docSnap.data(), items: countSnap.data().count, index: i };
         })
       );
-      setSubjects(data);
+
+      const sorted = data.sort((a, b) => {
+        if (a.items > 0 && b.items > 0) return b.items - a.items;
+        if (a.items > 0) return -1;
+        if (b.items > 0) return 1;
+        return a.index - b.index;
+      }).map(({ index, ...s }) => s);
+
+      setSubjects(sorted);
     } catch (err) {
       console.error("Fehler beim Laden:", err);
     } finally {
@@ -36,8 +42,7 @@ export const useSubjects = (user) => {
 
   const addSubject = useCallback(async (subject, color, icon) => {
     if (!user) return;
-    const newDocRef = doc(firestoreDB, "subjects", user.uid + subject);
-    await setDoc(newDocRef, {
+    await setDoc(doc(firestoreDB, "subjects", user.uid + subject), {
       subject, color, icon,
       timestamp: serverTimestamp(),
       userId: user.uid,

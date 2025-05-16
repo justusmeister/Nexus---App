@@ -33,7 +33,8 @@
       "expo-asset",
       "@logrocket/react-native",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      "expo-image-picker"
     ],
     "extra": {
       "eas": {
