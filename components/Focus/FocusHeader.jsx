@@ -3,14 +3,17 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const FocusHeader = ({ onClose }) => {
-    const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.header, { paddingTop: insets }]}>
-      <Text style={styles.title}>Fokusmodus</Text>
-      <Pressable onPress={onClose}>
+      <Pressable
+        style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
+        onPress={onClose}
+      >
         <Feather name="x" size={24} color="#333" />
       </Pressable>
+      <Text style={styles.title}>Fokusmodus</Text>
     </View>
   );
 };

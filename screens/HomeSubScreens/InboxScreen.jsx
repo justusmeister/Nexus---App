@@ -83,7 +83,7 @@ const fetchEmails = async (setEmails, setRefreshing, setPullRefresh) => {
     }
 
     const data = await response.json();
-    console.log("📩 E-Mails erhalten:", JSON.stringify(data, null, 2));
+    //console.log("📩 E-Mails erhalten:", JSON.stringify(data, null, 2));
 
     const sortedEmails = data.sort(
       (a, b) => new Date(b.date) - new Date(a.date)
@@ -137,13 +137,14 @@ const InboxScreen = ({ navigation }) => {
     navigation.setOptions({
       headerRight: () => (
         <Pressable
-          onPress={() =>
-            fetchEmails(setMailData, setRefreshing, setPullRefresh)
-          }
+          onPress={() => {
+            fetchEmails(setMailData, setRefreshing, setPullRefresh);
+            setPullRefresh(false);
+          }}
           style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
           hitSlop={12}
         >
-          <Icon.Feather name="refresh-cw" size={27} color="black" />
+          <Icon.Feather name="rotate-ccw" size={27} color="black" />
         </Pressable>
       ),
     });
@@ -243,7 +244,13 @@ const InboxScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: tabBarHeight + 6 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#EFEEF6",
+        paddingBottom: tabBarHeight + 6,
+      }}
+    >
       <FlatList
         data={mailData[0] === "loading" ? [] : mailData}
         renderItem={resultBox}

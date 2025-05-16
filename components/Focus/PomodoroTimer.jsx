@@ -152,7 +152,7 @@ const PomodoroTimer = () => {
   };
 
   const requestNotificationPermission = async () => {
-    const status = true;
+    const status = "granted";
     if (status !== "granted") {
       Alert.alert(
         "Benachrichtigungen deaktiviert",

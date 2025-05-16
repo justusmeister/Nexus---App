@@ -7,8 +7,27 @@ import DeadlineScreen from "./HomeSubScreens/DeadlineScreen";
 import { DeadlinesProvider } from "../contexts/DeadlinesContext";
 import HomeScreen from "./HomeSubScreens/HomeScreen";
 import FocusScreen from "./HomeSubScreens/FocusScreen";
+import { useNavigation } from "@react-navigation/native";
 
 const Stack = createNativeStackNavigator();
+
+function CustomBackButton() {
+  const navigation = useNavigation();
+
+  return (
+    <Pressable
+      onPress={() => navigation.goBack()}
+      style={{
+        backgroundColor: '#e0e0e0',
+        padding: 8,
+        borderRadius: 25,
+        marginLeft: 10, // Abstand zum Rand
+      }}
+    >
+      <Icon.Feather name="arrow-left" size={20} color="black" />
+    </Pressable>
+  );
+}
 
 const HomeStack = function ({ navigation }) {
   return (
@@ -43,8 +62,7 @@ const HomeStack = function ({ navigation }) {
           component={NewsScreen}
           options={{
             title: "Neuigkeiten",
-            headerBackTitle: "Zurück",
-            headerTintColor: "black",
+            headerLeft: () => <CustomBackButton />
           }}
         />
         <Stack.Screen
