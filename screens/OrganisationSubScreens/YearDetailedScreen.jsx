@@ -12,6 +12,7 @@ import WeekRow from "../../components/YearDetailed/WeekRow";
 import { EventListItem } from "../../components/YearDetailed/EventListItem";
 import { formatSelectedDate } from "../../components/YearDetailed/utils/dateUtils";
 import { useAppointments } from "../../hooks/useAppointments";
+import PlusButton from "../../components/General/PlusButton";
 
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
@@ -51,9 +52,7 @@ const YearDetailedScreen = function ({ navigation }) {
     navigation.setOptions({
       headerTitle: params?.month,
       headerRight: () => (
-        <TouchableOpacity style={styles.addButton} onPress={handleOpen}>
-          <Icon.AntDesign name="pluscircle" size={35} color="#3a5f8a" />
-        </TouchableOpacity>
+        <PlusButton onPress={handleOpen} small/>
       ),
     });
   }, [navigation, params]);
@@ -183,8 +182,8 @@ const styles = StyleSheet.create({
   deadlineListView: {
     height: "50%",
     width: "100%",
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     backgroundColor: "#EFEEF6",
   },
   sectionTitle: {

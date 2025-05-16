@@ -42,8 +42,8 @@ const GenericSubjectItem = memo(function ({
 
   const shadowStyle = {
     shadowColor: isUrgent ? "#e02225" : "#000",
-    shadowOpacity: isUrgent ? 1 : 0.1,
-    shadowRadius: isUrgent ? 9 : 4,
+    shadowOpacity: isUrgent ? 0.8 : 0.1,
+    shadowRadius: isUrgent ? 7 : 4,
   };
 
   const iconName = item.status ? "check" : isOverDue ? "times" : "dot-circle-o";

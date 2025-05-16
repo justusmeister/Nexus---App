@@ -37,7 +37,7 @@ const NotesInputScreen = ({ navigation }) => {
   const user = auth.currentUser;
 
   useEffect(() => {
-    if (!params) {
+    if (!params || params?.fastNotes == true) {
       setIsUpdating(false);
     } else {
       setIsUpdating(true);
@@ -69,7 +69,14 @@ const NotesInputScreen = ({ navigation }) => {
       } finally {
         setLoading(false);
         navigation.goBack();
-        navigation.navigate("NotesScreen", { refresh: true });
+        if (!params?.fastNotes)
+          navigation.navigate("Tabs", {
+            screen: "Tasks",
+            params: {
+              screen: "NotesScreen",
+              params: { refresh: true },
+            },
+          });
       }
     }
   };
@@ -106,7 +113,14 @@ const NotesInputScreen = ({ navigation }) => {
       } finally {
         setLoading(false);
         navigation.goBack();
-        navigation.navigate("NotesScreen", { refresh: true });
+        if (!params?.fastNotes)
+          navigation.navigate("Tabs", {
+            screen: "Tasks",
+            params: {
+              screen: "NotesScreen",
+              params: { refresh: true },
+            },
+          });
       }
     }
   };

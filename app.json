@@ -13,7 +13,7 @@
       "backgroundColor": "#000000"
     },
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.meister.Nexus",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -33,7 +33,8 @@
       "expo-asset",
       "@logrocket/react-native",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      "expo-image-picker"
     ],
     "extra": {
       "eas": {

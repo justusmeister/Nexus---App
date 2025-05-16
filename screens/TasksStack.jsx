@@ -1,27 +1,13 @@
-import React, { useCallback, useState, useRef, memo } from "react";
 import {
-  StyleSheet,
   View,
-  FlatList,
-  Dimensions,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  InteractionManager,
   ActivityIndicator,
-  Pressable,
-  Platform,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Icon from "@expo/vector-icons";
-import TimeTable from "../components/TimeTable";
 import HomeworkScreen from "./TasksSubScreens/HomeworkScreen";
 import GenericScreen from "./TasksSubScreens/GenericSubjectScreen";
 import NotesScreen from "./TasksSubScreens/NotesScreen";
-import NotesInputScreen from "./TasksSubScreens/NotesInputScreen";
 import TodosScreen from "./TasksSubScreens/TodosScreen";
 
 const Stack = createNativeStackNavigator();
@@ -54,18 +40,7 @@ const TasksStack = function ({ navigation }) {
           headerTintColor: "black",
         }}
       />
-      <Stack.Screen
-        name="NotesInputScreen"
-        component={NotesInputScreen}
-        options={{
-          title: "Notizen",
-          headerShadowVisible: false,
-          presentation: Platform.OS === "ios" ? "modal" : "fullScreenModal",
-          headerStyle: {
-            backgroundColor: "#EFEEF6",
-          },
-        }}
-      />
+      
     </Stack.Navigator>
   );
 };

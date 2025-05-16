@@ -2,9 +2,21 @@ import React from "react";
 import { View, Text, StyleSheet, FlatList, ScrollView } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
-const NewsDetailedScreen = function ({ data }) {
-  if (!data || data.length === 0) {
+const newsBoxDummyData = [
+  {
+    news: "Version 1.0 ist ab jetzt draußen!",
+  },
+  {
+    news: "Entdecke die App!",
+  },
+];
+
+const NewsScreen = function () {
+  const tabBarHeight = useBottomTabBarHeight();
+
+  if (!newsBoxDummyData || newsBoxDummyData.length === 0) {
     return (
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
         <Text
@@ -28,12 +40,20 @@ const NewsDetailedScreen = function ({ data }) {
   );
 
   return (
-    <FlatList
-      data={data}
-      renderItem={resultBox}
-      keyExtractor={(item) => item.news}
-      style={{ padding: 8 }}
-    />
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#EFEEF6",
+        paddingBottom: tabBarHeight + 6,
+      }}
+    >
+      <FlatList
+        data={newsBoxDummyData}
+        renderItem={resultBox}
+        keyExtractor={(item) => item.news}
+        style={{ padding: 8 }}
+      />
+    </View>
   );
 };
 
@@ -61,4 +81,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NewsDetailedScreen;
+export default NewsScreen;

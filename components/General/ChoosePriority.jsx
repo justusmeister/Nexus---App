@@ -6,7 +6,7 @@ import { RFPercentage } from "react-native-responsive-fontsize";
 const ChoosePriority = ({ priority, onChange }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Priorisieren:</Text>
+      <Text style={styles.label}>Priorität:</Text>
       <View style={styles.buttonRow}>
         {[0, 1, 2].map((level) => (
           <Pressable
@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
   button: {
     padding: 12,
     borderRadius: 10,
-    backgroundColor: "#e6e6e6",
+    backgroundColor: "#f0f0f0",
     minWidth: 48,
     alignItems: "center",
     justifyContent: "center",
   },
   activeButton: {
-    backgroundColor: "#f8cccc",
+    backgroundColor: "#f9d6d6",
   },
   iconRow: {
     flexDirection: "row",

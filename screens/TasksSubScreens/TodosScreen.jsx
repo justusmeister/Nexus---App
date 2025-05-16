@@ -1,20 +1,40 @@
-import { useLayoutEffect, useRef, useCallback, useState, useEffect, memo } from "react";
-import { TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import * as Icon from "@expo/vector-icons";
-import { FlashList } from "@shopify/flash-list";
-import { RFPercentage } from "react-native-responsive-fontsize";
+import {
+  useState,
+  memo,
+} from "react";
+import {
+  View,
+  StyleSheet,
+} from "react-native";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import PlusButton from "../../components/General/PlusButton";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
-const TodosScreen = function ({ navigation }) {
+const TodosScreen = function () {
+  const bottomTabBarHeight = useBottomTabBarHeight();
+
+  const segmentedValues = ["Dringend", "Demnächst", "Optional"];
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const handleAddTodo = () => {
+    console.log("Add todo");
+  };
+
   return (
     <View style={styles.screen}>
-      <View style={styles.container}>
-        <View
-          style={[styles.deadlineListView, ]}
-        >
-          <Text style={styles.sectionTitle}>
-            Karsten
-          </Text>
-        </View>
+      <View style={styles.segmentedControlBox}>
+        <SegmentedControl
+          values={segmentedValues}
+          selectedIndex={selectedIndex}
+          onChange={(event) => {
+            setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+          }}
+          style={{ height: 32, width: "100%" }}
+        />
+      </View>
+
+      <View style={[styles.buttonWrapper, { bottom: bottomTabBarHeight + 5, }]}>
+        <PlusButton onPress={handleAddTodo} />
       </View>
     </View>
   );
@@ -23,39 +43,28 @@ const TodosScreen = function ({ navigation }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "#a1a1a1",
-  },
-  container: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#a1a1a1",
-  },
-  monthOverviewContainer: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  deadlineListView: {
-    height: "50%",
-    width: "100%",
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
     backgroundColor: "#EFEEF6",
   },
-  sectionTitle: {
-    fontSize: RFPercentage(2.44),
-    fontWeight: "600",
-    padding: 10,
-    marginLeft: 10,
+  segmentedControlBox: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+    paddingVertical: 12,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
-  emptyListText: {
-    width: "100%", 
-    textAlign: "center",
-    fontSize: RFPercentage(2),
-    fontWeight: "500",
-    color: "#8E8E93",
-  }
+  buttonWrapper: {
+    position: "absolute",
+    right: 20,
+    alignItems: "center",
+    width: 100,
+    height: 100
+  },
 });
 
 export default memo(TodosScreen);

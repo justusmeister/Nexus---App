@@ -20,8 +20,8 @@ SplashScreen.preventAutoHideAsync();
 LogRocket.init('lb7h2h/nexus')*/
 
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
-const USERNAME = "justus.meister";
-const PASSWORD = "pswd";
+const USERNAME = "urs";
+const PASSWORD = "Oso7o52o25!";
 const CLIENT = "WebUntis";
 
 let sessionId = null;
@@ -103,6 +103,7 @@ const getTimetable = async () => {
         headers: { Cookie: `JSESSIONID=${sessionId}` },
       }
     );
+    console.log("Stundenplan:", JSON.stringify(response.data.result, null, 2))
 
   } catch (error) {
     console.log("Stundenplan fehlerhaft:", error);
@@ -119,6 +120,7 @@ const App = function () {
     if (loaded || error) {
       SplashScreen.hideAsync();
     }
+    //getTimetable();
   }, [loaded, error]);
 
   if (!loaded && !error) {

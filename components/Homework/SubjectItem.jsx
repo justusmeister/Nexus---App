@@ -92,11 +92,16 @@ const styles = StyleSheet.create({
   subjectBox: {
     width: "auto",
     height: 85,
-    borderRadius: 20,
+    borderRadius: 25,
     padding: 15,
     marginHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   subjectText: {
     marginLeft: 15,
