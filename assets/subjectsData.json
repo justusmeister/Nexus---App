@@ -1,0 +1,54 @@
+[
+  {
+    "fach": "Chemie",
+    "id": 71
+  },
+  {
+    "fach": "Deutsch",
+    "id": 77
+  },
+  {
+    "fach": "Sport",
+    "id": 208
+  },
+  {
+    "fach": "Englisch",
+    "id": 94
+  },
+  {
+    "fach": "Latein",
+    "id": 138
+  },
+  {
+    "fach": "Mathe",
+    "id": 149
+  },
+  {
+    "fach": "Musik",
+    "id": 161
+  },
+  {
+    "fach": "Physik",
+    "id": 167
+  },
+  {
+    "fach": "k. Religion",
+    "id": 189
+  },
+  {
+    "fach": "Klassenstunde",
+    "id": 221
+  },
+  {
+    "fach": "Geschichte",
+    "id": 116
+  },
+  {
+    "fach": "Politik",
+    "id": 186
+  },
+  {
+    "fach": "WPKIF1",
+    "id": 1531
+  }
+]

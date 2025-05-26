@@ -4,6 +4,7 @@ import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
 import { formatTimestamp } from "../../utils/formatTimestamp";
+import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
 
 const GenericSubjectItem = memo(function ({
   item,
@@ -56,13 +57,7 @@ const GenericSubjectItem = memo(function ({
     ? "#FDDCDC"
     : "#E4E4E7";
 
-  const formattedDueDate = item.dueDate
-    ? new Date(item.dueDate.seconds * 1000).toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
-      })
-    : "n.A.";
+    const formattedDueDate = formatDueDateFromTimestamp(item.dueDate);
 
   return (
     <Animated.View
@@ -119,10 +114,18 @@ const GenericSubjectItem = memo(function ({
                 { color: isUrgent ? "#e02225" : "grey" },
               ]}
             >
-              <Text style={styles.dueDateDescriptionText}>Abgabedatum: </Text>
+              <Text style={styles.dueDateDescriptionText}>Abgabe: </Text>
               {formattedDueDate}
             </Text>
           </View>
+          {item.attachments && (
+            <Icon.Feather
+              name="paperclip"
+              size={20}
+              color="black"
+              style={styles.attachmentsIcon}
+            />
+          )}
           {item.priority > 0 && (
             <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
           )}
@@ -174,7 +177,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dueDateText: {
-    fontSize: RFPercentage(2.05),
+    fontSize: RFPercentage(2),
     fontWeight: "700",
     color: "grey",
   },
@@ -190,5 +193,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     width: 42,
     height: 42,
+  },
+  attachmentsIcon: {
+    padding: 3,
+    paddingRight: 10,
   },
 });

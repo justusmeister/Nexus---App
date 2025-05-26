@@ -5,20 +5,24 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
-import { SegmentedControl } from "../../SegmentedControl";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
 const EventTypeSelector = memo(function ({ eventType, setEventType }) {
   const windowWidth = useWindowDimensions().width;
-  
+  const options = ["Klausur", "Event"];
+  const selectedIndex = options.indexOf(eventType);
+
   return (
     <View style={styles.eventTypeSelectorContainer}>
       <Text style={styles.label}>Eventtyp:</Text>
       <SegmentedControl
-        options={["Klausur", "Event"]}
-        selectedOption={eventType}
-        onOptionPress={setEventType}
-        width={windowWidth / 2}
+        values={options}
+        selectedIndex={selectedIndex}
+        onChange={(event) =>
+          setEventType(options[event.nativeEvent.selectedSegmentIndex])
+        }
+        style={{ width: windowWidth / 2 }}
       />
     </View>
   );

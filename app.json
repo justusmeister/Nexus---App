@@ -34,7 +34,13 @@
       "@logrocket/react-native",
       "expo-secure-store",
       "expo-font",
-      "expo-image-picker"
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Diese App benötigt Zugriff auf deine Kamera.",
+          "photosPermission": "Diese App benötigt Zugriff auf deine Fotos."
+        }
+      ]
     ],
     "extra": {
       "eas": {

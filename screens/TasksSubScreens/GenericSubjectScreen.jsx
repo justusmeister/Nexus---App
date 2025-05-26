@@ -36,6 +36,7 @@ import HomeworkModal from "../../modals/HomeworkModal";
 import GenericSubjectItem from "../../components/GenericSubject/GenericSubjectItem";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import PlusButton from "../../components/General/PlusButton";
+import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 const GenericScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -349,38 +350,47 @@ const GenericScreen = function ({ navigation }) {
           style={{ height: 32, width: "100%" }}
         />
       </View>
-      <FlatList
-        data={filteredHomeworkList}
-        renderItem={({ item, index }) => (
-          <GenericSubjectItem
-            item={item}
-            index={index}
-            color={params?.color}
-            handleOpenDetailedModal={handleOpenDetailedModal}
-            updateHomeworkStatus={updateHomeworkStatus}
-            activeAnimation={activeAnimation}
-            setActiveAnimation={setActiveAnimation}
-            buttonScale={buttonScale}
+      {loading ? (
+        <ActivityIndicator size="small" color="#333" />
+      ) : (
+        <Reanimated.View
+          key={selectedIndex}
+          entering={FadeIn}
+          exiting={FadeOut}
+        >
+          <FlatList
+            data={filteredHomeworkList}
+            renderItem={({ item, index }) => (
+              <GenericSubjectItem
+                item={item}
+                index={index}
+                color={params?.color}
+                handleOpenDetailedModal={handleOpenDetailedModal}
+                updateHomeworkStatus={updateHomeworkStatus}
+                activeAnimation={activeAnimation}
+                setActiveAnimation={setActiveAnimation}
+                buttonScale={buttonScale}
+              />
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            ListEmptyComponent={
+              filteredHomeworkList.length < 1 ? (
+                <Text style={styles.emptyListText}>
+                  {selectedOption === "erledigt"
+                    ? "Keine erledigten Hausaufgaben"
+                    : "Alle Aufgaben erledigt!"}
+                </Text>
+              ) : null
+            }
+            style={{ padding: 8 }}
+            contentContainerStyle={{ paddingBottom: tabBarHeight }}
+            keyboardShouldPersistTaps="handled"
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
           />
-        )}
-        keyExtractor={(item, index) => index.toString()}
-        ListEmptyComponent={
-          loading ? (
-            <ActivityIndicator size="small" color="#333" />
-          ) : filteredHomeworkList.length < 1 ? (
-            <Text style={styles.emptyListText}>
-              {selectedOption == "erledigt"
-                ? "Keine erledigten Hausaufgaben"
-                : "Alle Aufgaben erledigt!"}
-            </Text>
-          ) : null
-        }
-        style={{ padding: 8 }}
-        contentContainerStyle={{ paddingBottom: tabBarHeight }}
-        keyboardShouldPersistTaps="handled"
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-      />
+        </Reanimated.View>
+      )}
+
       <HomeworkBottomSheet
         sheetRef={sheetRef}
         titleInputRef={titleInputRef}

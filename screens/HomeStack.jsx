@@ -17,14 +17,25 @@ function CustomBackButton() {
   return (
     <Pressable
       onPress={() => navigation.goBack()}
-      style={{
-        backgroundColor: '#e0e0e0',
-        padding: 8,
-        borderRadius: 25,
+      style={({ pressed }) => [{
+        padding: 6,
+        borderRadius: 15,
         marginLeft: 10, // Abstand zum Rand
-      }}
+        backgroundColor: "rgba(0, 0, 0, 0.065)",
+        borderWidth: 1,
+        borderColor: "#c6c6c6",
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "darkgray",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        elevation: 8,
+        opacity: pressed ? 0.4 : 1,
+      }]}
+      hitSlop={12}
     >
-      <Icon.Feather name="arrow-left" size={20} color="black" />
+      <Icon.Feather name="arrow-left" size={25} color="black" />
     </Pressable>
   );
 }

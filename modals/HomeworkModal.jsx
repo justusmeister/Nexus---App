@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   Platform,
+  FlatList,
 } from "react-native";
 import Animated, {
   Easing,
@@ -17,11 +18,25 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import * as Icon from "@expo/vector-icons";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { checkDeadlineRemainingTime } from "../utils/checkDeadlineRemainingTime";
 import { Timestamp } from "firebase/firestore";
 import DatePickerModal from "../components/DatePickerModal";
+import ImageViewing from "react-native-image-viewing";
+
+import AttachmentPreview from "../components/General/AttachmentBar/AttachmentPreview";
+
+// Services
+import {
+  openCamera,
+  openGallery,
+  openAttachment,
+  openNativeFile,
+  formatBytes,
+  mimeTypeToFeatherIcon,
+} from "../components/General/AttachmentBar/utils/attachmentService";
+import AddAttachmentDropDownMenu from "../components/Homework/AddAttachmentDropDownMenu";
 
 const HomeworkModal = ({
   visible,
@@ -136,6 +151,87 @@ const HomeworkModal = ({
     }
   };
 
+  const [attachments, setAttachments] = useState([]);
+  const [imageViewerState, setImageViewerState] = useState({
+    visible: false,
+    currentIndex: 0,
+  });
+
+  const imageAttachments = useMemo(
+    () => attachments.filter((a) => a.type === "image"),
+    [attachments]
+  );
+
+  // Attachment handlers
+  const handleOpenCamera = useCallback(async () => {
+    const newAttachment = await openCamera();
+    if (newAttachment) {
+      setAttachments((prev) => [...prev, newAttachment]);
+    }
+  }, []);
+
+  const handleOpenGallery = useCallback(async () => {
+    const newAttachment = await openGallery();
+    if (newAttachment) {
+      setAttachments((prev) => [...prev, newAttachment]);
+    }
+  }, []);
+
+  const handleOpenAttachment = useCallback(async () => {
+    const newAttachment = await openAttachment();
+    if (newAttachment) {
+      setAttachments((prev) => [...prev, newAttachment]);
+    }
+  }, []);
+
+  const handleRemoveAttachment = useCallback((indexToRemove) => {
+    setAttachments((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
+  }, []);
+
+  const handleAttachmentPress = useCallback(
+    (item) => {
+      if (item.type === "image") {
+        const imageIndex = imageAttachments.findIndex(
+          (a) => a.uri === item.uri
+        );
+        setImageViewerState({
+          visible: true,
+          currentIndex: imageIndex,
+        });
+      } else {
+        openNativeFile(item.uri);
+      }
+    },
+    [imageAttachments]
+  );
+
+  // Rendering
+  const renderAttachmentItem = useCallback(
+    ({ item, index }) => (
+      <AttachmentPreview
+        item={item}
+        index={index}
+        isEditing={editing}
+        onPress={() => handleAttachmentPress(item)}
+        onRemove={() => handleRemoveAttachment(index)}
+      />
+    ),
+    [handleAttachmentPress, handleRemoveAttachment, editing]
+  );
+
+  // Performance optimierungen für FlatList
+  const keyExtractor = useCallback((_, index) => `attachment-${index}`, []);
+  const getItemLayout = useCallback(
+    (_, index) => ({
+      length: 100,
+      offset: 100 * index,
+      index,
+    }),
+    []
+  );
+
   const hexToHsla = (hex, alpha = 0.15) => {
     let r = parseInt(hex.substring(1, 3), 16);
     let g = parseInt(hex.substring(3, 5), 16);
@@ -218,26 +314,26 @@ const HomeworkModal = ({
                     </Text>
                   </View>
                 ) : (
-                    <View style={styles.datesEditBox}>
-                      <Text style={[styles.dateText, { fontWeight: "700" }]}>
-                        Abgabedatum:{" "}
-                      </Text>
-                      <Pressable
-                        onPress={() => setDueDatePickerVisible(true)}
-                        style={styles.dateButton}
-                        hitSlop={10}
+                  <View style={styles.datesEditBox}>
+                    <Text style={[styles.dateText, { fontWeight: "700" }]}>
+                      Abgabedatum:{" "}
+                    </Text>
+                    <Pressable
+                      onPress={() => setDueDatePickerVisible(true)}
+                      style={styles.dateButton}
+                      hitSlop={10}
+                    >
+                      <Text
+                        style={[
+                          styles.dateText,
+                          styles.dateEditingText,
+                          { fontWeight: "700" },
+                        ]}
                       >
-                        <Text
-                          style={[
-                            styles.dateText,
-                            styles.dateEditingText,
-                            { fontWeight: "700" },
-                          ]}
-                        >
-                          {formatTimestamp(dueDate)}
-                        </Text>
-                      </Pressable>
-                    </View>
+                        {formatTimestamp(dueDate)}
+                      </Text>
+                    </Pressable>
+                  </View>
                 )}
                 {!editing && (
                   <View style={styles.statusBox}>
@@ -322,6 +418,31 @@ const HomeworkModal = ({
                     onFocus={handleDescriptionFocus}
                     onBlur={() => setMultiInputFocused(false)}
                   />
+                  <View style={styles.dropdown}>
+                    {attachments.length > 0 && (
+                      <FlatList
+                        data={attachments}
+                        renderItem={renderAttachmentItem}
+                        keyExtractor={keyExtractor}
+                        getItemLayout={getItemLayout}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        initialNumToRender={4}
+                        maxToRenderPerBatch={8}
+                        windowSize={5}
+                        removeClippedSubviews={true}
+                        style={styles.attachmentScroll}
+                      />
+                    )}
+
+                    {editing && (
+                      <AddAttachmentDropDownMenu
+                        onCamera={handleOpenCamera}
+                        onImages={handleOpenGallery}
+                        onFiles={handleOpenAttachment}
+                      />
+                    )}
+                  </View>
                 </Pressable>
               </ScrollView>
               <View style={styles.buttonsBottomBox}>
@@ -416,6 +537,17 @@ const HomeworkModal = ({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
+      <ImageViewing
+        animationType="slide"
+        images={imageAttachments.map((img) => ({ uri: img.uri }))}
+        imageIndex={imageViewerState.currentIndex}
+        visible={imageViewerState.visible}
+        backgroundColor="white"
+        onRequestClose={() =>
+          setImageViewerState({ ...imageViewerState, visible: false })
+        }
+        swipeToCloseEnabled={false}
+      />
     </Modal>
   );
 };
@@ -551,6 +683,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     flexDirection: "row",
+    paddingTop: 5,
   },
   deleteButton: {
     width: "auto",
@@ -643,5 +776,14 @@ const styles = StyleSheet.create({
   },
   dateEditingText: {
     color: "#0066cc",
-  }
+  },
+  dropdown: {
+    height: "auto",
+    width: "100%",
+    flexDirection: "row",
+    padding: 5,
+    marginTop: 5,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
 });

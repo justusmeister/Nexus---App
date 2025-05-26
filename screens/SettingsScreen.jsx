@@ -53,6 +53,7 @@ const SettingsScreen = ({ navigation }) => {
           try {
             firebaseAuth.signOut();
           } finally {
+            navigation.goBack();
             navigation.navigate("SplashScreen");
           }
         }
@@ -71,7 +72,10 @@ const SettingsScreen = ({ navigation }) => {
           style: "destructive",
           onPress: () =>
             deleteUser(user)
-              .then(() => navigation.navigate("AuthStack"))
+              .then(() => {
+                navigation.goBack();
+                navigation.navigate("AuthStack");
+              })
               .catch(() => console.log("Löschen fehlgeschlagen")),
         },
       ]
@@ -164,7 +168,13 @@ const SettingsScreen = ({ navigation }) => {
             />
           </Section>
 
-          <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logout, { opacity: pressed ? 0.6 : 1 }]}>
+          <Pressable
+            onPress={handleLogout}
+            style={({ pressed }) => [
+              styles.logout,
+              { opacity: pressed ? 0.6 : 1 },
+            ]}
+          >
             <Icon.MaterialIcons name="logout" size={22} color="white" />
             <Text style={styles.logoutText}>Abmelden</Text>
           </Pressable>
@@ -207,7 +217,7 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingTop: 16,
   },
   section: {
@@ -234,7 +244,7 @@ const styles = StyleSheet.create({
   },
   logout: {
     marginTop: 26,
-    backgroundColor: "#e35a5a", 
+    backgroundColor: "#e35a5a",
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 16,

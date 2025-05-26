@@ -5,19 +5,19 @@ import {
   BottomSheetBackdrop,
   BottomSheetModal,
 } from "@gorhom/bottom-sheet";
-import { SegmentedControl } from "../../SegmentedControl";
 import FormField from "../../General/FormField";
 import RadioOption from "../../General/RadioOption";
 import DateTimeSelector from "../../General/DateTimeSelector";
 import EventTypeSelector from "./EventTypeSelector";
 import SaveButton from "../../General/SaveButton";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 
 const DeadlineBottomSheet = memo(function ({
   sheetRef,
   titleInputRef,
   addAppointment,
 }) {
-  const [selectedOption, setSelectedOption] = useState("Event");
+  const [selectedIndex, setSelectedIndex] = useState(1);
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -27,6 +27,9 @@ const DeadlineBottomSheet = memo(function ({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [activeField, setActiveField] = useState(null);
   const scrollViewRef = useRef(null);
+
+  const segmentedValues = ["Zeitraum", "Event", "Frist"];
+  const selectedOption = segmentedValues[selectedIndex];
 
   useEffect(() => {
     const keyboardShowListener = Keyboard.addListener(
@@ -78,7 +81,7 @@ const DeadlineBottomSheet = memo(function ({
     setStartDate(new Date());
     setEndDate(new Date());
     setEventType("Klausur");
-    setSelectedOption("Event");
+    setSelectedIndex(1);
   };
 
   const toggleIsAllDay = useCallback(() => {
@@ -139,12 +142,14 @@ const DeadlineBottomSheet = memo(function ({
       backdropComponent={renderBackdrop}
       onDismiss={handleDismiss}
     >
-      <View style={{ paddingHorizontal: 16 }}>
+      <View style={styles.segmentedControlBox}>
         <SegmentedControl
-          options={["Zeitraum", "Event", "Frist"]}
-          selectedOption={selectedOption}
-          onOptionPress={setSelectedOption}
-          style={styles.segmentedControl}
+          values={segmentedValues}
+          selectedIndex={selectedIndex}
+          onChange={(event) => {
+            setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+          }}
+          style={{ height: 32, width: "100%" }}
         />
       </View>
       <BottomSheetScrollView
@@ -235,8 +240,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
   },
-  segmentedControl: {
-    marginBottom: 20,
+  segmentedControlBox: {
     width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+    paddingVertical: 12,
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
 });

@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Pressable, Text, StyleSheet, Platform } from "react-native";
 import * as Icon from "@expo/vector-icons";
 
@@ -15,7 +14,10 @@ const HomeHeader = ({ onLeftPress, onMiddlePress, onRightPress }) => {
 const IconButton = ({ icon, label, onPress }) => {
   return (
     <View style={styles.wrapper}>
-      <Pressable style={({ pressed }) => [styles.button, { opacity: pressed ? 0.4 : 1 }]} onPress={onPress}>
+      <Pressable
+        style={({ pressed }) => [styles.button, { opacity: pressed ? 0.4 : 1 }]}
+        onPress={onPress}
+      >
         <Icon.Feather name={icon} size={28} color="#333" />
       </Pressable>
       <Text style={styles.label}>{label}</Text>

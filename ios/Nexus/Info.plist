@@ -78,5 +78,9 @@
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+    <string>Diese App benötigt Zugriff auf die Kamera, um Fotos aufzunehmen.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Diese App benötigt Zugriff auf deine Fotos, um Bilder auszuwählen.</string>
 </dict>
 </plist>

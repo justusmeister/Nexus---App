@@ -5,49 +5,52 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Image,
   KeyboardAvoidingView,
   Alert,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
-import {
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { firebaseAuth } from "../../firebaseConfig";
-import { RFPercentage } from "react-native-responsive-fontsize";
 
-const LoginScreen = function ({ navigation }) {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const auth = firebaseAuth;
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({ email: "", password: "" });
 
-  const signIn = async () => {
-    setLoading(true);
-    try {
-      const user = await signInWithEmailAndPassword(auth, email, password);
-      if (user) {
-        navigation.navigate("Tabs");
-        setEmail("");
-        setPassword("");
-      }
-    } catch (nativeErrorCode) {
-      console.log(nativeErrorCode);
-    } finally {
-      setLoading(false);
+  const validate = () => {
+    let valid = true;
+    const newErrors = { email: "", password: "" };
+
+    if (!email) {
+      newErrors.email = "Bitte E-Mail eingeben";
+      valid = false;
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      newErrors.email = "Ungültige E-Mail-Adresse";
+      valid = false;
     }
+
+    if (!password) {
+      newErrors.password = "Bitte Passwort eingeben";
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
   };
 
-  const signUp = async () => {
+  const handleLogin = async () => {
+    if (!validate()) return;
+    
     setLoading(true);
     try {
-      const user = await createUserWithEmailAndPassword(auth, email, password);
-      if (user) navigation.navigate("Tabs");
-    } catch (nativeErrorCode) {
-      console.log(nativeErrorCode);
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
+      navigation.navigate("Tabs");
+    } catch (error) {
+      Alert.alert("Fehler", "Falsche Anmeldedaten oder Nutzer existiert nicht");
     } finally {
       setLoading(false);
     }
@@ -55,120 +58,218 @@ const LoginScreen = function ({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <View style={styles.imageBox}>
-        <Image
-          style={styles.logoImage}
-          source={require("../../assets/adaptive-icon.png")}
-          resizeMode="contain"
-        />
+      {/* Platzhalter für silbernen Back-Button */}
+      <View style={styles.backButtonPlaceholder} />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>Anmelden</Text>
+        <Text style={styles.subtitle}>Willkommen zurück</Text>
       </View>
-      <View style={styles.loginWindow}>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>E-Mail</Text>
         <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#ffffff"
+          style={[styles.input, errors.email && styles.inputError]}
+          placeholder="deine@email.de"
+          placeholderTextColor="#888"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Passwort"
-          placeholderTextColor="#ffffff"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <Pressable onPress={() => navigation.navigate("ForgotPasswordScreen")}>
-          <Text>Passwort vergessen ?</Text>
-        </Pressable>
-        <TouchableOpacity style={styles.signInButton} onPress={signIn}>
+        {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Passwort</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, errors.password && styles.inputError]}
+            placeholder="••••••••"
+            placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <Pressable 
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(!showPassword)}
+            hitSlop={10}
+          >
+            <Icon.Feather 
+              name={showPassword ? "eye-off" : "eye"} 
+              size={20} 
+              color="#888" 
+            />
+          </Pressable>
+        </View>
+        {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+      </View>
+
+      <Pressable 
+        style={styles.forgotPassword}
+        onPress={() => navigation.navigate("ForgotPasswordScreen")}
+      >
+        <Text style={styles.forgotPasswordText}>Passwort vergessen?</Text>
+      </Pressable>
+
+      <TouchableOpacity 
+        style={styles.primaryButton}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
           <Text style={styles.buttonText}>Anmelden</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.registerButton} onPress={signUp}>
-          <Text style={styles.buttonText}>Registrieren</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.googleButton}>
-          <Icon.FontAwesome name="google" size={20} color="#ffffff" />
-          <Text style={[styles.buttonText, { marginLeft: 8 }]}>
-            Mit Google anmelden
-          </Text>
+        )}
+      </TouchableOpacity>
+
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>oder</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <TouchableOpacity style={styles.googleButton}>
+        <Icon.FontAwesome name="google" size={20} color="#DB4437" />
+        <Text style={styles.googleButtonText}>Mit Google anmelden</Text>
+      </TouchableOpacity>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Noch kein Konto?</Text>
+        <TouchableOpacity onPress={() => {
+            navigation.goBack();
+            navigation.navigate("RegistrationScreen");
+          }}>
+          <Text style={styles.footerLink}>Registrieren</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#EFEEF6",
+    backgroundColor: "#fff",
+    paddingHorizontal: 24,
   },
-  loginWindow: {
-    width: "100%",
-    height: "70%",
-    backgroundColor: "#3892d6",
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
+  backButtonPlaceholder: {
+    height: 40,
+    marginTop: 16,
   },
-  imageBox: {
-    width: "100%",
-    height: "30%",
-    justifyContent: "center",
-    alignItems: "center",
+  header: {
+    marginBottom: 32,
   },
-  logoImage: {
-    width: 150,
-    height: 150,
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    color: "#444",
+    marginBottom: 8,
   },
   input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderWidth: 1,
+    borderColor: "#ddd",
     borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    color: "#ffffff",
-    fontSize: RFPercentage(2.05),
+    padding: 14,
+    fontSize: 16,
+    color: "#000",
   },
-  signInButton: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#2678C0",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
+  inputError: {
+    borderColor: "#FF3B30",
   },
-  registerButton: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#1E5A99",
-    borderRadius: 8,
-    justifyContent: "center",
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  passwordContainer: {
+    position: "relative",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 14,
+    top: 14,
+  },
+  forgotPassword: {
+    alignSelf: "flex-end",
+    marginBottom: 24,
+  },
+  forgotPasswordText: {
+    color: "#007AFF",
+    fontSize: 14,
+  },
+  primaryButton: {
+    backgroundColor: "#007AFF",
+    padding: 16,
+    borderRadius: 12,
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#eee",
+  },
+  dividerText: {
+    paddingHorizontal: 10,
+    color: "#888",
+    fontSize: 12,
   },
   googleButton: {
     flexDirection: "row",
-    width: "100%",
-    height: 50,
-    backgroundColor: "#DB4437",
-    borderRadius: 8,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    marginBottom: 24,
   },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: RFPercentage(2.05),
-    fontWeight: "bold",
+  googleButtonText: {
+    color: "#444",
+    fontWeight: "600",
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 24,
+  },
+  footerText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  footerLink: {
+    color: "#007AFF",
+    fontWeight: "600",
+    fontSize: 14,
+    marginLeft: 4,
   },
 });
+
+export default LoginScreen;

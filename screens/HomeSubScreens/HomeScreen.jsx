@@ -1,4 +1,4 @@
-import React from "react";
+import { useRef, useCallback } from "react";
 import {
   View,
   SafeAreaView,
@@ -20,26 +20,69 @@ import { RFPercentage } from "react-native-responsive-fontsize";
 import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import * as Icon from "@expo/vector-icons";
-//import { trigger } from "react-native-haptic-feedback";
+import { trigger } from "react-native-haptic-feedback";
+import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
+import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomSheet/DeadlineBottomSheet";
+import { useAppointments } from "../../hooks/useAppointments";
+import { getAuth } from "firebase/auth";
 
 const HomeScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { deadlinesData, deleteDeadline } = useDeadlinesData();
   const { mailData, refreshing } = useEmailData();
 
+  const sheetRef = useRef(null);
+  const titleInputRef = useRef(null);
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const { addAppointment } = useAppointments(user);
+
+  const handleOpen = () => {
+    sheetRef.current?.present();
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+    }, 200);
+  };
+
+  const handleAddAppointment = useCallback(
+    (
+      name,
+      day,
+      endDate,
+      eventType,
+      description,
+      singleEvent,
+      saveAsDeadline
+    ) => {
+      addAppointment(
+        name,
+        day,
+        endDate,
+        eventType,
+        description,
+        singleEvent,
+        saveAsDeadline
+      );
+    },
+    [addAppointment]
+  );
+
   const { showActionSheetWithOptions } = useActionSheet();
 
+  const options = {
+    enableVibrateFallback: true,
+    ignoreAndroidSystemSettings: false,
+  };
+
   const handlePressedFocusButton = () => {
+    trigger("impactLight", options);
     navigation.navigate("Focus");
   };
 
   const handlePressedHeaderButton = () => {
-    const options = {
-      enableVibrateFallback: true,
-      ignoreAndroidSystemSettings: false,
-    };
-
-    //trigger("impactLight", options);
+    trigger("impactLight", options);
     handleOpenSheet();
   };
 
@@ -65,7 +108,7 @@ const HomeScreen = function ({ navigation }) {
             console.log("Hausaufgabe gewählt");
             break;
           case 1:
-            console.log("Termin gewählt");
+            handleOpen();
             break;
           case 2:
             console.log("To-Do gewählt");
@@ -139,67 +182,78 @@ const HomeScreen = function ({ navigation }) {
     </TouchableOpacity>
   );
 
-  const deadlineTemplate = (subject, task, date, place) => (
-    <TouchableOpacity
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 5,
-        opacity:
-          checkDeadlineRemainingTime(date).isWithinTwoDays === 0 ||
-          checkDeadlineRemainingTime(date).isWithinTwoDays === -1
-            ? 0.4
-            : 1,
-      }}
-      onPress={() => navigation.navigate("DeadlineScreen", { taskId: place })}
-    >
-      <Checkbox onConfirm={() => deleteDeadline(deadlinesData[place].id)} />
-      <View
+  const deadlineTemplate = (subject, task, date, place) => {
+    function parseToTimestamp(dateString) {
+      const [day, month, year] = dateString.split(".");
+      const fullYear = parseInt(year) < 50 ? "20" + year : "19" + year;
+      const date = new Date(`${fullYear}-${month}-${day}`);
+      const seconds = Math.floor(date.getTime() / 1000);
+      return { seconds };
+    }
+
+    const formattedDueDate = formatDueDateFromTimestamp(parseToTimestamp(date));
+    return (
+      <TouchableOpacity
         style={{
-          flex: 1,
           flexDirection: "row",
-          alignItems: "center",
           justifyContent: "space-between",
+          alignItems: "center",
+          gap: 5,
+          opacity:
+            checkDeadlineRemainingTime(date).isWithinTwoDays === 0 ||
+            checkDeadlineRemainingTime(date).isWithinTwoDays === -1
+              ? 0.4
+              : 1,
         }}
+        onPress={() => navigation.navigate("DeadlineScreen", { taskId: place })}
       >
-        <Text>
+        <Checkbox onConfirm={() => deleteDeadline(deadlinesData[place].id)} />
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text>
+            <Text
+              style={{
+                color: "white",
+                fontSize: RFPercentage(2.05),
+                fontWeight: "600",
+              }}
+            >
+              {truncateText(subject, 7)}:
+            </Text>
+          </Text>
+
           <Text
             style={{
               color: "white",
-              fontSize: RFPercentage(2.05),
-              fontWeight: "600",
+              fontSize: RFPercentage(1.92),
+              fontWeight: "500",
+              paddingHorizontal: 5,
+              flexShrink: 1,
+            }}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {task}
+          </Text>
+          <Text
+            style={{
+              fontSize: RFPercentage(1.67),
+              fontWeight: "700",
+              color: "#363636",
             }}
           >
-            {truncateText(subject, 7)}:
+            {formattedDueDate}
           </Text>
-        </Text>
-
-        <Text
-          style={{
-            color: "white",
-            fontSize: RFPercentage(1.92),
-            fontWeight: "500",
-            paddingHorizontal: 5,
-            flexShrink: 1,
-          }}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {task}
-        </Text>
-        <Text
-          style={{
-            fontSize: RFPercentage(1.67),
-            fontWeight: "700",
-            color: "#363636",
-          }}
-        >
-          {date}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
@@ -516,6 +570,11 @@ const HomeScreen = function ({ navigation }) {
             onPress={() => navigation.navigate("DeadlineScreen")}
           />
         </View>
+        <DeadlineBottomSheet
+          sheetRef={sheetRef}
+          titleInputRef={titleInputRef}
+          addAppointment={handleAddAppointment}
+        />
       </SafeAreaView>
     </View>
   );

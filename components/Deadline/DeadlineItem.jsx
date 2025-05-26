@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Pressable } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import Checkbox from "../Checkbox";
 import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
+import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
 
 const DeadlineItem = ({ item, index, onPress, onDelete }) => {
   const [activeAnimation, setActiveAnimation] = useState(null);
@@ -27,6 +28,16 @@ const DeadlineItem = ({ item, index, onPress, onDelete }) => {
       setActiveAnimation(null);
     });
   };
+
+  function parseToTimestamp(dateString) {
+    const [day, month, year] = dateString.split(".");
+    const fullYear = parseInt(year) < 50 ? "20" + year : "19" + year;
+    const date = new Date(`${fullYear}-${month}-${day}`);
+    const seconds = Math.floor(date.getTime() / 1000);
+    return { seconds };
+  }  
+  
+  const formattedDueDate = formatDueDateFromTimestamp(parseToTimestamp(item.dueDate));
 
   const deadlineStatus = checkDeadlineRemainingTime(item.dueDate);
   const isExpired = deadlineStatus.isWithinTwoDays === 0 || deadlineStatus.isWithinTwoDays === -1;
@@ -71,8 +82,8 @@ const DeadlineItem = ({ item, index, onPress, onDelete }) => {
               },
             ]}
           >
-            <Text style={styles.dueDateDescriptionText}>Frist endet am:</Text>{" "}
-            {item.dueDate}
+            <Text style={styles.dueDateDescriptionText}>Fälligkeit:</Text>{" "}
+            {formattedDueDate}
           </Text>
         </View>
       </Pressable>
@@ -93,7 +104,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 14,
     borderLeftWidth: 5,
-    borderLeftColor: "#e02225",
+    borderLeftColor: "#e74c3c",
   },
   deadlineDetails: {
     flex: 1,

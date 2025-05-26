@@ -2,8 +2,19 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { trigger } from "react-native-haptic-feedback";
 
 const ChoosePriority = ({ priority, onChange }) => {
+  const handleChangePriority = (level) => {
+    const options = {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    };
+
+    trigger("impactLight", options);
+    onChange(level);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Priorität:</Text>
@@ -11,11 +22,8 @@ const ChoosePriority = ({ priority, onChange }) => {
         {[0, 1, 2].map((level) => (
           <Pressable
             key={level}
-            onPress={() => onChange(level)}
-            style={[
-              styles.button,
-              priority === level && styles.activeButton
-            ]}
+            onPress={() => handleChangePriority(level)}
+            style={[styles.button, priority === level && styles.activeButton]}
           >
             <View style={styles.iconRow}>
               {level === 0 && (

@@ -9,7 +9,7 @@ import OrganisationStack from "./screens/OrganisationStack";
 import * as Icon from "@expo/vector-icons";
 import { Platform, StyleSheet, TouchableOpacity } from "react-native";
 import SettingsScreen from "./screens/SettingsScreen";
-import NotesInputScreen from "./screens/TasksSubScreens/NotesInputScreen"
+import NotesInputScreen from "./screens/TasksSubScreens/NotesInputScreen";
 import { calculateHolidayAPIDates } from "./utils/calculateHolidayAPIDates";
 import { useHolidayData } from "./contexts/HolidayDataContext";
 import { createAdjustedHolidayDataMap } from "./utils/createAdjustedHolidayDataMap";
@@ -21,6 +21,8 @@ import OnboardingScreen from "./screens/OnboardingScreen";
 import AuthStack from "./screens/AuthStack";
 import { getAsyncItem } from "./utils/asyncStorage";
 import Toast from "react-native-toast-message";
+import { getFullWeekPlan } from "./utils/webuntisFetchData";
+import { useTimetableData } from "./contexts/TimetableContext";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -101,6 +103,7 @@ const Navigation = function () {
   const { setMailData, setRefreshing } = useEmailData();
   const { holidayData, setHolidayData } = useHolidayData();
   const [initialRoute, setInitialRoute] = useState(null);
+  const { setTimetableData } = useTimetableData();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -147,6 +150,12 @@ const Navigation = function () {
 
     if (initialRoute && initialRoute !== "OnboardingScreen") {
       fetchAppData();
+      const fetchTimetable = async () => {
+        const timetableWeeks = await getFullWeekPlan();
+        setTimetableData(timetableWeeks);
+      };
+
+      fetchTimetable();
     }
   }, [initialRoute]);
 
@@ -187,7 +196,6 @@ const Navigation = function () {
           options={{
             presentation: "modal",
             title: "Einstellungen",
-            headerLargeTitle: true,
             headerStyle: { backgroundColor: "#EFEEF6" },
           }}
         />

@@ -5,25 +5,44 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { firebaseAuth } from "../../firebaseConfig";
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState(null); // null | "success" | "error"
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null); // null, "success", "error"
+  const [error, setError] = useState("");
 
-  const auth = firebaseAuth;
+  const validate = () => {
+    if (!email) {
+      setError("Bitte E-Mail eingeben");
+      return false;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setError("Ungültige E-Mail-Adresse");
+      return false;
+    }
+    setError("");
+    return true;
+  };
 
-  const forgotPassword = async () => {
+  const handleResetPassword = async () => {
+    if (!validate()) return;
+    
+    setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(firebaseAuth, email);
       setStatus("success");
-    } catch (error) {
+    } catch (err) {
       setStatus("error");
+      setError("Fehler beim Senden der E-Mail");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,101 +51,142 @@ const ForgotPasswordScreen = ({ navigation }) => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <Image source={require("../../assets/icon.png")} style={styles.icon} />
-      <View style={styles.box}>
+      {/* Platzhalter für silbernen Back-Button */}
+      <View style={styles.backButtonPlaceholder} />
+
+      <View style={styles.header}>
         <Text style={styles.title}>Passwort zurücksetzen</Text>
-        <Text style={styles.description}>
+        <Text style={styles.subtitle}>
           Gib deine E-Mail ein und wir senden dir einen Link zum Zurücksetzen
           deines Passworts.
         </Text>
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>E-Mail</Text>
         <TextInput
-          style={styles.input}
-          placeholder="E-Mail-Adresse"
+          style={[styles.input, error ? styles.inputError : null]}
+          placeholder="deine@email.de"
+          placeholderTextColor="#888"
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
           onChangeText={(text) => {
             setEmail(text);
-            setStatus(null); // Reset status beim Tippen
+            setStatus(null);
+            setError("");
           }}
         />
-        {status === "success" && (
-          <Text style={[styles.status, { color: "green" }]}>
-            E-Mail gesendet
-          </Text>
-        )}
-        {status === "error" && (
-          <Text style={[styles.status, { color: "red" }]}>
-            Fehler beim Senden
-          </Text>
-        )}
-        <TouchableOpacity style={styles.button} onPress={forgotPassword}>
-          <Text style={styles.buttonText}>Zurücksetzen</Text>
-        </TouchableOpacity>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
+
+      {status === "success" && (
+        <Text style={styles.successText}>
+          Email wurde erfolgreich gesendet!
+        </Text>
+      )}
+
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={handleResetPassword}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Link senden</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.secondaryButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.secondaryButtonText}>Zurück zum Login</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 };
 
-export default ForgotPasswordScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F8FF",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
+    backgroundColor: "#fff",
+    paddingHorizontal: 24,
   },
-  icon: {
-    width: 90,
-    height: 90,
-    marginBottom: 30,
+  backButtonPlaceholder: {
+    height: 40,
+    marginTop: 16,
   },
-  box: {
-    backgroundColor: "white",
-    width: "100%",
-    padding: 20,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+  header: {
+    marginBottom: 32,
   },
   title: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 10,
-    textAlign: "center",
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 8,
   },
-  description: {
-    fontSize: 14,
+  subtitle: {
+    fontSize: 16,
     color: "#666",
-    marginBottom: 20,
-    textAlign: "center",
+    lineHeight: 24,
+  },
+  inputContainer: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 14,
+    color: "#444",
+    marginBottom: 8,
   },
   input: {
-    height: 50,
-    borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    marginBottom: 6,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 16,
+    color: "#000",
   },
-  status: {
-    fontSize: 13,
-    marginBottom: 10,
-    marginLeft: 5,
+  inputError: {
+    borderColor: "#FF3B30",
   },
-  button: {
-    backgroundColor: "#3B82F6",
-    paddingVertical: 12,
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  successText: {
+    color: "#34C759",
+    fontSize: 14,
+    marginBottom: 24,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  primaryButton: {
+    backgroundColor: "#007AFF",
+    padding: 16,
     borderRadius: 12,
     alignItems: "center",
+    marginBottom: 16,
   },
   buttonText: {
-    color: "white",
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  secondaryButton: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  secondaryButtonText: {
+    color: "#007AFF",
     fontWeight: "600",
     fontSize: 16,
   },
 });
+
+export default ForgotPasswordScreen;
