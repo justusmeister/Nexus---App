@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Pressable } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import Checkbox from "../Checkbox";
 import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
+import * as Icon from "@expo/vector-icons";
 
 const colorByType = {
   Dringend: "#E07A5F", // Rot
@@ -34,14 +35,14 @@ const TodoItem = ({ item, index, onPress, onDelete }) => {
     });
   };
 
-  function parseToTimestamp(dateString) {
+  /*function parseToTimestamp(dateString) {
     const date = new Date(dateString);
     const seconds = Math.floor(date.getTime() / 1000);
     return { seconds };
-  }  
+  }*/
 
   // DueDate optional, also evtl. anzeigen
-  const formattedDueDate = formatDueDateFromTimestamp(parseToTimestamp(item.dueDate));
+  const formattedDueDate = formatDueDateFromTimestamp(item.dueDate);
 
   return (
     <Animated.View
@@ -61,19 +62,28 @@ const TodoItem = ({ item, index, onPress, onDelete }) => {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={onPress}
-        style={[styles.todoBox, { borderLeftColor: colorByType[item.typ] || "#000" }]}
+        style={[
+          styles.todoBox,
+          { borderLeftColor: colorByType[item.typ] || "#000" },
+        ]}
       >
         <Checkbox onConfirm={() => onDelete(item.id)} />
         <View style={styles.todoDetails}>
           <Text style={styles.todoText} numberOfLines={1} ellipsizeMode="tail">
-            {item.todo}
+            {item.title}
           </Text>
-          {formattedDueDate && (
+          {formattedDueDate /*!== "n.A."*/ && (
             <Text style={styles.dueDateText}>
               Fälligkeit: {formattedDueDate}
             </Text>
           )}
         </View>
+        {item.priority > 0 && (
+          <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+        )}
+        {item.priority > 1 && (
+          <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+        )}
       </Pressable>
     </Animated.View>
   );

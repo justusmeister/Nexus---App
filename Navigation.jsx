@@ -152,6 +152,7 @@ const Navigation = function () {
       fetchAppData();
       const fetchTimetable = async () => {
         const timetableWeeks = await getFullWeekPlan();
+        //console.log(JSON.stringify(timetableWeeks, null, 2));
         setTimetableData(timetableWeeks);
       };
 

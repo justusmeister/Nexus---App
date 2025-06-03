@@ -1,5 +1,5 @@
-import React, { useState, memo, useRef, useMemo } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import React, { useState, memo, useRef, useMemo, useEffect } from "react";
+import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import PlusButton from "../../components/General/PlusButton";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -7,6 +7,9 @@ import { FlashList } from "@shopify/flash-list";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import TodoItem from "../../components/Todo/TodoItem";
 import TodoBottomSheet from "../../components/BottomSheets/TodoBottomSheet/TodoBottomSheet";
+import { useTodos } from "../../hooks/useTodos";
+import { getAuth } from "firebase/auth";
+import { RFPercentage } from "react-native-responsive-fontsize";
 
 const exampleTodos = [
   {
@@ -14,7 +17,7 @@ const exampleTodos = [
     typ: "Dringend",
     todo: "Mathearbeit lernen",
     dueDate: "2025-06-01",
-    priorität: 2,
+    priority: 2,
     attachments: [],
   },
   {
@@ -22,7 +25,7 @@ const exampleTodos = [
     typ: "Demnächst",
     todo: "Buch abgeben",
     dueDate: "2025-06-05",
-    priorität: 1,
+    priority: 2,
     attachments: [],
   },
   {
@@ -30,7 +33,7 @@ const exampleTodos = [
     typ: "Optional",
     todo: "Ordner sortieren",
     dueDate: null,
-    priorität: 0,
+    priority: 0,
     attachments: [],
   },
   {
@@ -38,15 +41,15 @@ const exampleTodos = [
     typ: "Dringend",
     todo: "Elternzettel unterschreiben",
     dueDate: "2025-05-25",
-    priorität: 2,
+    priority: 0,
     attachments: [],
   },
   {
     id: "5",
-    typ: "Demnächst",
+    type: "Demnächst",
     todo: "Facharbeit formatieren",
     dueDate: null,
-    priorität: 1,
+    priority: 1,
     attachments: ["karste.png"],
   },
 ];
@@ -59,6 +62,10 @@ const TodosScreen = () => {
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
 
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const { todoList, loading, fetchTodos, addTodo, deleteTodo } = useTodos(user);
+
   const handleOpen = () => {
     sheetRef.current?.present();
     setTimeout(() => {
@@ -68,12 +75,12 @@ const TodosScreen = () => {
 
   const filteredTodos = useMemo(() => {
     const selectedType = segmentedValues[selectedIndex];
-    return exampleTodos.filter((todo) => todo.typ === selectedType);
+    return todoList.filter((todo) => todo.type === selectedType);
   }, [selectedIndex]);
 
-  const handleAddTodo = () => {
-    console.log("Add todo");
-  };
+  useEffect(() => {
+    fetchTodos();
+  }, []);
 
   return (
     <View style={styles.screen}>
@@ -88,27 +95,34 @@ const TodosScreen = () => {
         />
       </View>
 
-      <Animated.View
-        key={selectedIndex}
-        entering={FadeIn}
-        exiting={FadeOut}
-        style={styles.listContainer}
-      >
-        <FlashList
-          data={filteredTodos}
-          estimatedItemSize={60}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <TodoItem
-              item={item}
-              index={index}
-              onPress={() => console.log("Todo pressed:", item.todo)}
-              onDelete={(id) => console.log("Delete todo with id:", id)}
-            />
-          )}
-          style={styles.listStyle}
-        />
-      </Animated.View>
+      {loading ? (
+        <ActivityIndicator size="small" color="#333" />
+      ) : (
+        <Animated.View
+          key={selectedIndex}
+          entering={FadeIn}
+          exiting={FadeOut}
+          style={styles.listContainer}
+        >
+          <FlashList
+            data={filteredTodos}
+            estimatedItemSize={60}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => (
+              <TodoItem
+                item={item}
+                index={index}
+                onPress={() => console.log("Todo pressed:", item.todo)}
+                onDelete={(id) => console.log("Delete todo with id:", id)}
+              />
+            )}
+            ListEmptyComponent={
+              <Text style={styles.emptyListText}>Alle Todos erledigt</Text>
+            }
+            style={styles.listStyle}
+          />
+        </Animated.View>
+      )}
 
       <View style={[styles.buttonWrapper, { bottom: bottomTabBarHeight + 5 }]}>
         <PlusButton onPress={handleOpen} />
@@ -116,6 +130,7 @@ const TodosScreen = () => {
       <TodoBottomSheet
         sheetRef={sheetRef}
         titleInputRef={titleInputRef}
+        addTodo={addTodo}
       />
     </View>
   );
@@ -168,6 +183,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 100,
     height: 100,
+  },
+  emptyListText: {
+    fontSize: RFPercentage(2.18),
+    fontWeight: "500",
+    color: "#8E8E93",
+    textAlign: "center",
+    marginTop: 5,
   },
   listStyle: {},
 });

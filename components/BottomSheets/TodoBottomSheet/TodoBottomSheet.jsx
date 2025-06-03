@@ -39,14 +39,14 @@ import {
 const TodoBottomSheet = memo(function ({
   sheetRef,
   titleInputRef,
-  addHomework,
+  addTodo,
 }) {
   // State Management
   const [formState, setFormState] = useState({
-    isAllDay: true,
     dueDate: new Date(),
-    homeworkTitle: "",
+    todo: "",
     description: "",
+    type: "Dringend",
     priority: 0,
   });
 
@@ -174,12 +174,13 @@ const TodoBottomSheet = memo(function ({
 
   const handleDismiss = useCallback(() => {
     setFormState({
-      isAllDay: true,
       dueDate: new Date(),
-      homeworkTitle: "",
+      todo: "",
+      type: "Dringend",
       description: "",
       priority: 0,
     });
+    setSelectedIndex(0);
     setAttachments([]);
   }, []);
 
@@ -196,20 +197,20 @@ const TodoBottomSheet = memo(function ({
 
   const handleSave = useCallback(() => {
     try {
-      const { homeworkTitle, dueDate, description, isAllDay, priority } =
+      const { dueDate, todo, description, priority } =
         formState;
-      addHomework(
-        homeworkTitle || "Unbenannt",
+      addTodo(
         dueDate,
+        todo || "Unbenannt",
+        selectedOption,
         description || "-",
-        isAllDay,
         priority
       );
     } catch (error) {
       console.log(error);
     }
     handleClose();
-  }, [formState, addHomework, handleClose]);
+  }, [formState, addTodo, handleClose]);
 
   // Rendering
   const renderAttachmentItem = useCallback(
@@ -273,9 +274,9 @@ const TodoBottomSheet = memo(function ({
       >
         <FormField
           label="Titel:"
-          value={formState.homeworkTitle}
-          setValue={(val) => updateFormState("homeworkTitle", val)}
-          placeholder="Titel"
+          value={formState.todo}
+          setValue={(val) => updateFormState("todo", val)}
+          placeholder="Todo"
           maxLength={40}
           onFocus={() => updateKeyboardState("activeField", "title")}
           onBlur={handleInputBlur}

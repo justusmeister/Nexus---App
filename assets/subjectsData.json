@@ -32,7 +32,7 @@
     "id": 167
   },
   {
-    "fach": "k. Religion",
+    "fach": "Religion katholisch",
     "id": 189
   },
   {
@@ -44,11 +44,15 @@
     "id": 116
   },
   {
-    "fach": "Politik",
+    "fach": "Politik-Wirtschaft",
     "id": 186
   },
   {
     "fach": "WPKIF1",
     "id": 1531
+  },
+  {
+    "fach": "Informatik",
+    "id": 967
   }
 ]

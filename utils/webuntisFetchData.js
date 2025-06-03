@@ -16,6 +16,19 @@ const lessonStartTime = [
     1540, // 15:40
 ];
 
+const lessonEndTime = [
+    835,
+    920,
+    1025,
+    1110,
+    1215,
+    1305,
+    1400,
+    1445,
+    1540,
+    1620,
+]
+
 const BASE_URL = "https://nessa.webuntis.com/WebUntis/jsonrpc.do?school=Ursulaschule+Osnabrueck";
 const USERNAME = "urs";
 const PASSWORD = "Oso7o52o25!";
@@ -58,7 +71,7 @@ const getSession = async () => {
         });
 
         sessionId = res.data.result.sessionId;
-        console.log("✅ Login erfolgreich!");
+        //console.log("✅ Login erfolgreich!");
         return sessionId;
     } catch (err) {
         console.log("❌ Login fehlgeschlagen:", err);
@@ -103,12 +116,33 @@ const getFachNameById = (id) => {
 };
 
 const formatLessons = (lessonsRaw, roomMap) => {
-    // Montag bis Freitag, initial leer
     const days = Array(5).fill(null).map(() => ({ stunden: [] }));
 
-    lessonsRaw.forEach((lesson) => {
-        if (lesson.code === "cancelled") return;
+    // Kopie erstellen, um nicht während des Loops zu verändern
+    const expandedLessons = [];
 
+    lessonsRaw.forEach((lesson) => {
+        // Unverändert zur weiteren Verarbeitung
+        expandedLessons.push(lesson);
+
+        // Nur erweitern, wenn es eine Vertretung ist und endTime existiert
+        const isIrregular = lesson.code && lesson.code === "irregular";
+        const startIndex = lessonStartTime.indexOf(lesson.startTime);
+        const endIndex = lessonEndTime.indexOf(lesson.endTime);
+
+        if (isIrregular && startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            for (let i = startIndex + 1; i <= endIndex; i++) {
+                // Kopie der Lesson für jede weitere Stunde
+                expandedLessons.push({
+                    ...lesson,
+                    startTime: lessonStartTime[i],
+                });
+            }
+        }
+    });
+
+    // Jetzt ganz normal durch die erweiterten Lessons iterieren
+    expandedLessons.forEach((lesson) => {
         const dateStr = lesson.date.toString();
         const year = parseInt(dateStr.slice(0, 4));
         const month = parseInt(dateStr.slice(4, 6)) - 1;
@@ -126,24 +160,33 @@ const formatLessons = (lessonsRaw, roomMap) => {
         const lehrer = getLehrerName(lesson.te?.[0]?.id);
         const raum = roomMap[lesson.ro?.[0]?.id] || "—";
 
+        let status = "normal";
+        if (lesson.code === "cancelled") {
+            status = "cancelled";
+        } else if (lesson.code && lesson.code !== "regular") {
+            status = "vertretung";
+        }
+
         const eintrag = {
             fach: fachName,
             raum,
             lehrer,
-            status: "normal",
+            status,
         };
 
         const stundenArray = days[dayIndex].stunden;
 
-        // Array auf nötige Länge bringen
         while (stundenArray.length <= startHourIndex) {
             stundenArray.push(null);
         }
 
-        stundenArray[startHourIndex] = eintrag;
+        if (!stundenArray[startHourIndex]) {
+            stundenArray[startHourIndex] = [];
+        }
+
+        stundenArray[startHourIndex].push(eintrag);
     });
 
-    // Tage, die komplett leer sind, auf [null] setzen
     for (let i = 0; i < 5; i++) {
         const stunden = days[i].stunden;
         const hasContent = stunden.some((s) => s !== null);
@@ -168,7 +211,7 @@ export const getFullWeekPlan = async () => {
 
     const roomMap = await getRooms();
 
-    const weeks = [getWeekRange(0), getWeekRange(1)/*, getWeekRange(2)*/];
+    const weeks = [getWeekRange(0), getWeekRange(1), getWeekRange(2)];
 
     const allLessons = [];
 
@@ -197,8 +240,9 @@ export const getFullWeekPlan = async () => {
         );
 
         const lessons = response.data.result || [];
+         //console.log(JSON.stringify(lessons, null, 2));
         const formattedDays = formatLessons(lessons, roomMap);
-        printStundenProTag(formattedDays);
+        //printStundenProTag(formattedDays);
 
         allLessons.push(formattedDays);
     }

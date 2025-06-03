@@ -130,113 +130,94 @@ const SubjectColumn = ({
         </View>
       ) : (
         data?.map((item, index) => {
+          const lessonArray =
+            timetableEndData[indexColumn]?.stunden?.[index] || [];
+
           const isDoubleLesson =
             index < data.length - 1 &&
-            timetableEndData[indexColumn].stunden[index]?.fach ===
-              timetableEndData[indexColumn].stunden[index + 1]?.fach &&
-            timetableEndData[indexColumn].stunden[index]?.raum ===
-              timetableEndData[indexColumn].stunden[index + 1]?.raum;
+            JSON.stringify(timetableEndData[indexColumn].stunden[index]) ===
+              JSON.stringify(timetableEndData[indexColumn].stunden[index + 1]);
 
           const isLastDoubleLesson =
             index > 0 &&
-            timetableEndData[indexColumn].stunden[index]?.fach ===
-              timetableEndData[indexColumn].stunden[index - 1]?.fach &&
-            timetableEndData[indexColumn].stunden[index]?.raum ===
-              timetableEndData[indexColumn].stunden[index - 1]?.raum;
+            JSON.stringify(timetableEndData[indexColumn].stunden[index]) ===
+              JSON.stringify(timetableEndData[indexColumn].stunden[index - 1]);
 
           if (isLastDoubleLesson) {
             return null;
           }
 
-          if (isDoubleLesson) {
-            return (
-              <View
-                key={index}
-                style={[styles.cell, { height: cellHeight * 2 }]}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.lessonBox,
-                    {
-                      backgroundColor:
-                        timetableEndData[indexColumn].stunden[index]?.status ===
-                        "normal"
-                          ? "#3b82f6" // helles, kräftiges Blau
-                          : timetableEndData[indexColumn].stunden[index]
-                              ?.status === "vertretung"
-                          ? "#7c4dff" // lebendiges, helleres Lila
-                          : timetableEndData[indexColumn].stunden[index]
-                              ?.status === "entfall"
-                          ? "#f87171" // sanftes Rot
-                          : "#F9D566", // schönes Gelb für Prüfungen
-                    },
-                  ]}
-                  activeOpacity={0.4}
-                  onPress={() => {
-                    setCurrentLessonData(data[index]);
-                    setIsModalVisible(true);
-                  }}
-                >
-                  <Text
-                    style={styles.lessonText}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
+          return (
+            <View
+              key={index}
+              style={[
+                styles.cell,
+                { height: isDoubleLesson ? cellHeight * 2 : cellHeight },
+              ]}
+            >
+              <View style={{ flexDirection: "row", flex: 1 }}>
+                {lessonArray.map((lesson, lessonIndex) => (
+                  <TouchableOpacity
+                    key={lessonIndex}
+                    style={[
+                      styles.lessonBox,
+                      {
+                        flex: 1,
+                        marginRight:
+                          lessonIndex < lessonArray.length - 1 ? 4 : 0, // etwas Abstand zwischen Boxen
+                        backgroundColor:
+                          lesson.status === "normal"
+                            ? "#93D7A1"
+                            : lesson.status === "vertretung"
+                            ? "#C08CFF"
+                            : lesson.status === "cancelled"
+                            ? "#7F7F7F"
+                            : "#F9D566",
+                      },
+                    ]}
+                    activeOpacity={0.4}
+                    onPress={() => {
+                      setCurrentLessonData(lesson);
+                      setIsModalVisible(true);
+                    }}
                   >
-                    {data[index]?.fach}
-                  </Text>
-                  <Text
-                    style={styles.lessonText}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {data[index]?.raum}
-                  </Text>
-                  <Text
-                    style={styles.lessonText}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {data[index]?.lehrer}
-                  </Text>
-                </TouchableOpacity>
+                    {lesson.status === "cancelled" && (
+                      <>
+                        <View style={styles.crossLine} />
+                        <View
+                          style={[
+                            styles.crossLine,
+                            { transform: [{ rotate: "-45deg" }] },
+                          ]}
+                        />
+                      </>
+                    )}
+                    <Text
+                      style={styles.lessonText}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {lesson.fach}
+                    </Text>
+                    <Text
+                      style={styles.lessonText}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {lesson.raum}
+                    </Text>
+                    <Text
+                      style={styles.lessonText}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {lesson.lehrer}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            );
-          } else {
-            return (
-              <View key={index} style={[styles.cell, { height: cellHeight }]}>
-                <TouchableOpacity
-                  style={styles.lessonBox}
-                  activeOpacity={0.4}
-                  onPress={() => {
-                    setCurrentLessonData(data[index]);
-                    setIsModalVisible(true);
-                  }}
-                >
-                  <Text
-                    style={styles.lessonText}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {data[index]?.fach}
-                  </Text>
-                  <Text
-                    style={styles.lessonText}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {data[index]?.raum}
-                  </Text>
-                  <Text
-                    style={styles.lessonText}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {data[index]?.lehrer}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            );
-          }
+            </View>
+          );
         })
       )}
       {!isHoliday(columnDay) && data?.length < 10
@@ -569,6 +550,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+  },
+  crossLine: {
+    position: "absolute",
+    top: "50%",
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: "#333",
+    transform: [{ rotate: "45deg" }],
+    zIndex: 10,
+    opacity: 0.8,
   },
 });
 
