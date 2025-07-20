@@ -150,21 +150,21 @@ const SettingsScreen = ({ navigation }) => {
               icon="lock-outline"
               label="Datenschutzerklärung"
               bg="#6366F1" // Indigo
-              onPress={() => navigation.navigate("PrivacyPolicy")}
+              onPress={() => setIsLicenseModalVisible(true)}
               showDivider
             />
             <SettingItem
               icon="gavel"
               label="AGB"
               bg="#F59E0B" // Amber
-              onPress={() => navigation.navigate("Terms")}
+              onPress={() => setIsLicenseModalVisible(true)}
               showDivider
             />
             <SettingItem
               icon="article"
               label="Impressum"
               bg="#10B981" // Emerald
-              onPress={() => navigation.navigate("Imprint")}
+              onPress={() => setIsLicenseModalVisible(true)}
             />
           </Section>
 

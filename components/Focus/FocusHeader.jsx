@@ -7,13 +7,14 @@ const FocusHeader = ({ onClose }) => {
 
   return (
     <View style={[styles.header, { paddingTop: insets }]}>
+      <Text style={styles.title}>Fokusmodus</Text>
       <Pressable
         style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
         onPress={onClose}
+        hitSlop={15}
       >
         <Feather name="x" size={24} color="#333" />
       </Pressable>
-      <Text style={styles.title}>Fokusmodus</Text>
     </View>
   );
 };

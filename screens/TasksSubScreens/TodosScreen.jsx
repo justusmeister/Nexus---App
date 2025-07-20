@@ -76,7 +76,7 @@ const TodosScreen = () => {
   const filteredTodos = useMemo(() => {
     const selectedType = segmentedValues[selectedIndex];
     return todoList.filter((todo) => todo.type === selectedType);
-  }, [selectedIndex]);
+  }, [selectedIndex, todoList]);
 
   useEffect(() => {
     fetchTodos();

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import { View, Text, Pressable, StyleSheet, Platform, Animated } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import Icon from "@expo/vector-icons/MaterialCommunityIcons";
+import { Ionicons } from "@expo/vector-icons";
 
 const formatTime = (ms) => {
   const minutes = String(Math.floor(ms / 60000)).padStart(2, "0");
@@ -14,8 +14,25 @@ const Stopwatch = () => {
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const intervalRef = useRef(null);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const animate = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const handleStartStop = () => {
+    animate();
     if (running) {
       clearInterval(intervalRef.current);
       setRunning(false);
@@ -28,7 +45,8 @@ const Stopwatch = () => {
     }
   };
 
-  const handleDelete = () => {
+  const handleReset = () => {
+    animate();
     clearInterval(intervalRef.current);
     setRunning(false);
     setTime(0);
@@ -42,15 +60,22 @@ const Stopwatch = () => {
     <View style={styles.container}>
       <Text style={styles.time}>{formatTime(time)}</Text>
 
-      <View style={styles.buttonRow}>
-        <Pressable onPress={handleStartStop} style={[styles.iconButton, styles.primary]}>
-          <Icon name={running ? "pause" : "play"} size={28} color="#fff" />
+      <Animated.View style={[styles.controlRow, { transform: [{ scale: scaleAnim }] }]}>
+        <Pressable
+          onPress={handleStartStop}
+          style={[styles.primaryButton, running && styles.pauseButton]}
+        >
+          <Ionicons
+            name={running ? "pause" : "play"}
+            size={28}
+            color={running ? "#FF6B6B" : "#fff"}
+          />
         </Pressable>
 
-        <Pressable onPress={handleDelete} style={[styles.button, styles.delete]}>
-          <Icon name="delete" size={24} color="#fff"/>
+        <Pressable onPress={handleReset} style={styles.secondaryButton}>
+          <Ionicons name="refresh-outline" size={22} color="#666" />
         </Pressable>
-      </View>
+      </Animated.View>
     </View>
   );
 };
@@ -59,56 +84,64 @@ export default Stopwatch;
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 24,
     alignItems: "center",
     justifyContent: "center",
-    padding: 32,
-    marginTop: 60,
+    marginTop: 40,
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: RFPercentage(2.5),
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 12,
   },
   time: {
     fontSize: RFPercentage(7),
-    fontWeight: "600",
-    marginBottom: 40,
-    textAlign: "center",
-    fontFamily:
-      Platform.OS === "ios" ? "Menlo" : Platform.OS === "android" ? "monospace" : "Courier",
+    fontWeight: "300",
+    color: "#333",
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    letterSpacing: 2,
+    marginBottom: 30,
   },
-  buttonRow: {
+  controlRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
     gap: 20,
   },
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  iconButton: {
-    alignItems: "center",
+  primaryButton: {
+    backgroundColor: "#6C63FF",
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     justifyContent: "center",
-    padding: 16,
-    borderRadius: 14,
+    alignItems: "center",
+    shadowColor: "#6C63FF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    marginHorizontal: 16,
+  },
+  pauseButton: {
+    backgroundColor: "#FFF",
+    borderWidth: 2,
+    borderColor: "#FF6B6B",
+  },
+  secondaryButton: {
+    backgroundColor: "#FFF",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: "#000",
-    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
-  },
-  primary: {
-    backgroundColor: "#4CAF50",
-  },
-  delete: {
-    backgroundColor: "#F44336",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
+    elevation: 2,
   },
 });

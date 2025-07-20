@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Nexus",
+    "name": "Nexus Dev",
     "slug": "Nexus",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.meister.Nexus",
+      "bundleIdentifier": "com.meister.Nexus.dev",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

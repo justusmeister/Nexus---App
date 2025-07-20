@@ -2,25 +2,37 @@ import {
   Modal,
   TouchableWithoutFeedback,
   View,
-  TouchableOpacity,
-  ScrollView,
   Pressable,
-  StyleSheet,
-  ActivityIndicator,
   Text,
+  StyleSheet,
 } from "react-native";
-import * as Icon from "@expo/vector-icons";
-import { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
 const LicenseModal = ({ visible, onClose }) => {
   return (
-    <Modal visible={visible} transparent={false} animationType="fade">
+    <Modal visible={visible} transparent animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
-              <Text>coming soon...</Text>
+              <Pressable onPress={onClose} style={styles.closeButton}>
+                <Feather name="x" size={24} color="#333" />
+              </Pressable>
+
+              <View style={styles.header}>
+                <Feather name="info" size={22} color="#4a4a4a" />
+                <Text style={styles.headerText}>Impressum & Lizenzen</Text>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.body}>
+                <Text style={styles.comingSoonText}>coming soon...</Text>
+                <Text style={styles.subText}>
+                  Hier findest du bald Informationen zu Datenschutz, AGB, Lizenzen und Impressum.
+                </Text>
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -34,88 +46,60 @@ export default LicenseModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
-    width: "90%",
-    height: "50%",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 20,
+    width: "88%",
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 8,
+    position: "relative",
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    zIndex: 1,
+    top: 16,
+    right: 16,
+    zIndex: 2,
+    padding: 4,
   },
-  modalHeader: {
-    marginBottom: 15,
-    backgroundColor: "#fceded",
-    padding: 12,
-    borderRadius: 8,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
   },
-  title: {
+  headerText: {
+    fontSize: RFPercentage(2.4),
     fontWeight: "700",
-    fontSize: RFPercentage(2.18),
-  },
-  remainingTimeText: {
-    fontSize: RFPercentage(1.92),
     color: "#333",
-  },
-  motivationText: {
-    fontSize: RFPercentage(1.67),
-    color: "#666",
   },
   divider: {
     height: 1,
-    backgroundColor: "#ddd",
-    marginVertical: 10,
+    backgroundColor: "#e0e0e0",
+    marginBottom: 16,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#EFEEF6",
-  },
-  deleteButtonView: {
-    justifyContent: "center",
-    alignItems: "flex-end",
-  },
-  deleteButton: {
-    width: "auto",
-    height: "auto",
-    backgroundColor: "#d13030",
-    borderRadius: 15,
-    flexDirection: "row",
-    justifyContent: "center",
+  body: {
     alignItems: "center",
-    padding: 10,
-    paddingHorizontal: 15,
-    marginTop: 15,
+    justifyContent: "center",
+    paddingTop: 20,
   },
-  deleteButtonText: {
-    color: "white",
+  comingSoonText: {
+    fontSize: RFPercentage(2.5),
     fontWeight: "600",
-    fontSize: RFPercentage(2.05),
-    marginRight: 8,
+    color: "#555",
+    marginBottom: 10,
   },
-  loadingBox: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    height: "auto",
-  },
-  deleteButtonSubBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+  subText: {
+    fontSize: RFPercentage(1.9),
+    textAlign: "center",
+    color: "#777",
+    lineHeight: 22,
   },
 });

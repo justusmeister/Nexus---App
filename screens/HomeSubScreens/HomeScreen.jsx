@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import {
   View,
   SafeAreaView,
@@ -25,6 +25,7 @@ import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
 import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomSheet/DeadlineBottomSheet";
 import { useAppointments } from "../../hooks/useAppointments";
 import { getAuth } from "firebase/auth";
+import SubjectSelectionModal from "../../modals/SubjectSelectionModal";
 
 const HomeScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -38,6 +39,8 @@ const HomeScreen = function ({ navigation }) {
   const user = auth.currentUser;
 
   const { addAppointment } = useAppointments(user);
+
+  const [subjectSelectionModalVisible, setSubjectSelectionModalVisible] = useState();
 
   const handleOpen = () => {
     sheetRef.current?.present();
@@ -105,7 +108,7 @@ const HomeScreen = function ({ navigation }) {
       (selectedIndex) => {
         switch (selectedIndex) {
           case 0:
-            console.log("Hausaufgabe gewählt");
+            setSubjectSelectionModalVisible(true);
             break;
           case 1:
             handleOpen();
@@ -575,6 +578,7 @@ const HomeScreen = function ({ navigation }) {
           titleInputRef={titleInputRef}
           addAppointment={handleAddAppointment}
         />
+        <SubjectSelectionModal visible={subjectSelectionModalVisible} onClose={() => setSubjectSelectionModalVisible(false)} loading={false} />
       </SafeAreaView>
     </View>
   );

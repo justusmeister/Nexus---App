@@ -1,5 +1,18 @@
-import { useLayoutEffect, useRef, useCallback, useState, useEffect, memo } from "react";
-import { TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  useState,
+  useEffect,
+  memo,
+} from "react";
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { getAuth } from "firebase/auth";
@@ -17,7 +30,6 @@ import PlusButton from "../../components/General/PlusButton";
 const eventTypesList = ["Frist", "Klausur", "Event"];
 const eventTypeColorList = ["#656565", "#F9D566", "#C08CFF"];
 
-
 const YearDetailedScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const [selectedDay, setSelectedDay] = useState(null);
@@ -32,15 +44,15 @@ const YearDetailedScreen = function ({ navigation }) {
 
   const auth = getAuth();
   const user = auth.currentUser;
-  
-  const { 
-    appointments, 
-    deadlinesList, 
-    loading, 
-    fetchAppointments, 
-    addAppointment, 
-    updateAppointment, 
-    deleteAppointment 
+
+  const {
+    appointments,
+    deadlinesList,
+    loading,
+    fetchAppointments,
+    addAppointment,
+    updateAppointment,
+    deleteAppointment,
   } = useAppointments(user);
 
   useEffect(() => {
@@ -51,9 +63,7 @@ const YearDetailedScreen = function ({ navigation }) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: params?.month,
-      headerRight: () => (
-        <PlusButton onPress={handleOpen} small/>
-      ),
+      headerRight: () => <PlusButton onPress={handleOpen} small />,
     });
   }, [navigation, params]);
 
@@ -74,7 +84,8 @@ const YearDetailedScreen = function ({ navigation }) {
     ? deadlinesList.filter(
         (item) =>
           item.day === formattedSelectedDate ||
-          (item.day <= formattedSelectedDate && item.endDate >= formattedSelectedDate)
+          (item.day <= formattedSelectedDate &&
+            item.endDate >= formattedSelectedDate)
       )
     : deadlinesList;
 
@@ -83,18 +94,67 @@ const YearDetailedScreen = function ({ navigation }) {
     setIsModalVisible(true);
   }, []);
 
-  const handleAddAppointment = useCallback((name, day, endDate, eventType, description, singleEvent, saveAsDeadline) => {
-    addAppointment(name, day, endDate, eventType, description, singleEvent, saveAsDeadline);
-  }, [addAppointment]);
+  const handleAddAppointment = useCallback(
+    (
+      name,
+      day,
+      endDate,
+      eventType,
+      description,
+      singleEvent,
+      saveAsDeadline
+    ) => {
+      addAppointment(
+        name,
+        day,
+        endDate,
+        eventType,
+        description,
+        singleEvent,
+        saveAsDeadline
+      )
+        .then((result) => {
+          if (result?.success)
+            fetchAppointments(params?.date, params?.monthLength);
+        })
+        .catch((e) => console.error("Fehler:", e));
+    },
+    [addAppointment]
+  );
 
-  const handleDeleteAppointment = useCallback((singleEvent, itemId) => {
-    deleteAppointment(singleEvent, itemId);
-    setIsModalVisible(false);
-  }, [deleteAppointment]);
+  const handleDeleteAppointment = useCallback(
+    (singleEvent, itemId) => {
+      deleteAppointment(singleEvent, itemId)
+        .then((result) => {
+          if (result?.success) {
+            fetchAppointments(params?.date, params?.monthLength);
+          }
+        })
+        .catch((e) => console.error("Fehler:", e));
 
-  const handleUpdateAppointment = useCallback((title, description, dueDate, endDate, eventCategory, itemId) => {
-    updateAppointment(title, description, dueDate, endDate, eventCategory, itemId);
-  }, [updateAppointment]);
+      setIsModalVisible(false);
+    },
+    [deleteAppointment]
+  );
+
+  const handleUpdateAppointment = useCallback(
+    (title, description, dueDate, endDate, eventCategory, itemId) => {
+      updateAppointment(
+        title,
+        description,
+        dueDate,
+        endDate,
+        eventCategory,
+        itemId
+      )
+        .then((result) => {
+          if (result?.success)
+            fetchAppointments(params?.date, params?.monthLength);
+        })
+        .catch((e) => console.error("Fehler:", e));
+    },
+    [updateAppointment]
+  );
 
   return (
     <View style={styles.screen}>
@@ -125,8 +185,8 @@ const YearDetailedScreen = function ({ navigation }) {
             data={filteredDeadlines}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <EventListItem 
-                item={item} 
+              <EventListItem
+                item={item}
                 eventTypeColorList={eventTypeColorList}
                 eventTypesList={eventTypesList}
                 onPress={() => handleItemPress(item)}
@@ -193,12 +253,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   emptyListText: {
-    width: "100%", 
+    width: "100%",
     textAlign: "center",
     fontSize: RFPercentage(2),
     fontWeight: "500",
     color: "#8E8E93",
-  }
+  },
 });
 
 export default memo(YearDetailedScreen);
