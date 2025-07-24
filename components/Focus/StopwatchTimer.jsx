@@ -99,10 +99,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   time: {
+    fontVariant: [ "tabular-nums" ],
     fontSize: RFPercentage(7),
     fontWeight: "300",
     color: "#333",
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     letterSpacing: 2,
     marginBottom: 30,
   },

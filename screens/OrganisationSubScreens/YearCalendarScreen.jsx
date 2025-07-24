@@ -83,7 +83,7 @@ function createEventMap(events) {
     let currentDate = new Date(period.day);
     const endDate = new Date(period.endDate);
 
-    while (currentDate <= endDate) {
+    while (currentDate.toISOString().split("T")[0] <= endDate.toISOString().split("T")[0]) {
       const formattedDate = currentDate.toISOString().split("T")[0];
 
       const periodEvent = {
@@ -575,20 +575,23 @@ const DayRow = memo(
       const isHolidayStart = (extraArgument) => {
         return (
           isHoliday(day, month, year) &&
+          isEvent(day, month, year, eventMap) !== 2 && 
           (!isHoliday(day - 1, month, year) ||
             extraArgument ||
             day === startDay)
         );
-      };
+      };    
+      
       const isHolidayEnd = (extraArgument) => {
         return (
-          (isHoliday(day, month, year) &&
-            (!isHoliday(day + 1, month, year) ||
-              extraArgument ||
-              day === endDay)) ||
+          isHoliday(day, month, year) &&
+          isEvent(day, month, year, eventMap) !== 2 && 
+          (!isHoliday(day + 1, month, year) ||
+            extraArgument ||
+            day === endDay) ||
           index === 4
         );
-      };
+      };  
 
       if (filter === 0 || !filter || filter === null)
         return {

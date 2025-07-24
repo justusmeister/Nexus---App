@@ -26,9 +26,9 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                  <Icon.Ionicons
-                    name="close-circle-sharp"
-                    size={32}
+                  <Icon.Feather
+                    name="x-circle"
+                    size={30}
                     color="#333"
                   />
                 </TouchableOpacity>
@@ -130,6 +130,9 @@ const DeadlineInformationModal = ({ visible, task, onClose, onConfirm }) => {
     },
     closeButton: {
       position: "absolute",
+      backgroundColor: "#fff",
+      borderRadius: 50,
+      padding: 2,
       top: 7,
       right: 7,
       zIndex: 1,

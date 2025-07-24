@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import SvgWelcome from "../../assets/illustrations/welcome.svg";
 import { useNavigation } from "@react-navigation/native";
+import GoogleButton from "./components/GoogleButton";
 
 const { width } = Dimensions.get("window");
 
@@ -18,22 +19,24 @@ const WelcomeScreen = () => {
     <View style={styles.container}>
       {/* Header mit dezentem Muster-Hintergrund */}
       <View style={styles.header}>
-        <Text style={styles.title}>Willkommen</Text>
-        <Text style={styles.subtitle}>Dein digitaler Schulorganisator</Text>
+        <Text style={styles.title}>Lass uns starten</Text>
+        <Text style={styles.subtitle}>Beginne jetzt mit deiner Schulorganisation</Text>
       </View>
 
       <View style={styles.illustrationContainer}>
-        <SvgWelcome width={width * 0.7} height={width * 0.7} />
+        <SvgWelcome width={width * 0.57} height={width * 0.57} />
         <View style={styles.illustrationOverlay} />
       </View>
 
       <View style={styles.actionsContainer}>
         <TouchableOpacity
           style={styles.registerButton}
-          onPress={() => navigation.navigate("RegistrationScreen")}
+          onPress={() => navigation.navigate("RegistrationScreen", { window: 0 })}
         >
           <Text style={styles.registerText}>Kostenlos registrieren</Text>
         </TouchableOpacity>
+
+        <GoogleButton text="Fortfahren mit Google"/>
 
         <View style={{ marginBottom: 14, marginTop: 6, }}>
           <Text style={styles.termsText}>
@@ -55,7 +58,7 @@ const WelcomeScreen = () => {
         <View style={styles.loginContainer}>
           <Text style={styles.loginPrompt}>Bereits ein Konto?</Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate("LoginScreen")}
+            onPress={() => navigation.navigate("LoginScreen", { window: 0 })}
             style={styles.loginButton}
           >
             <Text style={styles.loginLink}>Anmelden</Text>
@@ -71,13 +74,12 @@ export default WelcomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#007AFF",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 32,
     paddingBottom: 20,
-    backgroundColor: "rgba(0, 122, 255, 0.9)",
   },
   title: {
     fontSize: 32,
@@ -105,13 +107,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 100,
-    backgroundColor: "rgba(0, 122, 255, 0.7)",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   actionsContainer: {
     padding: 32,
     paddingBottom: 40,
+    paddingTop: 35,
     backgroundColor: "white",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: "#007AFF",
+    shadowColor: "#333",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

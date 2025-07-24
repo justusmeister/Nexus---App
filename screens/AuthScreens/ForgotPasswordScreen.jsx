@@ -5,10 +5,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
+  ScrollView,
+  Pressable,
   ActivityIndicator,
 } from "react-native";
+import * as Icon from "@expo/vector-icons";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { firebaseAuth } from "../../firebaseConfig";
 
@@ -47,20 +48,26 @@ const ForgotPasswordScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      {/* Platzhalter für silbernen Back-Button */}
-      <View style={styles.backButtonPlaceholder} />
+    <View style={styles.container}>
+    <ScrollView behavior="padding" showsVerticalScrollIndicator={false}>
+      
+    <View style={styles.topSection}>
+  <Pressable
+    onPress={() => navigation.goBack()}
+    style={({ pressed }) => [
+      styles.backButton,
+      { opacity: pressed ? 0.6 : 1 },
+    ]}
+    hitSlop={12}
+  >
+    <Icon.Feather name="arrow-left" size={22} color="black" />
+  </Pressable>
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Passwort zurücksetzen</Text>
-        <Text style={styles.subtitle}>
-          Gib deine E-Mail ein und wir senden dir einen Link zum Zurücksetzen
-          deines Passworts.
-        </Text>
-      </View>
+  <View style={styles.header}>
+    <Text style={styles.title}>Passwort zurücksetzen</Text>
+    <Text style={styles.subtitle}>Gib deine E-Mail ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.</Text>
+  </View>
+</View>
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>E-Mail</Text>
@@ -104,7 +111,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
       >
         <Text style={styles.secondaryButtonText}>Zurück zum Login</Text>
       </TouchableOpacity>
-    </KeyboardAvoidingView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -113,24 +121,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 24,
-  },
-  backButtonPlaceholder: {
-    height: 40,
-    marginTop: 16,
-  },
-  header: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    lineHeight: 24,
   },
   inputContainer: {
     marginBottom: 24,
@@ -186,6 +176,38 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     fontWeight: "600",
     fontSize: 16,
+  },
+  topSection: {
+    marginTop: 60,
+    marginBottom: 32,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+padding: 6,
+borderRadius: 15,
+backgroundColor: "rgba(0, 122, 255, 0.08)",  
+borderWidth: 1,
+borderColor: "#c6c6c6",                    
+justifyContent: "center",
+alignItems: "center",
+shadowColor: "darkgray",                   
+shadowOffset: { width: 0, height: 4 },
+shadowOpacity: 0.25,
+shadowRadius: 4.65,
+elevation: 8,
+  },
+  header: {
+    marginTop: 24,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#666",
   },
 });
 

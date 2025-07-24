@@ -25,7 +25,7 @@ export function createEventMap(events) {
             let currentDate = new Date(period.day);
             const endDate = new Date(period.endDate);
 
-            while (currentDate <= endDate) {
+            while (currentDate.toISOString().split("T")[0] <= endDate.toISOString().split("T")[0]) {
                 const formattedDate = currentDate.toISOString().split("T")[0];
 
                 const periodEvent = {

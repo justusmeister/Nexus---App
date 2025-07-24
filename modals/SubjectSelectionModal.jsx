@@ -9,8 +9,10 @@ import {
   FlatList,
 } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import SelectionSubjectItem from "../components/General/SelectionSubjectItem"; 
+import { getAuth } from "firebase/auth";
+import { useSubjects } from "../hooks/useSubjects";
 
 // Übergabe: { visible, onClose, loading, data }
 // data = Array mit { id, color, icon, subject }
@@ -37,7 +39,12 @@ const data =  [
     },
   ];
 
-const SubjectSelectionModal = ({ visible, onClose, loading }) => {
+const SubjectSelectionModal = ({ visible, onClose }) => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const { subjects, loading } = useSubjects(user);
+
   const renderItem = ({ item }) => <SelectionSubjectItem item={item} />;
 
   const renderEmpty = () => (
@@ -54,8 +61,8 @@ const SubjectSelectionModal = ({ visible, onClose, loading }) => {
             <View style={styles.modalContent}>
               {/* Header */}
               <View style={styles.header}>
-                <Ionicons name="book-outline" size={22} color="#4a4a4a" />
-                <Text style={styles.headerText}>Wähle ein Fach!</Text>
+                <Feather name="clipboard" size={22} color="#4a4a4a" />
+                <Text style={styles.headerText}>Wähle ein Fach:</Text>
               </View>
 
               <View style={styles.divider} />
@@ -63,11 +70,11 @@ const SubjectSelectionModal = ({ visible, onClose, loading }) => {
               {/* Inhalt */}
               {loading ? (
                 <View style={styles.loadingBox}>
-                  <ActivityIndicator size="large" color="#6C63FF" />
+                  <ActivityIndicator size="small" color="#6C63FF" />
                 </View>
               ) : (
                 <FlatList
-                  data={data}
+                  data={subjects}
                   renderItem={renderItem}
                   keyExtractor={(item) => item.id.toString()}
                   ListEmptyComponent={renderEmpty}
@@ -94,10 +101,11 @@ const styles = StyleSheet.create({
     },
     modalContent: {
       width: "88%",
-      height: "60%",
+      height: "70%",
       backgroundColor: "#ffffff",
       borderRadius: 20,
       padding: 24,
+      paddingBottom: 5,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,
@@ -119,7 +127,7 @@ const styles = StyleSheet.create({
     divider: {
       height: 1,
       backgroundColor: "#e0e0e0",
-      marginBottom: 16,
+      marginBottom: 5,
     },
     loadingBox: {
       flex: 1,

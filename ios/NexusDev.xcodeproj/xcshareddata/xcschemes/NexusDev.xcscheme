@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Nexus.app"
-               BlueprintName = "Nexus"
-               ReferencedContainer = "container:Nexus.xcodeproj">
+               BuildableName = "NexusDev.app"
+               BlueprintName = "NexusDev"
+               ReferencedContainer = "container:NexusDev.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "NexusTests.xctest"
-               BlueprintName = "NexusTests"
-               ReferencedContainer = "container:Nexus.xcodeproj">
+               BuildableName = "NexusDevTests.xctest"
+               BlueprintName = "NexusDevTests"
+               ReferencedContainer = "container:NexusDev.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Nexus.app"
-            BlueprintName = "Nexus"
-            ReferencedContainer = "container:Nexus.xcodeproj">
+            BuildableName = "NexusDev.app"
+            BlueprintName = "NexusDev"
+            ReferencedContainer = "container:NexusDev.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Nexus.app"
-            BlueprintName = "Nexus"
-            ReferencedContainer = "container:Nexus.xcodeproj">
+            BuildableName = "NexusDev.app"
+            BlueprintName = "NexusDev"
+            ReferencedContainer = "container:NexusDev.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

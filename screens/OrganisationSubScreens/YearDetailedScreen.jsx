@@ -129,6 +129,8 @@ const YearDetailedScreen = function ({ navigation }) {
           if (result?.success) {
             fetchAppointments(params?.date, params?.monthLength);
           }
+          else
+            console.log(result);
         })
         .catch((e) => console.error("Fehler:", e));
 

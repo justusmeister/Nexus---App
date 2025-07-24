@@ -107,10 +107,12 @@ export const useAppointments = (user) => {
         singleEvent,
         saveAsDeadline
     ) => {
-        if (!user) return;
+        if (!user) return { success: false };
 
         try {
             setLoading(true);
+
+            if (!name) name = "Unbenannt"
 
             const subcollectionName = singleEvent ? "singleEvents" : "eventPeriods";
 
@@ -148,6 +150,7 @@ export const useAppointments = (user) => {
                 await addDeadline(name, day, description);
             }
             eventEmitter.emit("refreshAppointments");
+            return { success: true };
         } catch (e) {
             Toast.show({
                 type: "error",
@@ -155,6 +158,7 @@ export const useAppointments = (user) => {
                 text2: e.message || "An error occurred",
                 visibilityTime: 4000,
             });
+            return { success: false };
         } finally {
             setLoading(false);
         }
@@ -197,7 +201,7 @@ export const useAppointments = (user) => {
         eventCategory,
         itemId
     ) => {
-        if (!user) return;
+        if (!user) return { success: false };
 
         try {
             const userAppointmentsRef = doc(firestoreDB, "appointments", user.uid);
@@ -246,6 +250,7 @@ export const useAppointments = (user) => {
             });
 
             eventEmitter.emit("refreshAppointments");
+            return { success: true }; 
         } catch (e) {
             Toast.show({
                 type: "error",
@@ -253,11 +258,12 @@ export const useAppointments = (user) => {
                 text2: e.message || "Unknown error",
                 visibilityTime: 4000,
             });
+            return { success: false };
         }
     };
 
     const deleteAppointment = async (singleEvent, itemId) => {
-        if (!user) return;
+        if (!user) return { success: false };
 
         try {
             const userDocRef = doc(firestoreDB, "appointments", user.uid);
@@ -285,7 +291,7 @@ export const useAppointments = (user) => {
             });
 
             setDeadlinesList((prev) => prev.filter(e => e.id !== itemId));
-
+            return { success: true };
         } catch (e) {
             Toast.show({
                 type: "error",
@@ -293,6 +299,7 @@ export const useAppointments = (user) => {
                 text2: e.message || "An error occurred",
                 visibilityTime: 4000,
             });
+            return { success: false };
         }
     };
 

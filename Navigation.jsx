@@ -23,6 +23,7 @@ import { getAsyncItem } from "./utils/asyncStorage";
 import Toast from "react-native-toast-message";
 import { getFullWeekPlan } from "./utils/webuntisFetchData";
 import { useTimetableData } from "./contexts/TimetableContext";
+import BottomSheetsStack from "./screens/BottomSheetsStack";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -200,6 +201,11 @@ const Navigation = function () {
             headerStyle: { backgroundColor: "#EFEEF6" },
           }}
         />
+        {/*<Stack.Screen
+          name="BottomSheetsStack"
+          component={BottomSheetsStack}
+          options={{ headerShown: false, gestureEnabled: false }}
+        />*/}
         <Stack.Screen
           name="NotesInputScreen"
           component={NotesInputScreen}

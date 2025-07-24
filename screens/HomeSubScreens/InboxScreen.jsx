@@ -26,6 +26,7 @@ import FileViewer from "react-native-file-viewer";
 import ParsedText from "react-native-parsed-text";
 import { useEmailData } from "../../contexts/EmailContext";
 import { useRoute } from "@react-navigation/native";
+//import * as WebBrowser from "expo-web-browser";
 
 const saveEmailsToStorage = async (emails) => {
   try {
@@ -302,6 +303,10 @@ const InboxScreen = ({ navigation }) => {
 };
 
 const EmailModal = ({ visible, email, onClose }) => {
+  const handleOpenInAppBrowser = async (url) => {
+    return result = await WebBrowser.openBrowserAsync(url);
+  }
+
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
@@ -309,9 +314,9 @@ const EmailModal = ({ visible, email, onClose }) => {
           <TouchableWithoutFeedback>
             <View style={styles.modalContainer}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Icon.Ionicons
-                  name="close-circle-sharp"
-                  size={32}
+                <Icon.Feather
+                  name="x-circle"
+                  size={30}
                   color="#333"
                 />
               </TouchableOpacity>
@@ -335,11 +340,11 @@ const EmailModal = ({ visible, email, onClose }) => {
                               textDecorationLine: "underline",
                             },
                             onPress: (url) => {
-                              Linking.openURL(url);
+                              handleOpenInAppBrowser(url);
                             },
                           },
                         ]}
-                      >
+                      >x
                         {email?.text}
                       </ParsedText>
                       {email?.attachments.length > 0 && (
@@ -462,6 +467,9 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
+    backgroundColor: "#fff",
+    borderRadius: 50,
+    padding: 2,
     top: 7,
     right: 7,
     zIndex: 1,

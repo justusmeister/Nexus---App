@@ -30,6 +30,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "react-native-legal",
       "expo-asset",
       "@logrocket/react-native",
       "expo-secure-store",

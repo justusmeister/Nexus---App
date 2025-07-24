@@ -278,9 +278,9 @@ const HomeworkModal = ({
           <TouchableWithoutFeedback>
             <Animated.View style={[styles.modalContent, animatedModalStyle]}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Icon.Ionicons
-                  name="close-circle-sharp"
-                  size={32}
+                <Icon.Feather
+                  name="x-circle"
+                  size={30}
                   color="#333"
                 />
               </TouchableOpacity>
@@ -495,8 +495,8 @@ const HomeworkModal = ({
                       onPress={handleEdit}
                     >
                       <View style={styles.deleteButtonSubBox}>
-                        <Icon.MaterialIcons
-                          name="edit"
+                        <Icon.Feather
+                          name="edit-3"
                           size={22}
                           color="white"
                         />
@@ -515,8 +515,8 @@ const HomeworkModal = ({
                       ) : (
                         <View style={styles.deleteButtonSubBox}>
                           <Text style={styles.deleteButtonText}>Löschen</Text>
-                          <Icon.MaterialIcons
-                            name="delete"
+                          <Icon.Feather
+                            name="trash-2"
                             size={25}
                             color="white"
                           />
@@ -529,9 +529,10 @@ const HomeworkModal = ({
               <DatePickerModal
                 visible={dueDatePickerVisible}
                 onClose={() => setDueDatePickerVisible(false)}
-                date={dueDate}
+                date={new Date(dueDate)}
                 onDateChange={setDueDate}
                 title="Abgabedatum wählen"
+                homework={true}
               />
             </Animated.View>
           </TouchableWithoutFeedback>
@@ -575,6 +576,9 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
+    backgroundColor: "#fff",
+    borderRadius: 50,
+    padding: 2,
     top: 10,
     right: 10,
     zIndex: 1,

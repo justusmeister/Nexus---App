@@ -54,21 +54,23 @@ const DayCell = memo(({
     const isHolidayStart = (extraArgument) => {
       return (
         isHoliday(day, month, year) &&
+        checkEvent(day, month, year, eventMap) !== 2 && 
         (!isHoliday(day - 1, month, year) ||
           extraArgument ||
           day === startDay)
       );
-    };
+    };    
     
     const isHolidayEnd = (extraArgument) => {
       return (
-        (isHoliday(day, month, year) &&
-          (!isHoliday(day + 1, month, year) ||
-            extraArgument ||
-            day === endDay)) ||
+        isHoliday(day, month, year) &&
+        checkEvent(day, month, year, eventMap) !== 2 && 
+        (!isHoliday(day + 1, month, year) ||
+          extraArgument ||
+          day === endDay) ||
         index === 4
       );
-    };
+    };    
 
     return {
       borderTopLeftRadius:
@@ -131,12 +133,12 @@ const DayCell = memo(({
       backgroundColor:
         checkEvent(day, month, year, eventMap) === 1 || checkEvent(day, month, year, eventMap) === 2
           ? checkEvent(day, month, year, eventMap) === 1
-            ? "#F9D566"
-            : "#C08CFF"
+            ? "#F9D566" //gelb
+            : "#C08CFF" //lila
           : index === 5 || index === 6
-          ? "#BFBFC4"
+          ? "#BFBFC4" //grau
           : isHoliday(day, month, year)
-          ? "#A4C8FF"
+          ? "#A4C8FF" //blau
           : null,
     };
   };

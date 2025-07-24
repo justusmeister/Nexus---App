@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
+  ScrollView,
   Alert,
   Pressable,
   ActivityIndicator,
@@ -13,6 +13,8 @@ import {
 import * as Icon from "@expo/vector-icons";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { firebaseAuth } from "../../firebaseConfig";
+import { useRoute } from "@react-navigation/native";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -20,6 +22,9 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
+
+  route = useRoute();
+  const { params } = route;
 
   const validate = () => {
     let valid = true;
@@ -57,14 +62,31 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
-      {/* Platzhalter für silbernen Back-Button */}
-      <View style={styles.backButtonPlaceholder} />
+    <KeyboardAwareScrollView
+  style={styles.container}
+  enableOnAndroid
+  keyboardShouldPersistTaps="handled"
+  showsVerticalScrollIndicator={false}
+>
+      
+    <View style={styles.topSection}>
+  <Pressable
+    onPress={() => navigation.goBack()}
+    style={({ pressed }) => [
+      styles.backButton,
+      { opacity: pressed ? 0.6 : 1 },
+    ]}
+    hitSlop={12}
+  >
+    <Icon.Feather name="arrow-left" size={22} color="black" />
+  </Pressable>
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Anmelden</Text>
-        <Text style={styles.subtitle}>Willkommen zurück</Text>
-      </View>
+  <View style={styles.header}>
+    <Text style={styles.title}>Willkommen zurück 👋</Text>
+    <Text style={styles.subtitle}>Melde dich mit deinem Konto an</Text>
+  </View>
+</View>
+
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>E-Mail</Text>
@@ -107,8 +129,9 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <Pressable 
-        style={styles.forgotPassword}
+        style={({ pressed }) => [styles.forgotPassword, { opacity: pressed ? 0.6 : 1 }]}
         onPress={() => navigation.navigate("ForgotPasswordScreen")}
+        hitSlop={10}
       >
         <Text style={styles.forgotPasswordText}>Passwort vergessen?</Text>
       </Pressable>
@@ -139,13 +162,15 @@ const LoginScreen = ({ navigation }) => {
       <View style={styles.footer}>
         <Text style={styles.footerText}>Noch kein Konto?</Text>
         <TouchableOpacity onPress={() => {
-            navigation.goBack();
-            navigation.navigate("RegistrationScreen");
+            if (params?.window == 1)
+              navigation.goBack();
+            else
+              navigation.navigate("RegistrationScreen", { window: 1 })
           }}>
           <Text style={styles.footerLink}>Registrieren</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -154,23 +179,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 24,
-  },
-  backButtonPlaceholder: {
-    height: 40,
-    marginTop: 16,
-  },
-  header: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
   },
   inputContainer: {
     marginBottom: 16,
@@ -258,7 +266,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 24,
+    marginBottom: 60,
   },
   footerText: {
     color: "#666",
@@ -269,6 +277,38 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
     marginLeft: 4,
+  },
+  topSection: {
+    marginTop: 60,
+    marginBottom: 32,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+padding: 6,
+borderRadius: 15,
+backgroundColor: "rgba(0, 122, 255, 0.08)",  
+borderWidth: 1,
+borderColor: "#c6c6c6",                    
+justifyContent: "center",
+alignItems: "center",
+shadowColor: "darkgray",                   
+shadowOffset: { width: 0, height: 4 },
+shadowOpacity: 0.25,
+shadowRadius: 4.65,
+elevation: 8,
+  },
+  header: {
+    marginTop: 24,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#666",
   },
 });
 

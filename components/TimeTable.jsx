@@ -385,9 +385,9 @@ const LessonInfoModal = ({ visible, data, onClose }) => {
           <TouchableWithoutFeedback>
             <View style={styles.modalContainer}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Icon.Ionicons
-                  name="close-circle-sharp"
-                  size={32}
+                <Icon.Feather
+                  name="x-circle"
+                  size={30}
                   color="#333"
                 />
               </TouchableOpacity>
@@ -496,6 +496,9 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
+    backgroundColor: "#fff",
+    borderRadius: 50,
+    padding: 2,
     top: 7,
     right: 7,
     zIndex: 1,

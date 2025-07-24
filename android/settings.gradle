@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'Nexus'
+rootProject.name = 'Nexus Dev'
 
 dependencyResolutionManagement {
   versionCatalogs {

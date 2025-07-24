@@ -1,5 +1,5 @@
 import { View, Pressable, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const FocusHeader = ({ onClose }) => {
@@ -13,7 +13,7 @@ const FocusHeader = ({ onClose }) => {
         onPress={onClose}
         hitSlop={15}
       >
-        <Feather name="x" size={24} color="#333" />
+        <Ionicons name="close" size={30} color="#333" />
       </Pressable>
     </View>
   );

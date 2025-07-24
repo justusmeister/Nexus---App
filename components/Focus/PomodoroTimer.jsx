@@ -663,8 +663,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   timerText: {
+    fontVariant: [ "tabular-nums" ],
     fontSize: RFPercentage(8),
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontWeight: '300',
     color: '#333',
     letterSpacing: 2,

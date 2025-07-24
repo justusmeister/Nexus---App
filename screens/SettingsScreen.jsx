@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,10 +16,18 @@ import { firebaseAuth } from "../firebaseConfig";
 import { getAuth, deleteUser } from "firebase/auth";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import LicenseModal from "../modals/LicenseModal";
+import LicensesModal from "../modals/LicensesModal";
 import SettingItem from "../components/Settings/SettingItem";
+//import Snackbar from 'react-native-snackbar';
+import { ReactNativeLegal } from "react-native-legal";
+
+function launchNotice() {
+  ReactNativeLegal.launchLicenseListScreen();
+}
 
 const SettingsScreen = ({ navigation }) => {
   const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
+  const [isLicensesModalVisible, setIsLicensesModalVisible] = useState(false);
   const { showActionSheetWithOptions } = useActionSheet();
   const auth = getAuth();
   const user = auth.currentUser;
@@ -33,7 +41,7 @@ const SettingsScreen = ({ navigation }) => {
             style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
             hitSlop={12}
           >
-            <Icon.Ionicons name="close-circle" size={34} color="grey" />
+            <Icon.Ionicons name="close" size={34} color="black" />
           </Pressable>
         ),
     });
@@ -143,7 +151,7 @@ const SettingsScreen = ({ navigation }) => {
               icon="info-outline"
               label="Lizenzen"
               bg="#6B7280"
-              onPress={() => setIsLicenseModalVisible(true)}
+              onPress={() => setIsLicensesModalVisible(true)}
               showDivider
             />
             <SettingItem
@@ -164,7 +172,10 @@ const SettingsScreen = ({ navigation }) => {
               icon="article"
               label="Impressum"
               bg="#10B981" // Emerald
-              onPress={() => setIsLicenseModalVisible(true)}
+              onPress={() => Snackbar.show({
+                text: 'Hello world',
+                duration: Snackbar.LENGTH_SHORT,
+              })}
             />
           </Section>
 
@@ -189,6 +200,10 @@ const SettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
+        <LicensesModal
+          visible={isLicensesModalVisible}
+          onClose={() => setIsLicensesModalVisible(false)}
+        />
         <LicenseModal
           visible={isLicenseModalVisible}
           onClose={() => setIsLicenseModalVisible(false)}
@@ -245,8 +260,8 @@ const styles = StyleSheet.create({
   logout: {
     marginTop: 26,
     backgroundColor: "#e35a5a",
-    paddingVertical: 14,
-    paddingHorizontal: 40,
+    paddingVertical: 16,
+    paddingHorizontal: 60,
     borderRadius: 16,
     flexDirection: "row",
     alignSelf: "center",

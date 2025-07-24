@@ -2,7 +2,21 @@ import { Timestamp } from "firebase/firestore";
 
 export const formatTimestamp = (timestamp) => {
   if (!timestamp) return "";
-  const date = timestamp.toDate();
+
+  let date;
+
+  if (typeof timestamp.toDate === "function") {
+    // Firestore-Timestamp
+    date = timestamp.toDate();
+  } else if (typeof timestamp === "string") {
+    date = new Date(timestamp);
+  } else if (timestamp instanceof Date) {
+    date = timestamp;
+  } else {
+    console.warn("Unbekannter Zeitstempel-Typ:", timestamp);
+    return "";
+  }
+
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
     2,
     "0"

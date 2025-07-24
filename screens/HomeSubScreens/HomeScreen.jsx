@@ -26,6 +26,9 @@ import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomShe
 import { useAppointments } from "../../hooks/useAppointments";
 import { getAuth } from "firebase/auth";
 import SubjectSelectionModal from "../../modals/SubjectSelectionModal";
+import { ReactNativeLegal } from "react-native-legal";
+import { useTodos } from "../../hooks/useTodos";
+import TodoBottomSheet from "../../components/BottomSheets/TodoBottomSheet/TodoBottomSheet";
 
 const HomeScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -35,17 +38,28 @@ const HomeScreen = function ({ navigation }) {
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
 
+  const sheetRefTodo = useRef(null);
+  const titleInputRefTodo = useRef(null);
+
   const auth = getAuth();
   const user = auth.currentUser;
 
   const { addAppointment } = useAppointments(user);
+  const { addTodo } = useTodos(user);
 
-  const [subjectSelectionModalVisible, setSubjectSelectionModalVisible] = useState();
+  const [subjectSelectionModalVisible, setSubjectSelectionModalVisible] = useState(false);
 
   const handleOpen = () => {
     sheetRef.current?.present();
     setTimeout(() => {
       titleInputRef.current?.focus();
+    }, 200);
+  };
+
+  const handleOpenTodo = () => {
+    sheetRefTodo.current?.present();
+    setTimeout(() => {
+      titleInputRefTodo.current?.focus();
     }, 200);
   };
 
@@ -114,7 +128,7 @@ const HomeScreen = function ({ navigation }) {
             handleOpen();
             break;
           case 2:
-            console.log("To-Do gewählt");
+            handleOpenTodo();
             break;
           case 3:
             navigation.navigate("NotesInputScreen", {
@@ -265,7 +279,7 @@ const HomeScreen = function ({ navigation }) {
       >
         <View style={styles.view}>
           <HomeHeader
-            onLeftPress={() => console.log("Tagesübersicht")}
+            onLeftPress={() => console.log(ReactNativeLegal)}
             onMiddlePress={handlePressedFocusButton}
             onRightPress={handlePressedHeaderButton}
           />
@@ -578,7 +592,12 @@ const HomeScreen = function ({ navigation }) {
           titleInputRef={titleInputRef}
           addAppointment={handleAddAppointment}
         />
-        <SubjectSelectionModal visible={subjectSelectionModalVisible} onClose={() => setSubjectSelectionModalVisible(false)} loading={false} />
+        <TodoBottomSheet
+        sheetRef={sheetRefTodo}
+        titleInputRef={titleInputRefTodo}
+        addTodo={addTodo}
+      />
+        <SubjectSelectionModal visible={subjectSelectionModalVisible} onClose={() => setSubjectSelectionModalVisible(false)}/>
       </SafeAreaView>
     </View>
   );
