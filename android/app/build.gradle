@@ -174,3 +174,10 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply plugin: 'com.mikepenz.aboutlibraries.plugin'
+
+aboutLibraries {
+    configPath = "config"
+    prettyPrint = true
+}
