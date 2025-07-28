@@ -191,7 +191,7 @@ const SettingsScreen = ({ navigation }) => {
           </Pressable>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>© 2025 – Nexus</Text>
+            <Text style={styles.footerText}>Version 1.0.0</Text>
             <Image
               source={require("../assets/adaptive-icon.png")}
               style={styles.logo}

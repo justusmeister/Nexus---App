@@ -39,13 +39,13 @@ const data =  [
     },
   ];
 
-const SubjectSelectionModal = ({ visible, onClose }) => {
+const SubjectSelectionModal = ({ visible, onClose, openHomeworkSheet, setSelectedSubject }) => {
   const auth = getAuth();
   const user = auth.currentUser;
 
   const { subjects, loading } = useSubjects(user);
 
-  const renderItem = ({ item }) => <SelectionSubjectItem item={item} />;
+  const renderItem = ({ item }) => <SelectionSubjectItem item={item} openHomeworkSheet={openHomeworkSheet} onClose={onClose} setSelectedSubject={setSelectedSubject} />;
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
       height: "70%",
       backgroundColor: "#ffffff",
       borderRadius: 20,
-      padding: 24,
+      padding: 15,
       paddingBottom: 5,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },

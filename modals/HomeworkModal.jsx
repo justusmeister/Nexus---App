@@ -24,7 +24,6 @@ import { checkDeadlineRemainingTime } from "../utils/checkDeadlineRemainingTime"
 import { Timestamp } from "firebase/firestore";
 import DatePickerModal from "../components/DatePickerModal";
 import ImageViewing from "react-native-image-viewing";
-
 import AttachmentPreview from "../components/General/AttachmentBar/AttachmentPreview";
 
 // Services
@@ -278,11 +277,7 @@ const HomeworkModal = ({
           <TouchableWithoutFeedback>
             <Animated.View style={[styles.modalContent, animatedModalStyle]}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Icon.Feather
-                  name="x-circle"
-                  size={30}
-                  color="#333"
-                />
+                <Icon.Feather name="x-circle" size={30} color="#333" />
               </TouchableOpacity>
               <View
                 style={[
@@ -398,6 +393,25 @@ const HomeworkModal = ({
                   </Text>
                 </Pressable>
               )}
+              {status && !editing && (
+                <Pressable
+                style={({ pressed }) => [
+                  styles.checkButton,
+                  { opacity: pressed ? 0.4 : 1, backgroundColor: "#FAD4D2" },
+                ]}
+                onPress={() => {
+                  setStatus(false);
+                  changeStatus(item.id, false);
+                }}
+              >
+                <Icon.FontAwesome size={18} name="times" color="#F44336" />
+                <Text style={[styles.checkButtonText, { color: "#F44336" }]}>
+                  Als unerledigt makieren
+                </Text>
+              </Pressable>
+              )
+
+              }
               <View style={styles.divider} />
               <ScrollView style={styles.scrollView}>
                 <Pressable>
@@ -495,11 +509,7 @@ const HomeworkModal = ({
                       onPress={handleEdit}
                     >
                       <View style={styles.deleteButtonSubBox}>
-                        <Icon.Feather
-                          name="edit-3"
-                          size={22}
-                          color="white"
-                        />
+                        <Icon.Feather name="edit-3" size={22} color="white" />
                       </View>
                     </Pressable>
                     <Pressable
@@ -529,7 +539,7 @@ const HomeworkModal = ({
               <DatePickerModal
                 visible={dueDatePickerVisible}
                 onClose={() => setDueDatePickerVisible(false)}
-                date={new Date(dueDate)}
+                date={new Date()}
                 onDateChange={setDueDate}
                 title="Abgabedatum wählen"
                 homework={true}

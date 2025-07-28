@@ -8,17 +8,19 @@ import {
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
-const SelectionSubjectItem = memo(function ({ item }) {
+const SelectionSubjectItem = memo(function ({ item, openHomeworkSheet, onClose, setSelectedSubject }) {
 
-  const handlePress = () => {
-    console.log(item?.subject);
-  };
+  const onOpenSheet = () => {
+    setSelectedSubject(item.subject);
+    onClose();
+    openHomeworkSheet();
+  }
 
   return (
     <View style={styles.homeworkButtonBox}>
       <Pressable
         style={[styles.subjectBox, { backgroundColor: item.color }]}
-        onPress={handlePress}
+        onPress={onOpenSheet}
       >
         <Icon.FontAwesome name={item.icon} size={16.8} color="white" />
         <Text
@@ -41,7 +43,7 @@ const styles = StyleSheet.create({
     height: 68,                 // 85 * 0.8
     borderRadius: 20,          // 25 * 0.8
     padding: 12,               // 15 * 0.8
-    marginHorizontal: 1,    // 14 * 0.8
+    marginHorizontal: 5,    // 14 * 0.8
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",

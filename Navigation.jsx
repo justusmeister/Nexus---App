@@ -23,7 +23,12 @@ import { getAsyncItem } from "./utils/asyncStorage";
 import Toast from "react-native-toast-message";
 import { getFullWeekPlan } from "./utils/webuntisFetchData";
 import { useTimetableData } from "./contexts/TimetableContext";
-import BottomSheetsStack from "./screens/BottomSheetsStack";
+
+// Thick BottomTabIcons:
+import HomeThick from "./assets/extraIcons/boldTabBarIcons/home.svg";
+import OrganisationThick from "./assets/extraIcons/boldTabBarIcons/calendar.svg";
+import TasksThick from "./assets/extraIcons/boldTabBarIcons/check-square.svg";
+import GradesThick from "./assets/extraIcons/boldTabBarIcons/award.svg";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -232,21 +237,31 @@ const Tabs = function () {
         let icon;
         switch (route.name) {
           case "Home":
-            icon = focused ? "home" : "home";
+            icon = focused ? "home1" : "home";
             break;
 
           case "Organisation":
-            icon = focused ? "calendar" : "calendar";
+            icon = focused ? "calendar1" : "calendar";
             break;
 
           case "Tasks":
-            icon = focused ? "check-square" : "check-square";
+            icon = focused ? "check-square1" : "check-square";
             break;
 
           case "Grades":
-            icon = focused ? "award" : "award";
+            icon = focused ? "award1" : "award";
             break;
         }
+
+        if (icon === "home1")
+          return ( <HomeThick width={size * 1.1} height={size * 1.1} /> )
+        else if (icon === "calendar1")
+          return ( <OrganisationThick width={size * 1.1} height={size * 1.1} /> )
+        else if (icon === "check-square1")
+          return ( <TasksThick width={size * 1.1} height={size * 1.1} /> )
+        else if (icon === "award1")
+          return ( <GradesThick width={size * 1.1} height={size * 1.1} /> )
+
 
         return (
           <Icon.Feather

@@ -29,11 +29,18 @@ import SubjectSelectionModal from "../../modals/SubjectSelectionModal";
 import { ReactNativeLegal } from "react-native-legal";
 import { useTodos } from "../../hooks/useTodos";
 import TodoBottomSheet from "../../components/BottomSheets/TodoBottomSheet/TodoBottomSheet";
+import HomeworkBottomSheet from "../../components/BottomSheets/HomeworkBottomSheet/HomeworkBottomSheet";
+import { addDoc, collection, doc, serverTimestamp } from "firebase/firestore";
+import Toast from "react-native-toast-message";
+import { firestoreDB } from "../../firebaseConfig";
+import { eventEmitter } from "../../eventBus";
 
 const HomeScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { deadlinesData, deleteDeadline } = useDeadlinesData();
   const { mailData, refreshing } = useEmailData();
+
+  const [selectedSubject, setSelectedSubject] = useState("");
 
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -41,13 +48,17 @@ const HomeScreen = function ({ navigation }) {
   const sheetRefTodo = useRef(null);
   const titleInputRefTodo = useRef(null);
 
+  const sheetRefHomework = useRef(null);
+  const titleInputRefHomework = useRef(null);
+
   const auth = getAuth();
   const user = auth.currentUser;
 
   const { addAppointment } = useAppointments(user);
   const { addTodo } = useTodos(user);
 
-  const [subjectSelectionModalVisible, setSubjectSelectionModalVisible] = useState(false);
+  const [subjectSelectionModalVisible, setSubjectSelectionModalVisible] =
+    useState(false);
 
   const handleOpen = () => {
     sheetRef.current?.present();
@@ -60,6 +71,13 @@ const HomeScreen = function ({ navigation }) {
     sheetRefTodo.current?.present();
     setTimeout(() => {
       titleInputRefTodo.current?.focus();
+    }, 200);
+  };
+
+  const handleOpenHomework = () => {
+    sheetRefHomework.current?.present();
+    setTimeout(() => {
+      titleInputRefHomework.current?.focus();
     }, 200);
   };
 
@@ -85,6 +103,68 @@ const HomeScreen = function ({ navigation }) {
     },
     [addAppointment]
   );
+
+  const handleAddHomework = useCallback(
+    async (title, dueDate, description, isDeadline, priority) => {
+      if (user) {
+        try {
+          const subjectRef = doc(
+            firestoreDB,
+            "subjects",
+            user.uid + selectedSubject
+          );
+          const homeworkCollectionRef = collection(subjectRef, "homework");
+
+          await addDoc(homeworkCollectionRef, {
+            title: title,
+            dueDate: dueDate,
+            description: description,
+            timestamp: serverTimestamp(),
+            status: false,
+            priority: priority,
+          });
+        } catch (e) {
+          Toast.show({
+            type: "error",
+            text1: "Fehler:",
+            text2: e,
+            visibilityTime: 4000,
+          });
+        } finally {
+          isDeadline ? addDeadline(title, dueDate, description) : null;
+        }
+      }
+    }
+  );
+
+  const addDeadline = async (name, day, description) => {
+    if (!user) return;
+
+    try {
+      const deadlineCollectionRef = collection(
+        firestoreDB,
+        "deadlines",
+        user.uid,
+        "deadlinesList"
+      );
+
+      await addDoc(deadlineCollectionRef, {
+        name,
+        day,
+        description,
+        timestamp: serverTimestamp(),
+      });
+    } catch (e) {
+      Toast.show({
+        type: "error",
+        text1: "Fehler:",
+        text2: e.message || "Ein Fehler ist aufgetreten",
+        visibilityTime: 4000,
+      });
+    } finally {
+      eventEmitter.emit("refreshDeadlines");
+    }
+  };
 
   const { showActionSheetWithOptions } = useActionSheet();
 
@@ -593,11 +673,22 @@ const HomeScreen = function ({ navigation }) {
           addAppointment={handleAddAppointment}
         />
         <TodoBottomSheet
-        sheetRef={sheetRefTodo}
-        titleInputRef={titleInputRefTodo}
-        addTodo={addTodo}
-      />
-        <SubjectSelectionModal visible={subjectSelectionModalVisible} onClose={() => setSubjectSelectionModalVisible(false)}/>
+          sheetRef={sheetRefTodo}
+          titleInputRef={titleInputRefTodo}
+          addTodo={addTodo}
+        />
+        <HomeworkBottomSheet
+          sheetRef={sheetRefHomework}
+          titleInputRef={titleInputRefHomework}
+          selectedSubject={selectedSubject}
+          addHomework={handleAddHomework}
+        />
+        <SubjectSelectionModal
+          visible={subjectSelectionModalVisible}
+          onClose={() => setSubjectSelectionModalVisible(false)}
+          openHomeworkSheet={handleOpenHomework}
+          setSelectedSubject={setSelectedSubject}
+        />
       </SafeAreaView>
     </View>
   );

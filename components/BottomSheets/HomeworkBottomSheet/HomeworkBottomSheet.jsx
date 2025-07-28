@@ -26,19 +26,20 @@ import AttachmentBar from "../../General/AttachmentBar/AttachmentBar";
 import AttachmentPreview from "../../General/AttachmentBar/AttachmentPreview";
 
 // Services
-import { 
-  openCamera, 
-  openGallery, 
+import {
+  openCamera,
+  openGallery,
   openAttachment,
   openNativeFile,
   formatBytes,
-  mimeTypeToFeatherIcon
+  mimeTypeToFeatherIcon,
 } from "../../General/AttachmentBar/utils/attachmentService";
 
 const HomeworkBottomSheet = memo(function ({
   sheetRef,
   titleInputRef,
   addHomework,
+  selectedSubject,
 }) {
   // State Management
   const [formState, setFormState] = useState({
@@ -48,74 +49,81 @@ const HomeworkBottomSheet = memo(function ({
     description: "",
     priority: 0,
   });
-  
+
   const [keyboardState, setKeyboardState] = useState({
     height: 0,
     activeField: null,
   });
-  
+
   const [attachments, setAttachments] = useState([]);
   const [imageViewerState, setImageViewerState] = useState({
     visible: false,
-    currentIndex: 0
+    currentIndex: 0,
   });
-  
+
   // Refs
   const scrollViewRef = useRef(null);
 
   // Memoized values
   const snapPoints = useMemo(() => ["75%"], []);
-  const imageAttachments = useMemo(() => 
-    attachments.filter(a => a.type === "image"), 
+  const imageAttachments = useMemo(
+    () => attachments.filter((a) => a.type === "image"),
     [attachments]
   );
 
   // State setters (memoized to prevent re-renders)
   const updateFormState = useCallback((key, value) => {
-    setFormState(prev => ({ ...prev, [key]: value }));
+    setFormState((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const updateKeyboardState = useCallback((key, value) => {
-    setKeyboardState(prev => ({ ...prev, [key]: value }));
+    setKeyboardState((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   // Attachment handlers
   const handleOpenCamera = useCallback(async () => {
     const newAttachment = await openCamera();
     if (newAttachment) {
-      setAttachments(prev => [...prev, newAttachment]);
+      setAttachments((prev) => [...prev, newAttachment]);
     }
   }, []);
 
   const handleOpenGallery = useCallback(async () => {
     const newAttachment = await openGallery();
     if (newAttachment) {
-      setAttachments(prev => [...prev, newAttachment]);
+      setAttachments((prev) => [...prev, newAttachment]);
     }
   }, []);
 
   const handleOpenAttachment = useCallback(async () => {
     const newAttachment = await openAttachment();
     if (newAttachment) {
-      setAttachments(prev => [...prev, newAttachment]);
+      setAttachments((prev) => [...prev, newAttachment]);
     }
   }, []);
 
   const handleRemoveAttachment = useCallback((indexToRemove) => {
-    setAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+    setAttachments((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   }, []);
 
-  const handleAttachmentPress = useCallback((item) => {
-    if (item.type === "image") {
-      const imageIndex = imageAttachments.findIndex(a => a.uri === item.uri);
-      setImageViewerState({
-        visible: true,
-        currentIndex: imageIndex
-      });
-    } else {
-      openNativeFile(item.uri);
-    }
-  }, [imageAttachments]);
+  const handleAttachmentPress = useCallback(
+    (item) => {
+      if (item.type === "image") {
+        const imageIndex = imageAttachments.findIndex(
+          (a) => a.uri === item.uri
+        );
+        setImageViewerState({
+          visible: true,
+          currentIndex: imageIndex,
+        });
+      } else {
+        openNativeFile(item.uri);
+      }
+    },
+    [imageAttachments]
+  );
 
   // Keyboard handling
   useEffect(() => {
@@ -144,13 +152,16 @@ const HomeworkBottomSheet = memo(function ({
   }, [keyboardState.activeField, updateKeyboardState]);
 
   // BottomSheet handlers
-  const renderBackdrop = useCallback((props) => (
-    <BottomSheetBackdrop
-      appearsOnIndex={0}
-      disappearsOnIndex={-1}
-      {...props}
-    />
-  ), []);
+  const renderBackdrop = useCallback(
+    (props) => (
+      <BottomSheetBackdrop
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        {...props}
+      />
+    ),
+    []
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.dismiss();
@@ -180,7 +191,8 @@ const HomeworkBottomSheet = memo(function ({
 
   const handleSave = useCallback(() => {
     try {
-      const { homeworkTitle, dueDate, description, isAllDay, priority } = formState;
+      const { homeworkTitle, dueDate, description, isAllDay, priority } =
+        formState;
       addHomework(
         homeworkTitle || "Unbenannt",
         dueDate,
@@ -195,22 +207,28 @@ const HomeworkBottomSheet = memo(function ({
   }, [formState, addHomework, handleClose]);
 
   // Rendering
-  const renderAttachmentItem = useCallback(({ item, index }) => (
-    <AttachmentPreview
-      item={item}
-      index={index}
-      onPress={() => handleAttachmentPress(item)}
-      onRemove={() => handleRemoveAttachment(index)}
-    />
-  ), [handleAttachmentPress, handleRemoveAttachment]);
+  const renderAttachmentItem = useCallback(
+    ({ item, index }) => (
+      <AttachmentPreview
+        item={item}
+        index={index}
+        onPress={() => handleAttachmentPress(item)}
+        onRemove={() => handleRemoveAttachment(index)}
+      />
+    ),
+    [handleAttachmentPress, handleRemoveAttachment]
+  );
 
   // Performance optimierungen für FlatList
   const keyExtractor = useCallback((_, index) => `attachment-${index}`, []);
-  const getItemLayout = useCallback((_, index) => ({
-    length: 100,
-    offset: 100 * index,
-    index,
-  }), []);
+  const getItemLayout = useCallback(
+    (_, index) => ({
+      length: 100,
+      offset: 100 * index,
+      index,
+    }),
+    []
+  );
 
   return (
     <BottomSheetModal
@@ -225,12 +243,15 @@ const HomeworkBottomSheet = memo(function ({
       backdropComponent={renderBackdrop}
       onDismiss={handleDismiss}
     >
+      <Text style={{ color: "black", fontSize: 18, fontWeight: "500", marginLeft: 10, }}>{selectedSubject}</Text>
       <BottomSheetScrollView
         ref={scrollViewRef}
         contentContainerStyle={[
           styles.sheetContainer,
           keyboardState.activeField === "description" &&
-            keyboardState.height > 0 && { paddingBottom: keyboardState.height + 20 },
+            keyboardState.height > 0 && {
+              paddingBottom: keyboardState.height + 20,
+            },
         ]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
@@ -247,9 +268,9 @@ const HomeworkBottomSheet = memo(function ({
           inputRef={titleInputRef}
         />
 
-        <ChoosePriority 
-          priority={formState.priority} 
-          onChange={(val) => updateFormState("priority", val)} 
+        <ChoosePriority
+          priority={formState.priority}
+          onChange={(val) => updateFormState("priority", val)}
         />
 
         <DateTimeSelector
@@ -296,14 +317,16 @@ const HomeworkBottomSheet = memo(function ({
 
         <SaveButton onPress={handleSave} />
       </BottomSheetScrollView>
-      
+
       <ImageViewing
         animationType="slide"
         images={imageAttachments.map((img) => ({ uri: img.uri }))}
         imageIndex={imageViewerState.currentIndex}
         visible={imageViewerState.visible}
         backgroundColor="white"
-        onRequestClose={() => setImageViewerState({...imageViewerState, visible: false})}
+        onRequestClose={() =>
+          setImageViewerState({ ...imageViewerState, visible: false })
+        }
         swipeToCloseEnabled={false}
       />
     </BottomSheetModal>

@@ -294,7 +294,7 @@ const GenericScreen = function ({ navigation }) {
     }
   };
 
-  const updateHomeworkStatus = async (id) => {
+  const updateHomeworkStatus = async (id, status = true) => {
     if (user) {
       setHomeworkList((prev) =>
         prev.map((hw) => (hw.id === id ? { ...hw, status: true } : hw))
@@ -311,7 +311,7 @@ const GenericScreen = function ({ navigation }) {
         await setDoc(
           homeworkRef,
           {
-            status: true,
+            status: status,
           },
           { merge: true }
         );
