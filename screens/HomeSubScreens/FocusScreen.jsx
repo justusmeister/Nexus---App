@@ -3,14 +3,14 @@ import { useState } from "react";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import PomodoroTimer from "../../components/Focus/PomodoroTimer";
 import StopwatchTimer from "../../components/Focus/StopwatchTimer";
-import FocusHeader from "../../components/Focus/FocusHeader";
+import FullScreenModalHeader from "../../components/General/FullScreenModalHeader";
 
 const FocusScreen = ({ navigation }) => {
   const [mode, setMode] = useState("Pomodoro");
 
   return (
     <View style={styles.container}>
-      <FocusHeader onClose={() => navigation.goBack()} />
+      <FullScreenModalHeader title="Fokusmodus" onClose={() => navigation.goBack()} />
 
       <SegmentedControl
         values={["Pomodoro", "Stoppuhr"]}

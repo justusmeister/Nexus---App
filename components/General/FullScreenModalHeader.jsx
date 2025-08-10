@@ -2,24 +2,24 @@ import { View, Pressable, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const FocusHeader = ({ onClose }) => {
+const FullScreenModalHeader = ({ title, onClose }) => {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.header, { paddingTop: insets }]}>
-      <Text style={styles.title}>Fokusmodus</Text>
+      <Text style={styles.title}>{title}</Text>
       <Pressable
         style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
         onPress={onClose}
         hitSlop={15}
       >
-        <Ionicons name="close" size={30} color="#333" />
+        <Ionicons name="close" size={32} color="#333" />
       </Pressable>
     </View>
   );
 };
 
-export default FocusHeader;
+export default FullScreenModalHeader;
 
 const styles = StyleSheet.create({
   header: {
@@ -27,11 +27,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "600",
     color: "#333",
   },

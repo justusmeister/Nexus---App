@@ -15,11 +15,12 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 const DeadlineBottomSheet = memo(function ({
   sheetRef,
   titleInputRef,
+  selectedDay = new Date(),
   addAppointment,
 }) {
   const [selectedIndex, setSelectedIndex] = useState(1);
   const [isAllDay, setIsAllDay] = useState(false);
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(selectedDay || new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [deadlineTitle, setDeadlineTitle] = useState("");
   const [description, setDescription] = useState("");

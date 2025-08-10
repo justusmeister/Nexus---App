@@ -8,6 +8,7 @@ import { DeadlinesProvider } from "../contexts/DeadlinesContext";
 import HomeScreen from "./HomeSubScreens/HomeScreen";
 import FocusScreen from "./HomeSubScreens/FocusScreen";
 import { useNavigation } from "@react-navigation/native";
+import DayOverviewScreen from "./HomeSubScreens/DayOverviewScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +67,11 @@ const HomeStack = function ({ navigation }) {
         <Stack.Screen
           name="Focus"
           component={FocusScreen}
+          options={{ headerShown: false, presentation: "fullScreenModal", gestureDirection: "vertical", gestureEnabled: true, }} 
+        />
+        <Stack.Screen 
+          name="DayOverview"
+          component={DayOverviewScreen}
           options={{ headerShown: false, presentation: "fullScreenModal" }} 
         />
         <Stack.Screen

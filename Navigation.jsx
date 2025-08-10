@@ -29,6 +29,8 @@ import HomeThick from "./assets/extraIcons/boldTabBarIcons/home.svg";
 import OrganisationThick from "./assets/extraIcons/boldTabBarIcons/calendar.svg";
 import TasksThick from "./assets/extraIcons/boldTabBarIcons/check-square.svg";
 import GradesThick from "./assets/extraIcons/boldTabBarIcons/award.svg";
+import { useThemePreference } from "./hooks/useThemePreference";
+import { DarkTheme, LightTheme } from "./constants/theme";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -111,6 +113,8 @@ const Navigation = function () {
   const [initialRoute, setInitialRoute] = useState(null);
   const { setTimetableData } = useTimetableData();
 
+  const { colorScheme } = useThemePreference();
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -175,7 +179,7 @@ const Navigation = function () {
   if (!initialRoute) return null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={colorScheme === "dark" ? DarkTheme : LightTheme}>
       <Stack.Navigator initialRouteName={initialRoute}>
         <Stack.Screen
           name="OnboardingScreen"

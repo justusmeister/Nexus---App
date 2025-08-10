@@ -20,6 +20,8 @@ import LicensesModal from "../modals/LicensesModal";
 import SettingItem from "../components/Settings/SettingItem";
 //import Snackbar from 'react-native-snackbar';
 import { ReactNativeLegal } from "react-native-legal";
+import PortraylModal from "../modals/PortraylModal";
+import { useTheme } from "@react-navigation/native";
 
 function launchNotice() {
   ReactNativeLegal.launchLicenseListScreen();
@@ -28,7 +30,11 @@ function launchNotice() {
 const SettingsScreen = ({ navigation }) => {
   const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
   const [isLicensesModalVisible, setIsLicensesModalVisible] = useState(false);
+  const [isPortraylModalVisible, setIsPortraylModalVisible] = useState(false);
   const { showActionSheetWithOptions } = useActionSheet();
+
+  const { colors } = useTheme();
+
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -91,7 +97,7 @@ const SettingsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
@@ -120,7 +126,7 @@ const SettingsScreen = ({ navigation }) => {
               icon="nightlight"
               label="App-Darstellung"
               bg="#10B981"
-              onPress={() => setIsLicenseModalVisible(true)}
+              onPress={() => setIsPortraylModalVisible(true)}
               showDivider
             />
             <SettingItem
@@ -208,6 +214,10 @@ const SettingsScreen = ({ navigation }) => {
           visible={isLicenseModalVisible}
           onClose={() => setIsLicenseModalVisible(false)}
         />
+        <PortraylModal
+          visible={isPortraylModalVisible}
+          onClose={() => setIsPortraylModalVisible(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -225,7 +235,6 @@ export default SettingsScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#EFEEF6",
   },
   scrollViewContent: {
     paddingTop: 6,

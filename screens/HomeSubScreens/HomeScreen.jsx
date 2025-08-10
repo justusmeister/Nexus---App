@@ -183,6 +183,11 @@ const HomeScreen = function ({ navigation }) {
     handleOpenSheet();
   };
 
+  const handlePressedTodayViewButton = () => {
+    trigger("impactLight", options);
+    navigation.navigate("DayOverview");
+  };
+
   const handleOpenSheet = () => {
     const options = [
       "Hausaufgabe",
@@ -359,7 +364,7 @@ const HomeScreen = function ({ navigation }) {
       >
         <View style={styles.view}>
           <HomeHeader
-            onLeftPress={() => console.log(ReactNativeLegal)}
+            onLeftPress={handlePressedTodayViewButton}
             onMiddlePress={handlePressedFocusButton}
             onRightPress={handlePressedHeaderButton}
           />

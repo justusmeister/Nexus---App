@@ -13,7 +13,6 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import * as Icon from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { getAuth } from "firebase/auth";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -128,9 +127,7 @@ const YearDetailedScreen = function ({ navigation }) {
         .then((result) => {
           if (result?.success) {
             fetchAppointments(params?.date, params?.monthLength);
-          }
-          else
-            console.log(result);
+          } else console.log(result);
         })
         .catch((e) => console.error("Fehler:", e));
 
@@ -157,6 +154,28 @@ const YearDetailedScreen = function ({ navigation }) {
     },
     [updateAppointment]
   );
+
+  function getSelectedDate(baseDateStr, selectedDay) {
+  const baseDate = new Date(baseDateStr);
+  const year = baseDate.getFullYear();
+  const month = baseDate.getMonth();
+
+  const today = new Date();
+  const isSameMonthAndYear =
+    today.getFullYear() === year && today.getMonth() === month;
+
+  // Tag validieren: Muss Zahl zwischen 1 und 31 sein
+  const parsedDay = parseInt(selectedDay, 10);
+  const isValidDay =
+    !isNaN(parsedDay) && parsedDay >= 1 && parsedDay <= 31;
+
+  if (isValidDay) {
+    return new Date(year, month, parsedDay);
+  } else {
+    return isSameMonthAndYear ? null : baseDate;
+  }
+}
+
 
   return (
     <View style={styles.screen}>
@@ -212,6 +231,7 @@ const YearDetailedScreen = function ({ navigation }) {
       <DeadlineBottomSheet
         sheetRef={sheetRef}
         titleInputRef={titleInputRef}
+        selectedDay={getSelectedDate(params?.date, selectedDay)}
         addAppointment={handleAddAppointment}
       />
       <AppointmentModal

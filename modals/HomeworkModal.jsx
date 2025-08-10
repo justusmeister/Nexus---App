@@ -373,6 +373,21 @@ const HomeworkModal = ({
                         ? "abgelaufen"
                         : "ausstehend"}
                     </Text>
+                    {status && (
+                <Pressable
+                style={({ pressed }) => [
+                  { opacity: pressed ? 0.4 : 1, position: "absolute", right: 5, top: 3, padding: 2 },
+                ]}
+                onPress={() => {
+                  setStatus(false);
+                  changeStatus(item.id, false);
+                }}
+              >
+                <Icon.Feather size={24} name="corner-up-left" color="#333" />
+              </Pressable>
+              )
+
+              }
                   </View>
                 )}
               </View>
@@ -393,25 +408,6 @@ const HomeworkModal = ({
                   </Text>
                 </Pressable>
               )}
-              {status && !editing && (
-                <Pressable
-                style={({ pressed }) => [
-                  styles.checkButton,
-                  { opacity: pressed ? 0.4 : 1, backgroundColor: "#FAD4D2" },
-                ]}
-                onPress={() => {
-                  setStatus(false);
-                  changeStatus(item.id, false);
-                }}
-              >
-                <Icon.FontAwesome size={18} name="times" color="#F44336" />
-                <Text style={[styles.checkButtonText, { color: "#F44336" }]}>
-                  Als unerledigt makieren
-                </Text>
-              </Pressable>
-              )
-
-              }
               <View style={styles.divider} />
               <ScrollView style={styles.scrollView}>
                 <Pressable>

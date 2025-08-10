@@ -297,7 +297,7 @@ const GenericScreen = function ({ navigation }) {
   const updateHomeworkStatus = async (id, status = true) => {
     if (user) {
       setHomeworkList((prev) =>
-        prev.map((hw) => (hw.id === id ? { ...hw, status: true } : hw))
+        prev.map((hw) => (hw.id === id ? { ...hw, status: status } : hw))
       );
       try {
         const homeworkRef = doc(
@@ -395,6 +395,7 @@ const GenericScreen = function ({ navigation }) {
         sheetRef={sheetRef}
         titleInputRef={titleInputRef}
         addHomework={addHomework}
+        selectedSubject={params?.subject || ""}
       />
       <HomeworkModal
         visible={isDetailedModalVisible}
