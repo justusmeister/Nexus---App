@@ -26,7 +26,6 @@ import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomShe
 import { useAppointments } from "../../hooks/useAppointments";
 import { getAuth } from "firebase/auth";
 import SubjectSelectionModal from "../../modals/SubjectSelectionModal";
-import { ReactNativeLegal } from "react-native-legal";
 import { useTodos } from "../../hooks/useTodos";
 import TodoBottomSheet from "../../components/BottomSheets/TodoBottomSheet/TodoBottomSheet";
 import HomeworkBottomSheet from "../../components/BottomSheets/HomeworkBottomSheet/HomeworkBottomSheet";
@@ -34,11 +33,14 @@ import { addDoc, collection, doc, serverTimestamp } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { firestoreDB } from "../../firebaseConfig";
 import { eventEmitter } from "../../eventBus";
+import { useTheme } from "@react-navigation/native";
+import FadeInTab from "../../components/General/FadeInTab";
 
 const HomeScreen = function ({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { deadlinesData, deleteDeadline } = useDeadlinesData();
   const { mailData, refreshing } = useEmailData();
+  const { colors } = useTheme();
 
   const [selectedSubject, setSelectedSubject] = useState("");
 
@@ -358,9 +360,10 @@ const HomeScreen = function ({ navigation }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
+    <FadeInTab>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaView
-        style={[styles.container, { marginBottom: tabBarHeight + 6 }]}
+        style={[styles.container, { marginBottom: tabBarHeight + 12 }]}
       >
         <View style={styles.view}>
           <HomeHeader
@@ -558,7 +561,7 @@ const HomeScreen = function ({ navigation }) {
             onPress={() => navigation.navigate("InboxScreen")}
           />
           <MessageBox
-            title="anstehende Termine"
+            title="Termine & Fristen"
             style={{
               height: "32%",
               backgroundColor: "#e74c3c",
@@ -696,6 +699,7 @@ const HomeScreen = function ({ navigation }) {
         />
       </SafeAreaView>
     </View>
+    </FadeInTab>
   );
 };
 

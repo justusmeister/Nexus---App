@@ -9,11 +9,14 @@ import HomeworkScreen from "./TasksSubScreens/HomeworkScreen";
 import GenericScreen from "./TasksSubScreens/GenericSubjectScreen";
 import NotesScreen from "./TasksSubScreens/NotesScreen";
 import TodosScreen from "./TasksSubScreens/TodosScreen";
+import { useTheme } from "@react-navigation/native";
+import CustomBackButton from "../components/General/CustomBackButton";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
 const TasksStack = function ({ navigation }) {
+  const { colors, fonts } = useTheme();
 
   return (
     <Stack.Navigator initialRouteName="MaterialTopTabs">
@@ -27,8 +30,10 @@ const TasksStack = function ({ navigation }) {
         component={GenericScreen}
         options={{
           title: "Fach",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
+          headerTitleStyle: { fontFamily: fonts.semibold },
+          headerStyle: { backgroundColor: colors.background },
+          headerLeft: () => <CustomBackButton />,
+          headerShadowVisible: false,
         }}
       />
       <Stack.Screen
@@ -36,8 +41,10 @@ const TasksStack = function ({ navigation }) {
         component={NotesScreen}
         options={{
           title: "allgemeine Notizen",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
+          headerTitleStyle: { fontFamily: fonts.semibold },
+          headerStyle: { backgroundColor: colors.background },
+          headerLeft: () => <CustomBackButton />,
+          headerShadowVisible: false,
         }}
       />
       
@@ -49,10 +56,11 @@ export default TasksStack;
 
 const MaterialTopTabs = function () {
   insets = useSafeAreaInsets();
+  const { colors, fonts } = useTheme();
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: "#EFEEF6", paddingTop: insets.top }}
+      style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}
     >
       <Tab.Navigator
         initialRouteName="HomeworkScreen"
@@ -65,25 +73,25 @@ const MaterialTopTabs = function () {
                   flex: 1,
                   justifyContent: "center",
                   alignItems: "center",
-                  backgroundColor: "#EFEEF6",
+                  backgroundColor: colors.background,
                 }}
               >
-                <ActivityIndicator size={"small"} color={"#333"} />
+                <ActivityIndicator size={"small"} color={colors.primary} />
               </View>
             );
           },
-          tabBarActiveTintColor: "#333",
-          tabBarInactiveTintColor: "#888",
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.text + "99",
           tabBarLabelStyle: {
             fontSize: 13.5,
-            fontWeight: "600",
+            fontFamily: fonts.bold
           },
           tabBarStyle: {
-            backgroundColor: "#EFEEF6",
+            backgroundColor: colors.background,
             height: 48,
           },
           tabBarIndicatorStyle: {
-            backgroundColor: "#333",
+            backgroundColor: colors.primary,
             height: 3,
           },
         }}

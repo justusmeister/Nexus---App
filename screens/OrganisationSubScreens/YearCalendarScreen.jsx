@@ -22,7 +22,7 @@ import Animated, {
   withSpring,
   interpolate,
 } from "react-native-reanimated";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useTheme } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { firestoreDB } from "../../firebaseConfig";
 import { getAuth } from "firebase/auth";
@@ -45,6 +45,7 @@ import DeadlineBottomSheet from "../../components/BottomSheets/DeadlineBottomShe
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { eventEmitter } from "../../eventBus";
 import FilterDropDownMenu from "../../components/YearCalendar/FilterDropDownMenu";
+import PlusButton from "../../components/General/PlusButton";
 
 const months = [
   "Januar",
@@ -119,6 +120,7 @@ const YearCalendarScreen = function ({ navigation }) {
   const height = useSharedValue(0);
   const width = useSharedValue(0);
   const opacity = useSharedValue(0);
+  const { colors, fonts } = useTheme();
 
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -329,11 +331,11 @@ const YearCalendarScreen = function ({ navigation }) {
       <View
         style={{
           flex: 1,
-          backgroundColor: "#EFEEF6",
+          backgroundColor: colors.background,
         }}
       >
         <SafeAreaView
-          style={[styles.screen, { marginBottom: tabBarHeight + 6 }]}
+          style={[styles.screen, { marginBottom: tabBarHeight + 12 }]}
         >
           {isFilterMenuVisible && (
             <Pressable style={styles.overlay} onPress={toggleDropdown} />
@@ -356,9 +358,9 @@ const YearCalendarScreen = function ({ navigation }) {
               showsVerticalScrollIndicator={false}
               style={{ borderRadius: 20 }}
             />
-            <TouchableOpacity style={styles.addButton} onPress={handleOpen}>
-              <Icon.AntDesign name="pluscircle" size={40} color="#3a5f8a" />
-            </TouchableOpacity>
+            <View style={styles.addButton}>
+              <PlusButton onPress={handleOpen} medium={true} />
+            </View>
           </View>
         </SafeAreaView>
       </View>
@@ -795,7 +797,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#a1a1a1",
-    borderRadius: 20,
+    borderRadius: 24,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -874,15 +876,6 @@ const styles = StyleSheet.create({
     right: -5,
     bottom: -5,
     zIndex: 1,
-    height: 40,
-    width: 40,
-    borderRadius: 50,
-    backgroundColor: "white",
-    elevation: 3,
-    shadowColor: "#333",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
   filterButton: {
     position: "absolute",

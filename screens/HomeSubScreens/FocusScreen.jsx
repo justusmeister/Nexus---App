@@ -4,12 +4,14 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import PomodoroTimer from "../../components/Focus/PomodoroTimer";
 import StopwatchTimer from "../../components/Focus/StopwatchTimer";
 import FullScreenModalHeader from "../../components/General/FullScreenModalHeader";
+import { useTheme } from "@react-navigation/native";
 
 const FocusScreen = ({ navigation }) => {
+  const { colors, fonts } = useTheme();
   const [mode, setMode] = useState("Pomodoro");
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <FullScreenModalHeader title="Fokusmodus" onClose={() => navigation.goBack()} />
 
       <SegmentedControl
@@ -31,9 +33,8 @@ const FocusScreen = ({ navigation }) => {
 export default FocusScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#fff",
     paddingTop: 60,
     paddingHorizontal: 20,
   },

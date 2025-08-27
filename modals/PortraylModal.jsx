@@ -9,15 +9,15 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import {Appearance} from 'react-native';
 
-// SVGs
 import SystemModeIcon from "../assets/illustrations/systemmode.svg";
 import LightModeIcon from "../assets/illustrations/lightmode.svg";
 import DarkModeIcon from "../assets/illustrations/darkmode.svg";
 
-// Neues Radio Icon
 import SingleRadioButton from "../components/General/SingleRadioButton";
 import { useThemePreference } from "../hooks/useThemePreference";
+import { useTheme } from "@react-navigation/native";
 
 const PortraylModal = ({ visible, onClose }) => {
   const { themePref, setTheme, loading } = useThemePreference();
@@ -34,33 +34,74 @@ const PortraylModal = ({ visible, onClose }) => {
   const handleModeChange = (value) => {
     setSelectedMode(value);
     setTheme(value);
+    Appearance.setColorScheme(value);
   };
+
+  // Theme auswählen
+  const theme = useTheme();
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { backgroundColor: "rgba(0,0,0,0.4)" }]}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: theme.colors.background },
+              ]}
+            >
               <Pressable onPress={onClose} style={styles.closeButton}>
-                <Feather name="x" size={24} color="#333" />
+                <Feather
+                  name="x"
+                  size={24}
+                  color={theme.colors.text}
+                />
               </Pressable>
 
               <View style={styles.header}>
-                <Feather name="moon" size={22} color="#4a4a4a" />
-                <Text style={styles.headerText}>Darstellung wählen</Text>
+                <Feather
+                  name="moon"
+                  size={22}
+                  color={theme.colors.text}
+                />
+                <Text
+                  style={[
+                    styles.headerText,
+                    { color: theme.colors.text, fontFamily: theme.fonts.bold },
+                  ]}
+                >
+                  Darstellung wählen
+                </Text>
               </View>
 
-              <View style={styles.divider} />
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
 
               <View style={styles.body}>
                 {/* System Mode */}
                 <Pressable
-                  style={styles.option}
+                  style={[
+                    styles.option,
+                    { backgroundColor: theme.colors.card },
+                  ]}
                   onPress={() => handleModeChange("system")}
                 >
-                  <SystemModeIcon width={90} height={90} />
-                  <Text style={styles.optionText}>System</Text>
+                  <View style={{ backgroundColor: theme.colors.border, borderRadius: 8, borderLeftWidth: 10, borderBottomWidth: 10, borderColor: theme.colors.border, overflow: "hidden" }}>
+                    <SystemModeIcon width={90} height={90} />
+                  </View>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: theme.colors.text, fontFamily: theme.fonts.semibold },
+                    ]}
+                  >
+                    System
+                  </Text>
                   <SingleRadioButton
                     value={selectedMode === "system"}
                     onPress={() => handleModeChange("system")}
@@ -69,11 +110,21 @@ const PortraylModal = ({ visible, onClose }) => {
 
                 {/* Light Mode */}
                 <Pressable
-                  style={styles.option}
+                  style={[
+                    styles.option,
+                    { backgroundColor: theme.colors.card },
+                  ]}
                   onPress={() => handleModeChange("light")}
                 >
-                  <LightModeIcon width={90} height={90} />
-                  <Text style={styles.optionText}>Hell</Text>
+                  <LightModeIcon width={90} height={90} style={{ margin: 5 }}/>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: theme.colors.text, fontFamily: theme.fonts.semibold },
+                    ]}
+                  >
+                    Hell
+                  </Text>
                   <SingleRadioButton
                     value={selectedMode === "light"}
                     onPress={() => handleModeChange("light")}
@@ -82,11 +133,21 @@ const PortraylModal = ({ visible, onClose }) => {
 
                 {/* Dark Mode */}
                 <Pressable
-                  style={styles.option}
+                  style={[
+                    styles.option,
+                    { backgroundColor: theme.colors.card },
+                  ]}
                   onPress={() => handleModeChange("dark")}
                 >
-                  <DarkModeIcon width={90} height={90} />
-                  <Text style={styles.optionText}>Dunkel</Text>
+                  <DarkModeIcon width={90} height={90} style={{ margin: 5 }}/>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: theme.colors.text, fontFamily: theme.fonts.semibold },
+                    ]}
+                  >
+                    Dunkel
+                  </Text>
                   <SingleRadioButton
                     value={selectedMode === "dark"}
                     onPress={() => handleModeChange("dark")}
@@ -106,13 +167,11 @@ export default PortraylModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
     width: "88%",
-    backgroundColor: "#ffffff",
     borderRadius: 20,
     padding: 24,
     shadowColor: "#000",
@@ -137,12 +196,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: RFPercentage(2.4),
-    fontWeight: "700",
-    color: "#333",
   },
   divider: {
     height: 1,
-    backgroundColor: "#e0e0e0",
     marginBottom: 16,
   },
   body: {
@@ -153,7 +209,6 @@ const styles = StyleSheet.create({
   option: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
@@ -163,8 +218,6 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
     fontSize: RFPercentage(2),
-    fontWeight: "500",
-    color: "#333",
     marginLeft: 12,
   },
 });

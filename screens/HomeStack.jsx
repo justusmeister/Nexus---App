@@ -7,41 +7,16 @@ import DeadlineScreen from "./HomeSubScreens/DeadlineScreen";
 import { DeadlinesProvider } from "../contexts/DeadlinesContext";
 import HomeScreen from "./HomeSubScreens/HomeScreen";
 import FocusScreen from "./HomeSubScreens/FocusScreen";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import DayOverviewScreen from "./HomeSubScreens/DayOverviewScreen";
+import CustomHeader from "../components/General/CustomHeader";
+import CustomBackButton from "../components/General/CustomBackButton";
 
 const Stack = createNativeStackNavigator();
 
-function CustomBackButton() {
-  const navigation = useNavigation();
-
-  return (
-    <Pressable
-      onPress={() => navigation.goBack()}
-      style={({ pressed }) => [{
-        padding: 6,
-        borderRadius: 15,
-        marginLeft: 10, // Abstand zum Rand
-        backgroundColor: "rgba(0, 0, 0, 0.065)",
-        borderWidth: 1,
-        borderColor: "#c6c6c6",
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: "darkgray",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4.65,
-        elevation: 8,
-        opacity: pressed ? 0.4 : 1,
-      }]}
-      hitSlop={12}
-    >
-      <Icon.Feather name="arrow-left" size={25} color="black" />
-    </Pressable>
-  );
-}
-
 const HomeStack = function ({ navigation }) {
+  const { colors, spacing, radius, fonts } = useTheme();
+
   return (
     <DeadlinesProvider>
       <Stack.Navigator>
@@ -49,18 +24,11 @@ const HomeStack = function ({ navigation }) {
           name="HomeScreen"
           component={HomeScreen}
           options={{
-            title: "Startseite",
-            headerLargeTitle: true,
-            headerShadowVisible: false,
-            headerStyle: { backgroundColor: "#EFEEF6" },
-            headerRight: () => (
-              <Pressable
-                onPress={() => navigation.navigate("SettingsScreen")}
-                style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
-                hitSlop={12}
-              >
-                <Icon.Feather name="settings" size={25 * 1.1} />
-              </Pressable>
+            header: () => (
+              <CustomHeader
+                title="Hallo, Justus!"
+                onSettingsPress={() => navigation.navigate("SettingsScreen")}
+              />
             ),
           }}
         />
@@ -79,7 +47,10 @@ const HomeStack = function ({ navigation }) {
           component={NewsScreen}
           options={{
             title: "Neuigkeiten",
-            headerLeft: () => <CustomBackButton />
+            headerTitleStyle: { fontFamily: fonts.semibold },
+            headerStyle: { backgroundColor: colors.background },
+            headerLeft: () => <CustomBackButton />,
+            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -87,17 +58,21 @@ const HomeStack = function ({ navigation }) {
           component={InboxScreen}
           options={{
             title: "Posteingang",
-            headerBackTitle: "Zurück",
-            headerTintColor: "black",
+            headerTitleStyle: { fontFamily: fonts.semibold },
+            headerStyle: { backgroundColor: colors.background },
+            headerLeft: () => <CustomBackButton />,
+            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
           name="DeadlineScreen"
           component={DeadlineScreen}
           options={{
-            title: "anstehende Fristen",
-            headerBackTitle: "Zurück",
-            headerTintColor: "black",
+            title: "Termine & Fristen",
+            headerTitleStyle: { fontFamily: fonts.semibold },
+            headerStyle: { backgroundColor: colors.background },
+            headerLeft: () => <CustomBackButton />,
+            headerShadowVisible: false,
           }}
         />
       </Stack.Navigator>

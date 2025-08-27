@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, Platform, Animated } from "react-native";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
 
 const formatTime = (ms) => {
   const minutes = String(Math.floor(ms / 60000)).padStart(2, "0");
@@ -11,6 +12,7 @@ const formatTime = (ms) => {
 };
 
 const Stopwatch = () => {
+  const { colors } = useTheme();
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const intervalRef = useRef(null);
@@ -57,23 +59,30 @@ const Stopwatch = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.time}>{formatTime(time)}</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.time, { color: colors.text }]}>{formatTime(time)}</Text>
 
       <Animated.View style={[styles.controlRow, { transform: [{ scale: scaleAnim }] }]}>
         <Pressable
           onPress={handleStartStop}
-          style={[styles.primaryButton, running && styles.pauseButton]}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: running ? colors.card : colors.primary },
+            running && { borderWidth: 2, borderColor: colors.warning },
+          ]}
         >
-          <Ionicons
+          <Feather
             name={running ? "pause" : "play"}
             size={28}
-            color={running ? "#FF6B6B" : "#fff"}
+            color={running ? colors.warning : colors.card}
           />
         </Pressable>
 
-        <Pressable onPress={handleReset} style={styles.secondaryButton}>
-          <Ionicons name="refresh-outline" size={22} color="#666" />
+        <Pressable
+          onPress={handleReset}
+          style={[styles.secondaryButton, { backgroundColor: colors.card, shadowColor: colors.border }]}
+        >
+          <Feather name="rotate-ccw" size={22} color={colors.text} />
         </Pressable>
       </Animated.View>
     </View>
@@ -84,7 +93,6 @@ export default Stopwatch;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
     borderRadius: 16,
     padding: 24,
     alignItems: "center",
@@ -92,17 +100,10 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 30,
   },
-  title: {
-    fontSize: RFPercentage(2.5),
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 12,
-  },
   time: {
-    fontVariant: [ "tabular-nums" ],
+    fontVariant: ["tabular-nums"],
     fontSize: RFPercentage(7),
     fontWeight: "300",
-    color: "#333",
     letterSpacing: 2,
     marginBottom: 30,
   },
@@ -113,35 +114,27 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   primaryButton: {
-    backgroundColor: "#6C63FF",
     width: 70,
     height: 70,
     borderRadius: 35,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#6C63FF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
     marginHorizontal: 16,
   },
-  pauseButton: {
-    backgroundColor: "#FFF",
-    borderWidth: 2,
-    borderColor: "#FF6B6B",
-  },
   secondaryButton: {
-    backgroundColor: "#FFF",
     width: 50,
     height: 50,
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    marginHorizontal: 8,
   },
 });

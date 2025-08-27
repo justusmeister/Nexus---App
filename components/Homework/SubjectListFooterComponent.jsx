@@ -3,10 +3,11 @@ import { Pressable, View, Text, StyleSheet } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 
 const SubjectListFooterComponent = memo(({ handleOpen }) => {
   const tabBarHeight = useBottomTabBarHeight();
+  const { colors, fonts } = useTheme();
 
   const navigation = useNavigation();
 
@@ -16,17 +17,17 @@ const SubjectListFooterComponent = memo(({ handleOpen }) => {
         <Pressable
           style={({ pressed }) => [
             styles.addSubjectButton,
-            { opacity: pressed ? 0.6 : 0.9 },
+            { opacity: pressed ? 0.6 : 0.9, backgroundColor: colors.primary },
           ]}
           onPress={handleOpen}
         >
           <Icon.Feather name="plus-square" size={26} color="white" />
-          <Text style={styles.subjectText}>Fach hinzufügen</Text>
+          <Text style={[styles.subjectText, { fontFamily: fonts.bold }]}>Fach hinzufügen</Text>
         </Pressable>
       </View>
 
       <View style={styles.dividingLineBox}>
-        <View style={styles.dividingLine} />
+        <View style={[styles.dividingLine, { backgroundColor: colors.border, height: StyleSheet.hairlineWidth }]} />
       </View>
 
       <View style={{ paddingBottom: tabBarHeight + 11 }}>
@@ -35,7 +36,7 @@ const SubjectListFooterComponent = memo(({ handleOpen }) => {
           onPress={() => navigation.navigate("NotesScreen")}
         >
           <Icon.FontAwesome name="sticky-note-o" size={30} color="white" />
-          <Text style={styles.notesButtonText}>allgemeine Notizen</Text>
+          <Text style={[styles.notesButtonText, { fontFamily: fonts.bold }]}>allgemeine Notizen</Text>
         </Pressable>
       </View>
     </View>
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
     height: 85,
     marginTop: 20,
     backgroundColor: "#d1a336",
-    borderRadius: 25,
+    borderRadius: 24,
     padding: 15,
     marginHorizontal: 14,
     flexDirection: "row",
@@ -80,16 +81,12 @@ const styles = StyleSheet.create({
   },
   dividingLine: {
     width: "95%",
-    borderTopColor: "grey",
-    borderTopWidth: 1,
-    borderRadius: 15,
   },
   addSubjectButton: {
     width: "auto",
     height: 50,
     margin: 20,
     flexDirection: "row",
-    backgroundColor: "#0066cc",
     borderRadius: 30,
     paddingHorizontal: 20,
     justifyContent: "center",

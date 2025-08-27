@@ -7,41 +7,52 @@ import {
   Dimensions,
 } from "react-native";
 import SvgWelcome from "../../assets/illustrations/welcome.svg";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import GoogleButton from "./components/GoogleButton";
+import Divider from "./components/Divider";
 
 const { width } = Dimensions.get("window");
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
+  const { colors, radius, fonts } = useTheme();
 
   return (
-    <View style={styles.container}>
-      {/* Header mit dezentem Muster-Hintergrund */}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Lass uns starten</Text>
-        <Text style={styles.subtitle}>Beginne jetzt mit deiner Schulorganisation</Text>
+        <Text style={[styles.title, { color: colors.text, fontFamily: fonts.bold }]}>
+          Lass uns starten
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: colors.text + "99", fontFamily: fonts.bold },
+          ]}
+        >
+          Beginne jetzt mit deiner Schulorganisation
+        </Text>
       </View>
 
       <View style={styles.illustrationContainer}>
         <SvgWelcome width={width * 0.57} height={width * 0.57} />
-        <View style={styles.illustrationOverlay} />
       </View>
 
-      <View style={styles.actionsContainer}>
+      <View style={[styles.actionsContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <TouchableOpacity
-          style={styles.registerButton}
-          onPress={() => navigation.navigate("RegistrationScreen", { window: 0 })}
+          style={[styles.registerButton, { backgroundColor: colors.primary, borderRadius: radius.lg }]}
+          onPress={() =>
+            navigation.navigate("RegistrationScreen", { window: 0 })
+          }
         >
-          <Text style={styles.registerText}>Kostenlos registrieren</Text>
+          <Text style={[styles.registerText, { color: colors.background , fontFamily: fonts.semibold }]}>Kostenlos registrieren</Text>
         </TouchableOpacity>
 
-        <GoogleButton text="Fortfahren mit Google"/>
+        <GoogleButton text="Fortfahren mit Google" />
 
-        <View style={{ marginBottom: 14, marginTop: 6, }}>
-          <Text style={styles.termsText}>
+        <View style={{ marginBottom: 14, marginTop: 6 }}>
+          <Text style={[styles.termsText, { color: colors.text, fontFamily: fonts.regular }]}>
             Mit der Registrierung akzeptierst du unsere{" "}
-            <Text style={{ textDecorationLine: "underline" }}>AGBs</Text> und{" "}
+            <Text style={{ textDecorationLine: "underline" }}>AGB</Text> und{" "}
             <Text style={{ textDecorationLine: "underline" }}>
               Datenschutzbestimmungen
             </Text>
@@ -49,19 +60,21 @@ const WelcomeScreen = () => {
           </Text>
         </View>
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>oder</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        <Divider />
 
         <View style={styles.loginContainer}>
-          <Text style={styles.loginPrompt}>Bereits ein Konto?</Text>
+          <Text style={[styles.loginPrompt, { color: colors.text + "AA", fontFamily: fonts.regular }]}>
+            Bereits ein Konto?
+          </Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate("LoginScreen", { window: 0 })}
+            onPress={() =>
+              navigation.navigate("LoginScreen", { window: 0 })
+            }
             style={styles.loginButton}
           >
-            <Text style={styles.loginLink}>Anmelden</Text>
+            <Text style={[styles.loginLink, { color: colors.primary, fontFamily: fonts.semibold }]}>
+              Anmelden
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -74,7 +87,6 @@ export default WelcomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   header: {
     paddingTop: 60,
@@ -84,7 +96,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "800",
-    color: "white",
     marginBottom: 8,
     textShadowColor: "rgba(0, 0, 0, 0.1)",
     textShadowOffset: { width: 0, height: 1 },
@@ -92,7 +103,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: "rgba(255,255,255,0.85)",
     fontWeight: "500",
   },
   illustrationContainer: {
@@ -114,7 +124,6 @@ const styles = StyleSheet.create({
     padding: 32,
     paddingBottom: 40,
     paddingTop: 35,
-    backgroundColor: "white",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowColor: "#000",
@@ -122,9 +131,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 5,
+    borderWidth: 1.5,
+    borderBottomWidth: 0,
   },
   registerButton: {
-    backgroundColor: "#007AFF",
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -140,43 +150,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
-  },
-  dividerText: {
-    paddingHorizontal: 10,
-    color: "rgba(0, 0, 0, 0.4)",
-    fontSize: 12,
-    fontWeight: "500",
-  },
   loginContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
   loginPrompt: {
-    color: "rgba(0, 0, 0, 0.7)",
     fontSize: 14,
   },
   loginButton: {
     marginLeft: 8,
   },
   loginLink: {
-    color: "#007AFF",
     fontWeight: "600",
     fontSize: 14,
     textDecorationLine: "underline",
   },
   termsText: {
     fontSize: 12,
-    color: "#666",
     textAlign: "center",
     lineHeight: 18,
   },

@@ -7,7 +7,7 @@ import {
   Text, 
   ActivityIndicator
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useTheme } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useDeadlinesData } from "../../contexts/DeadlinesContext";
@@ -15,6 +15,7 @@ import DeadlineItem from "../../components/Deadline/DeadlineItem";
 import DeadlineInformationModal from "../../modals/DeadlineInformationModal";
 
 const DeadlineScreen = function () {
+  const { colors, fonts } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
@@ -37,7 +38,7 @@ const DeadlineScreen = function () {
   if (deadlinesData[0] === "loading") {
     return (
       <ScrollView contentContainerStyle={{ padding: 15, alignItems: "center" }}>
-        <ActivityIndicator size="small" color="#333" />
+        <ActivityIndicator size="small" color={colors.text} />
       </ScrollView>
     );
   }
@@ -48,7 +49,13 @@ const DeadlineScreen = function () {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6", paddingBottom: tabBarHeight + 6 }}>
+    <View       style={{
+      flex: 1,
+      marginTop: 5,
+      backgroundColor: colors.background,
+      borderTopColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth
+    }}>
       <FlatList
         data={deadlinesData}
         renderItem={({ item, index }) => (
@@ -61,6 +68,9 @@ const DeadlineScreen = function () {
         )}
         keyExtractor={(item, index) => index.toString()}
         style={{ padding: 8 }}
+        contentContainerStyle={{
+          paddingBottom: tabBarHeight + 6, 
+        }}
         ListEmptyComponent={
           <ScrollView
             contentContainerStyle={{ padding: 15, alignItems: "center" }}

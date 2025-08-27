@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, useTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeStack from "./screens/HomeStack";
@@ -23,6 +23,9 @@ import { getAsyncItem } from "./utils/asyncStorage";
 import Toast from "react-native-toast-message";
 import { getFullWeekPlan } from "./utils/webuntisFetchData";
 import { useTimetableData } from "./contexts/TimetableContext";
+import MailCore from "react-native-mailcore";
+import { NativeModules } from "react-native";
+const { MailCoreModule } = NativeModules;
 
 // Thick BottomTabIcons:
 import HomeThick from "./assets/extraIcons/boldTabBarIcons/home.svg";
@@ -66,41 +69,122 @@ const loadEmailsFromStorage = async () => {
   }
 };
 
+const saveUIDsToStorage = async (uids) => {
+  try {
+    await AsyncStorage.setItem("uids", JSON.stringify(uids));
+  } catch (error) {
+    console.error("❌ Fehler beim Speichern der UIDs:", error);
+  }
+};
+
+const loadUIDsFromStorage = async () => {
+  try {
+    const storedUIDs = await AsyncStorage.getItem("uids");
+    return storedUIDs ? JSON.parse(storedUIDs) : [];
+  } catch (error) {
+    console.error("❌ Fehler beim Laden der UIDs:", error);
+    return [];
+  }
+};
+
+
 const fetchEmails = async (setEmails, setRefreshing) => {
   try {
-    console.log("📨 Starte Anfrage an Server...");
+    console.log("📨 Starte direkte IMAP-Anfrage...");
     setRefreshing(true);
 
-    const response = await fetch(
-      "https://iserv-email-retriever.onrender.com/fetch-emails",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: "justus.meister",
-          password: "nivsic-wuGnej-9kyvke",
-        }),
-      }
+    // Bestehende UIDs aus Storage laden
+    const storedUIDs = await loadUIDsFromStorage();
+
+    const imapSession = await MailCore.imapSession({
+      hostname: "imap.urs-os.de",
+      port: 993,
+      username: "justus.meister",
+      password: "nivsic-wuGnej-9kyvke",
+      connectionType: "TLS", // oder "SSL/TLS" je nach Server
+    });
+
+    // Alle UIDLIST vom Server holen
+    const uidResults = await imapSession.fetchUIDs("INBOX", "ALL"); 
+    const allUIDs = uidResults.map((r) => r.uid).sort((a, b) => a - b);
+
+    // Nur die UIDs, die noch nicht lokal gespeichert sind
+    const newUIDs = allUIDs.filter((uid) => !storedUIDs.includes(uid));
+
+    // Nur die letzten 20 insgesamt wollen wir behalten
+    const last20UIDs = allUIDs.slice(-20);
+
+    // Inhalte der neuen UIDs holen
+    const newEmails = await Promise.all(
+      newUIDs.map(async (uid) => {
+        const msg = await imapSession.fetchMessageByUID("INBOX", uid, {
+          requestKind: MailCore.requestKind.fullHeaders |
+                       MailCore.requestKind.structure |
+                       MailCore.requestKind.fullBody |
+                       MailCore.requestKind.flags,
+        });
+
+        return {
+          uid,
+          subject: msg.header.subject,
+          from: msg.header.from,
+          date: msg.header.date,
+          read: msg.flags.includes("\\Seen"),
+          text: msg.plainTextBody,
+          html: msg.htmlBody,
+          attachments: msg.attachments.map((att) => ({
+            filename: att.filename,
+            mimetype: att.mimeType,
+            data: att.data, // bereits base64
+          })),
+        };
+      })
     );
 
-    if (!response.ok) {
-      setRefreshing(false);
-      return;
-    }
+    // Emails zusammenführen (neue + alte gespeicherte)
+    let updatedEmails = newEmails.concat(await loadEmailsFromStorage() || []);
 
-    const data = await response.json();
+    // Auf 20 beschränken & nach Datum sortieren
+    updatedEmails = updatedEmails
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 20);
 
-    const sortedEmails = data.sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
-    );
+    // UIDs & Emails speichern
+    const updatedUIDs = last20UIDs;
+    await saveUIDsToStorage(updatedUIDs);
+    await saveEmailsToStorage(updatedEmails);
 
-    setEmails(sortedEmails);
+    // State setzen
+    setEmails(updatedEmails);
     setRefreshing(false);
-    await saveEmailsToStorage(sortedEmails);
+
   } catch (error) {
     console.error("❌ Fehler beim Abrufen der E-Mails:", error);
+
+    console.log("MailCore:", MailCore);
+console.log("NativeModules:", NativeModules);
+    setRefreshing(false);
+  }
+};
+
+const loadMails = async () => {
+  try {
+    // Verbindung herstellen
+    await MailCoreModule.connect(
+      "imap.urs-os.de",
+      "pswd",
+      "justus.meister",
+      993
+    );
+
+    // Neueste Mails abrufen
+    const mails = await MailCoreModule.fetchLatest();
+    console.log("📩 Abgerufene Mails:", mails);
+
+  } catch (error) {
+    console.error("❌ Fehler beim Abrufen der E-Mails:", error);
+  } finally {
+    // Wird IMMER ausgeführt – auch bei Fehler
     setRefreshing(false);
   }
 };
@@ -138,6 +222,7 @@ const Navigation = function () {
         setMailData(cachedEmails ?? ["loading"]);
         fetchEmails(setMailData, setRefreshing);
 
+        // DE / CH / AT
         const schoolHolidaysResponse = await fetch(
           `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=DE-NI&languageIsoCode=DE&validFrom=${startDate}&validTo=${targetDate}`
         );
@@ -199,7 +284,7 @@ const Navigation = function () {
         <Stack.Screen
           name="Tabs"
           component={Tabs}
-          options={{ headerShown: false, gestureEnabled: false }}
+          options={{ headerShown: false, gestureEnabled: false, animation: "fade", animationDuration: 35 }}
         />
         <Stack.Screen
           name="SettingsScreen"
@@ -207,7 +292,8 @@ const Navigation = function () {
           options={{
             presentation: "modal",
             title: "Einstellungen",
-            headerStyle: { backgroundColor: "#EFEEF6" },
+            headerTitleStyle: { fontFamily: DarkTheme.fonts.semibold },
+            headerStyle: { backgroundColor: colorScheme === "dark" ? DarkTheme.colors.background : LightTheme.colors.background },
           }}
         />
         {/*<Stack.Screen
@@ -222,9 +308,8 @@ const Navigation = function () {
             title: "Notizen",
             headerShadowVisible: false,
             presentation: Platform.OS === "ios" ? "modal" : "fullScreenModal",
-            headerStyle: {
-              backgroundColor: "#EFEEF6",
-            },
+            headerTitleStyle: { fontFamily: DarkTheme.fonts.semibold },
+            headerStyle: { backgroundColor: colorScheme === "dark" ? DarkTheme.colors.background : LightTheme.colors.background }
           }}
         />
       </Stack.Navigator>
@@ -235,6 +320,8 @@ const Navigation = function () {
 export default Navigation;
 
 const Tabs = function () {
+  const { colors, spacing, radius, fonts, bottomTabTint } = useTheme();
+
   const setTabBarIcons = ({ route }) => {
     return {
       tabBarIcon: ({ focused, size, color }) => {
@@ -258,24 +345,24 @@ const Tabs = function () {
         }
 
         if (icon === "home1")
-          return ( <HomeThick width={size * 1.1} height={size * 1.1} /> )
+          return ( <HomeThick width={size * 1.1} height={size * 1.1} stroke={colors.text}/> )
         else if (icon === "calendar1")
-          return ( <OrganisationThick width={size * 1.1} height={size * 1.1} /> )
+          return ( <OrganisationThick width={size * 1.1} height={size * 1.1} stroke={colors.text}/> )
         else if (icon === "check-square1")
-          return ( <TasksThick width={size * 1.1} height={size * 1.1} /> )
+          return ( <TasksThick width={size * 1.1} height={size * 1.1} stroke={colors.text}/> )
         else if (icon === "award1")
-          return ( <GradesThick width={size * 1.1} height={size * 1.1} /> )
+          return ( <GradesThick width={size * 1.1} height={size * 1.1} stroke={colors.text}/> )
 
 
         return (
           <Icon.Feather
             name={icon}
             size={focused ? size * 1.1 : size}
-            color={color}
+            color={colors.text + "99"}
           />
         );
       },
-      tabBarActiveTintColor: "black",
+      tabBarActiveTintColor: colors.text,
       tabBarStyle: {
         position: "absolute",
         borderTopLeftRadius: 20,
@@ -286,9 +373,12 @@ const Tabs = function () {
         borderTopWidth: 0,
         backgroundColor: "transparent",
       },
+      tabBarLabelStyle: {
+        fontFamily: fonts.bold
+      },
       tabBarBackground: () => (
         <BlurView
-          tint="systemThinMaterialLight"
+          tint={bottomTabTint}
           intensity={200}
           style={StyleSheet.absoluteFill}
         />

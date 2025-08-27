@@ -34,14 +34,12 @@ const AppleStyleSwipeableRow = ({
         style={styles.deleteButton}
         onPress={() => {
           onPressDelete();
-          if (!editMode) {
-            localSwipeRef.current?.close();
-          }
+          localSwipeRef.current?.close();
         }}
       >
-        <Icon.MaterialCommunityIcons
-          name="delete-forever"
-          size={32}
+        <Icon.Feather
+          name="trash-2"
+          size={28}
           color="white"
         />
       </RectButton>

@@ -8,6 +8,7 @@ import {
 import { useState, useEffect } from "react";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useTheme } from "@react-navigation/native";
 
 const MessageBox = function ({
   titleStyle,
@@ -19,6 +20,7 @@ const MessageBox = function ({
   isLoading,
   isRefreshing,
 }) {
+  const { colors } = useTheme();
   const [dots, setDots] = useState("...");
 
   useEffect(() => {
@@ -56,12 +58,12 @@ const MessageBox = function ({
           <Icon.Feather
             name={icon}
             size={22}
-            color="white"
+            color="#ffffff"
             style={{ marginRight: 8 }}
           />
           <Text
             style={{
-              color: "white",
+              color: "#ffffff",
               fontSize: RFPercentage(2.54),
               fontFamily: "Inter_600SemiBold",
               marginBottom: 5,
@@ -71,11 +73,13 @@ const MessageBox = function ({
             {title}
           </Text>
         </View>
-        {isRefreshing && !isLoading && <ActivityIndicator size="small" color="white" />}
+        {isRefreshing && !isLoading && (
+          <ActivityIndicator size="small" color={"white"} />
+        )}
         <Icon.Feather
           name="chevron-right"
           size={20}
-          color="white"
+          color="#ffffff"
           style={{ alignSelf: "center" }}
         />
       </View>
@@ -84,15 +88,24 @@ const MessageBox = function ({
           <ActivityIndicator size={"small"} color={"white"} />
           {title === "E-Mail Postfach" ? (
             <View style={styles.loadingTextRow}>
-              <Text style={styles.loadingMailText}>Postfach wird geladen</Text>
-              <Text style={styles.dots}>{dots}</Text>
+              <Text style={[styles.loadingMailText, { color: "white" }]}>
+                Postfach wird geladen
+              </Text>
+              <Text style={[styles.dots, { color: "white" }]}>{dots}</Text>
             </View>
           ) : null}
         </View>
       ) : (
         <View style={styles.infoBoxOuterView}>
           {content.map((item, index) => (
-            <View key={index} style={[styles.infoBox, item.style]}>
+            <View
+              key={index}
+              style={[
+                styles.infoBox,
+                { borderColor: colors.border },
+                item.style,
+              ]}
+            >
               {item.content}
             </View>
           ))}
@@ -133,8 +146,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "30%",
     borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: "#b3b3ba",
   },
   button: {
     justifyContent: "center",
@@ -158,14 +169,12 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   dots: {
-    color: "white",
     fontWeight: "400",
     fontSize: RFPercentage(1.79),
     width: RFPercentage(3),
     textAlign: "left",
   },
   loadingMailText: {
-    color: "white",
     fontWeight: "400",
     fontSize: RFPercentage(1.79),
   },

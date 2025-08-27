@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, ScrollView } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useTheme } from "@react-navigation/native";
 
 const newsBoxDummyData = [
   {
@@ -14,6 +15,7 @@ const newsBoxDummyData = [
 ];
 
 const NewsScreen = function () {
+  const { colors, fonts } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
 
   if (!newsBoxDummyData || newsBoxDummyData.length === 0) {
@@ -41,17 +43,22 @@ const NewsScreen = function () {
 
   return (
     <View
-      style={{
-        flex: 1,
-        backgroundColor: "#EFEEF6",
-        paddingBottom: tabBarHeight + 6,
-      }}
+    style={{
+      flex: 1,
+      marginTop: 5,
+      backgroundColor: colors.background,
+      borderTopColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth
+    }}
     >
       <FlatList
         data={newsBoxDummyData}
         renderItem={resultBox}
         keyExtractor={(item) => item.news}
         style={{ padding: 8 }}
+        contentContainerStyle={{
+          paddingBottom: tabBarHeight + 6, 
+        }}
       />
     </View>
   );

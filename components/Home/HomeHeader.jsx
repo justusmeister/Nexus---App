@@ -1,5 +1,6 @@
 import { View, Pressable, Text, StyleSheet, Platform } from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { useTheme } from "@react-navigation/native";
 
 const HomeHeader = ({ onLeftPress, onMiddlePress, onRightPress }) => {
   return (
@@ -12,15 +13,24 @@ const HomeHeader = ({ onLeftPress, onMiddlePress, onRightPress }) => {
 };
 
 const IconButton = ({ icon, label, onPress }) => {
+  const { colors, fonts } = useTheme();
+
   return (
     <View style={styles.wrapper}>
       <Pressable
-        style={({ pressed }) => [styles.button, { opacity: pressed ? 0.4 : 1 }]}
+        style={({ pressed }) => [
+          styles.button,
+          {
+            opacity: pressed ? 0.4 : 1,
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+        ]}
         onPress={onPress}
       >
-        <Icon.Feather name={icon} size={28} color="#333" />
+        <Icon.Feather name={icon} size={28} color={colors.text} />
       </Pressable>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text, fontFamily: fonts.regular }]}>{label}</Text>
     </View>
   );
 };
@@ -40,23 +50,17 @@ const styles = StyleSheet.create({
   button: {
     width: 65,
     height: 65,
-    borderRadius: 25,
-    backgroundColor: "rgba(0, 0, 0, 0.065)",
-    borderWidth: 1,
-    borderColor: "#c6c6c6",
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "darkgray",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
+      shadowOpacity: 0.25,
+      shadowRadius: 4.65,
+      elevation: 8,
   },
   label: {
     marginTop: 8,
     fontSize: 12,
-    color: "#333",
-    fontWeight: "500",
   },
 });
 

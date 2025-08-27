@@ -5,6 +5,7 @@ import { RFPercentage } from "react-native-responsive-fontsize";
 import { checkDeadlineRemainingTime } from "../../utils/checkDeadlineRemainingTime";
 import { formatTimestamp } from "../../utils/formatTimestamp";
 import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
+import { useTheme } from "@react-navigation/native";
 
 const GenericSubjectItem = memo(function ({
   item,
@@ -16,6 +17,8 @@ const GenericSubjectItem = memo(function ({
   setActiveAnimation,
   buttonScale,
 }) {
+  const { colors, fonts } = useTheme();
+
   const handlePressIn = () => {
     setActiveAnimation(index);
     Animated.spring(buttonScale, {
@@ -127,10 +130,10 @@ const GenericSubjectItem = memo(function ({
             />
           )}
           {item.priority > 0 && (
-            <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+            <Icon.FontAwesome name="exclamation" size={27} color={colors.warning} />
           )}
           {item.priority > 1 && (
-            <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+            <Icon.FontAwesome name="exclamation" size={27} color={colors.warning} />
           )}
         </View>
       </Pressable>

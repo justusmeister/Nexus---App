@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { ActivityIndicator, Animated } from "react-native";
 import { firebaseAuth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "@react-navigation/native";
 
 const SplashScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
+  const fadeAnim = useRef(new Animated.Value(1)).current; 
 
   useEffect(() => {
     const clearAsyncStorage = async () => {
@@ -13,23 +16,36 @@ const SplashScreen = ({ navigation }) => {
     };
 
     const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
-      if (user) {
-        navigation.navigate("Tabs");
-      } else {
-        navigation.navigate("AuthStack");
-        clearAsyncStorage();
-      }
-      setLoading(false);
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => {
+        if (user) {
+          navigation.navigate("Tabs");
+        } else {
+          navigation.navigate("AuthStack");
+          clearAsyncStorage();
+        }
+        setLoading(false);
+      });
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, fadeAnim]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#2678C0" />
-      </View>
+      <Animated.View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          opacity: fadeAnim,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Animated.View>
     );
   }
 

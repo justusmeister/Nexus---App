@@ -1,8 +1,11 @@
 import React from "react";
 import { Pressable, Text, StyleSheet, View } from "react-native";
 import * as Icon from "@expo/vector-icons";
+import { useTheme } from "@react-navigation/native";
 
-const SettingItem = ({ icon, label, onPress, bg = "#888", showDivider }) => {
+const SettingItem = ({ icon, label, onPress, bg, showDivider }) => {
+  const { colors, fonts } = useTheme();
+
   return (
     <>
       <Pressable
@@ -12,12 +15,31 @@ const SettingItem = ({ icon, label, onPress, bg = "#888", showDivider }) => {
         ]}
         onPress={onPress}
       >
-        <View style={[styles.iconContainer, { backgroundColor: bg }]}>
-          <Icon.MaterialIcons name={icon} size={20} color="white" />
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: bg || colors.primary },
+          ]}
+        >
+          <Icon.Feather name={icon} size={18} color={"white"} />
         </View>
-        <Text style={styles.label}>{label}</Text>
+        <Text
+          style={[
+            styles.label,
+            { color: colors.text, fontFamily: fonts?.regular },
+          ]}
+        >
+          {label}
+        </Text>
       </Pressable>
-      {showDivider && <View style={styles.divider} />}
+      {showDivider && (
+        <View
+          style={[
+            styles.divider,
+            { backgroundColor: colors.border },
+          ]}
+        />
+      )}
     </>
   );
 };
@@ -34,7 +56,6 @@ const styles = StyleSheet.create({
   },
   label: {
     marginLeft: 16,
-    color: "#333",
     fontSize: 16,
     fontWeight: "500",
   },
@@ -44,9 +65,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#bcbcbc",
     marginLeft: 56,
     marginRight: 16,
   },
 });
-

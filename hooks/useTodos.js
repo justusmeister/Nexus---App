@@ -21,7 +21,7 @@ export const useTodos = (user, onError) => {
             const todoRef = collection(firestoreDB, "todos", user.uid, "todos");
             const q = query(todoRef, orderBy("timestamp", "asc"));
             const querySnapshot = await getDocs(q);
-
+    
             const fetchedTodos = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
@@ -29,19 +29,27 @@ export const useTodos = (user, onError) => {
                 canDelete:
                     checkDeadlineRemainingTime(formatTimestamp(doc.data().dueDate)).time === "delete",
             }));
-
+    
             const currentDate = new Date();
-            const upcoming = fetchedTodos
-                .filter(t => parseDateString(formatTimestamp(t.dueDate)) >= currentDate)
-                .sort((a, b) => parseDateString(formatTimestamp(a.dueDate)) - parseDateString(formatTimestamp(b.dueDate)));
-
-            const past = fetchedTodos
-                .filter(t => parseDateString(formatTimestamp(t.dueDate)) < currentDate)
-                .sort((a, b) => parseDateString(formatTimestamp(b.dueDate)) - parseDateString(formatTimestamp(a.dueDate)));
-
-            const sortedTodos = [...upcoming, ...past];
-
+    
+            const groupByPriority = [2, 1, 0].map(priorityLevel =>
+                fetchedTodos
+                    .filter(t => (t.priority || 0) === priorityLevel)
+                    .sort((a, b) => {
+                        const aDate = a.dueDate ? parseDateString(formatTimestamp(a.dueDate)) : null;
+                        const bDate = b.dueDate ? parseDateString(formatTimestamp(b.dueDate)) : null;
+    
+                        if (!aDate && !bDate) return 0;       
+                        if (!aDate) return 1;                 
+                        if (!bDate) return -1;
+                        return aDate - bDate;                 
+                    })
+            );
+    
+            const sortedTodos = groupByPriority.flat();
+    
             setTodoList(sortedTodos);
+    
             for (const todo of fetchedTodos) {
                 if (todo.canDelete) await deleteTodo(todo.id);
             }
@@ -51,6 +59,8 @@ export const useTodos = (user, onError) => {
             setLoading(false);
         }
     };
+    
+    
 
     const addTodo = async (dueDate, title = "Unbenannt", type, description = "-", priority) => {
         if (!user) return;

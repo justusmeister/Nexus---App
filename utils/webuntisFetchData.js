@@ -240,9 +240,9 @@ export const getFullWeekPlan = async () => {
         );
 
         const lessons = response.data.result || [];
-         //console.log(JSON.stringify(lessons, null, 2));
+         console.log(JSON.stringify(lessons, null, 2));
         const formattedDays = formatLessons(lessons, roomMap);
-        //printStundenProTag(formattedDays);
+        printStundenProTag(formattedDays);
 
         allLessons.push(formattedDays);
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Modal,
   View,
@@ -8,10 +8,13 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Animated,
+  ScrollView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import Icon from "react-native-vector-icons/Feather";
+import { DarkTheme, LightTheme } from "../constants/theme";
+import { useThemePreference } from "../hooks/useThemePreference";
 
 const DatePickerModal = React.memo(({
   visible,
@@ -22,12 +25,25 @@ const DatePickerModal = React.memo(({
   title = "Datum wählen",
   noDateOption = false,
   homework = false,
+  showResetButton = true, // Default true für Testzwecke
+  originalDate = null, // Das ursprüngliche Datum zum Zurücksetzen
 }) => {
+  const { colorScheme } = useThemePreference();
+
+  const colors = colorScheme == "dark" ? DarkTheme.colors : LightTheme.colors;
+
+  const spacing = { xs: 8, sm: 12, md: 16, lg: 24 };
+  const radius = { sm: 4, md: 8, lg: 12 };
+  
   const [slideAnim] = useState(new Animated.Value(0));
+  const [selectedDate, setSelectedDate] = useState(date);
+
+  // Statische styles
+  const styles = useMemo(() => createStyles(), []);
 
   // Optimierte Quick Actions mit useMemo
   const quickActions = useMemo(() => {
-    const baseDate = date || new Date();
+    const baseDate = selectedDate || new Date();
     
     const dayAfter = new Date(baseDate);
     dayAfter.setDate(baseDate.getDate() + 1);
@@ -44,17 +60,17 @@ const DatePickerModal = React.memo(({
     const actions = [
       {
         id: 'dayAfter',
-        label: date ? 'Tag danach' : 'Morgen',
+        label: selectedDate ? 'Tag danach' : 'Morgen',
         icon: 'sun',
         date: dayAfter,
-        color: '#FF6B35',
+        color: '#F2994A',
       },
       {
         id: 'weekAfter', 
-        label: date ? 'Woche danach' : 'Nächste Woche',
+        label: selectedDate ? 'Woche danach' : 'Nächste Woche',
         icon: 'calendar',
         date: weekAfter,
-        color: '#4ECDC4',
+        color: colors.iconBg.success,
       },
     ];
 
@@ -65,22 +81,64 @@ const DatePickerModal = React.memo(({
         label: 'Nächste Stunde',
         icon: 'clock',
         date: nextHour,
-        color: '#45B7D1',
+        color: colors.primary,
       });
     } else {
       // Sonst nächster Monat
       actions.push({
         id: 'monthAfter',
-        label: date ? 'Monat danach' : 'Nächster Monat',
+        label: selectedDate ? 'Monat danach' : 'Nächster Monat',
         icon: 'calendar',
         date: monthAfter,
-        color: '#9B59B6',
+        color: '#9B51E0',
       });
     }
 
     return actions;
-  }, [date, homework, noDateOption]);
+  }, [selectedDate, homework, noDateOption, colors]);
 
+  // Optimierte Callbacks
+  const handleQuickAction = useCallback((actionDate) => {
+    setSelectedDate(actionDate);
+  }, []);
+
+  const handleNoDate = useCallback(() => {
+    setSelectedDate(null);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setSelectedDate(originalDate);
+  }, [originalDate]);
+
+  const handleDatePickerChange = useCallback((event, newSelectedDate) => {
+    if (Platform.OS === 'android' && event.type === 'dismissed') {
+      return;
+    }
+    if (newSelectedDate) {
+      setSelectedDate(newSelectedDate);
+    }
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    onDateChange(selectedDate);
+    onClose();
+  }, [selectedDate, onDateChange, onClose]);
+
+  const handleClose = useCallback(() => {
+    if (selectedDate !== date) {
+      onDateChange(selectedDate);
+    }
+    // Schnellere Schließ-Animation
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  }, [selectedDate, date, onDateChange, onClose, slideAnim]);
+
+  // Animation Effects
   useEffect(() => {
     if (visible) {
       Animated.spring(slideAnim, {
@@ -99,49 +157,9 @@ const DatePickerModal = React.memo(({
     }
   }, [visible, slideAnim]);
 
-  const [selectedDate, setSelectedDate] = useState(date);
-
   useEffect(() => {
     setSelectedDate(date);
   }, [date]);
-
-  const handleQuickAction = (actionDate) => {
-    setSelectedDate(actionDate);
-    // Modal bleibt offen, damit User die Auswahl sehen kann
-  };
-
-  const handleNoDate = () => {
-    setSelectedDate(null);
-    // Modal bleibt offen für weitere Interaktion
-  };
-
-  const handleDatePickerChange = (event, newSelectedDate) => {
-    if (Platform.OS === 'android' && event.type === 'dismissed') {
-      return;
-    }
-    if (newSelectedDate) {
-      setSelectedDate(newSelectedDate);
-    }
-  };
-
-  const handleConfirm = () => {
-    onDateChange(selectedDate);
-    onClose();
-  };
-
-  const handleClose = () => {
-    if (selectedDate) {
-      onDateChange(selectedDate);
-    }
-    // Animation zum Schließen starten - schneller und direkter
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      onClose();
-    });
-  };
 
   if (!visible) return null;
 
@@ -178,50 +196,71 @@ const DatePickerModal = React.memo(({
       animationType="none"
     >
       <TouchableWithoutFeedback onPress={handleClose}>
-        <Animated.View style={[styles.overlay, overlayOpacity]}>
+        <Animated.View style={[styles.overlay, overlayOpacity, { backgroundColor: colorScheme === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)" }]}>
           <TouchableWithoutFeedback>
-            <Animated.View style={[styles.modalContent, modalTransform]}>
+            <Animated.View style={[styles.modalContent, modalTransform, { backgroundColor: colors.background, borderRadius: radius.lg }]}>
               {/* Header */}
-              <View style={styles.header}>
-                <Text style={styles.title}>{title}</Text>
-                <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                  <Icon name="x" size={24} color="#8E8E93" />
+              <View style={[styles.header, { marginBottom: spacing.lg }]}>
+                <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+                <TouchableOpacity onPress={handleClose} style={[styles.closeButton, { padding: spacing.xs }]}>
+                  <Icon name="x" size={24} color={colors.text} />
                 </TouchableOpacity>
               </View>
 
-              {/* Quick Actions */}
-              <View style={styles.quickActionsContainer}>
+              {/* Quick Actions - Horizontal ScrollView */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={[styles.quickActionsContainer, { marginBottom: spacing.lg }]}
+                contentContainerStyle={styles.quickActionsContent}
+              >
                 {quickActions.map((action) => (
                   <TouchableOpacity
                     key={action.id}
-                    style={[styles.quickActionButton, { borderColor: action.color }]}
+                    style={[styles.quickActionButton, { backgroundColor: colors.card, borderColor: action.color, borderRadius: radius.md, marginRight: spacing.sm }]}
                     onPress={() => handleQuickAction(action.date)}
                     activeOpacity={0.7}
                   >
                     <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
-                      <Icon name={action.icon} size={18} color="#fff" />
+                      <Icon name={action.icon} size={16} color="#fff" />
                     </View>
-                    <Text style={styles.quickActionText}>{action.label}</Text>
+                    <Text style={[styles.quickActionText, { color: colors.text }]}>{action.label}</Text>
                   </TouchableOpacity>
                 ))}
                 
                 {noDateOption && (
                   <TouchableOpacity
-                    style={[styles.quickActionButton, { borderColor: '#8E8E93' }]}
+                    style={[styles.quickActionButton, { backgroundColor: colors.card, borderColor: colors.iconBg.neutral, borderRadius: radius.md, marginRight: spacing.sm }]}
                     onPress={handleNoDate}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.quickActionIcon, { backgroundColor: '#8E8E93' }]}>
-                      <Icon name="x-circle" size={18} color="#fff" />
+                    <View style={[styles.quickActionIcon, { backgroundColor: colors.iconBg.neutral }]}>
+                      <Icon name="x-circle" size={16} color="#fff" />
                     </View>
-                    <Text style={styles.quickActionText}>Kein Datum</Text>
+                    <Text style={[styles.quickActionText, { color: colors.text }]}>Kein Datum</Text>
                   </TouchableOpacity>
                 )}
-              </View>
+              </ScrollView>
+
+              {/* Reset Button - Separate row if needed */}
+              {showResetButton && originalDate && (
+                <View style={[styles.resetButtonContainer, { marginBottom: spacing.md }]}>
+                  <TouchableOpacity
+                    style={[styles.resetButton, { backgroundColor: colors.card, borderColor: colors.iconBg.warning, borderRadius: radius.md }]}
+                    onPress={handleReset}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.resetButtonIcon, { backgroundColor: colors.iconBg.warning }]}>
+                      <Icon name="rotate-ccw" size={14} color="#fff" />
+                    </View>
+                    <Text style={[styles.resetButtonText, { color: colors.text }]}>Zurücksetzen</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Divider */}
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
+              <View style={[styles.divider, { marginBottom: spacing.md }]}>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
               </View>
 
               {/* Date Picker */}
@@ -232,23 +271,24 @@ const DatePickerModal = React.memo(({
                   display={Platform.OS === "ios" ? "inline" : "calendar"}
                   onChange={handleDatePickerChange}
                   minimumDate={minimumDate}
-                  themeVariant="light"
                   style={styles.picker}
+                  textColor={colors.text}
+                  accentColor={colors.primary}
                 />
               </View>
 
-              {/* Footer - nur für Android */}
+              {/* Footer - für Android und bessere UX */}
               {Platform.OS === 'android' && (
-                <View style={styles.footer}>
+                <View style={[styles.footer, { paddingTop: spacing.md, borderTopColor: colors.border, marginTop: spacing.md }]}>
                   <TouchableOpacity 
-                    style={styles.cancelButton} 
+                    style={[styles.cancelButton, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: radius.md, marginRight: spacing.sm, paddingVertical: spacing.md + 2, paddingHorizontal: spacing.lg - 4 }]} 
                     onPress={handleClose}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.cancelButtonText}>Abbrechen</Text>
+                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>Abbrechen</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    style={styles.confirmButton} 
+                    style={[styles.confirmButton, { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: spacing.md + 2, paddingHorizontal: spacing.lg - 4 }]} 
                     onPress={handleConfirm}
                     activeOpacity={0.8}
                   >
@@ -264,20 +304,17 @@ const DatePickerModal = React.memo(({
   );
 });
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
     width: "92%",
     maxWidth: 400,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     elevation: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
@@ -288,48 +325,73 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    padding: 10,
   },
   title: {
-    fontSize: RFPercentage(2.8),
+    fontSize: RFPercentage(2.6),
     fontWeight: "700",
-    color: "#1C1C1E",
   },
   closeButton: {
-    padding: 4,
+    // padding wird inline gesetzt
   },
   quickActionsContainer: {
-    marginBottom: 20,
+    // marginBottom wird inline gesetzt
+  },
+  quickActionsContent: {
+    paddingRight: 16, // Damit der letzte Button nicht am Rand klebt
   },
   quickActionButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
     borderWidth: 1.5,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    width: "100%",
-    elevation: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    width: 130, // Feste Breite für einheitliche Darstellung
+    elevation: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 2,
   },
   quickActionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: 8,
   },
   quickActionText: {
-    fontSize: RFPercentage(2.2),
+    fontSize: RFPercentage(1.8),
     fontWeight: "600",
-    color: "#1C1C1E",
     flex: 1,
+  },
+  resetButtonContainer: {
+    alignItems: "center",
+  },
+  resetButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1.5,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  resetButtonIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  resetButtonText: {
+    fontSize: RFPercentage(1.8),
+    fontWeight: "600",
   },
   divider: {
     flexDirection: "row",
@@ -338,42 +400,25 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E5E5EA",
-  },
-  dividerText: {
-    paddingHorizontal: 16,
-    fontSize: RFPercentage(2.0),
-    color: "#8E8E93",
-    fontWeight: "500",
   },
   pickerContainer: {
     alignItems: "center",
   },
   picker: {
     width: "100%",
-    height: Platform.OS === "ios" ? 320 : 200,
+    height: Platform.OS === "ios" ? 280 : 180, // Reduziert für kompakteres Modal
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#E5E5EA",
   },
   cancelButton: {
-    backgroundColor: "#F2F2F7",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
     flex: 1,
-    marginRight: 8,
     alignItems: "center",
+    borderWidth: 1,
   },
   confirmButton: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
     flex: 1,
     alignItems: "center",
     elevation: 2,
@@ -383,15 +428,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   cancelButtonText: {
-    fontSize: RFPercentage(2.3),
-    color: "#007AFF",
+    fontSize: RFPercentage(2.1),
     fontWeight: "600",
   },
   confirmButtonText: {
-    fontSize: RFPercentage(2.3),
+    fontSize: RFPercentage(2.1),
     color: "#fff",
     fontWeight: "600",
   },
 });
+
+DatePickerModal.displayName = 'DatePickerModal';
 
 export default DatePickerModal;

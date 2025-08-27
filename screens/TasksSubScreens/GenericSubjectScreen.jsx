@@ -10,7 +10,7 @@ import {
   Animated,
 } from "react-native";
 import * as Icon from "@expo/vector-icons";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useTheme } from "@react-navigation/native";
 import { firestoreDB } from "../../firebaseConfig";
 import { getAuth } from "firebase/auth";
 import {
@@ -46,6 +46,7 @@ const GenericScreen = function ({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [activeAnimation, setActiveAnimation] = useState(null);
   const buttonScale = useState(new Animated.Value(1))[0];
+  const { colors, fonts } = useTheme();
 
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -339,7 +340,9 @@ const GenericScreen = function ({ navigation }) {
       : homeworkList;
 
   return (
-    <View style={[styles.container, { paddingBottom: tabBarHeight + 6 }]}>
+    <View style={[styles.container, { backgroundColor: colors.background, marginTop: 5, 
+      borderTopColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth }]}>
       <View style={styles.segmentedControlBox}>
         <SegmentedControl
           values={segmentedValues}
@@ -351,7 +354,7 @@ const GenericScreen = function ({ navigation }) {
         />
       </View>
       {loading ? (
-        <ActivityIndicator size="small" color="#333" />
+        <ActivityIndicator size="small" color={colors.text} />
       ) : (
         <Reanimated.View
           key={selectedIndex}
@@ -383,7 +386,9 @@ const GenericScreen = function ({ navigation }) {
               ) : null
             }
             style={{ padding: 8 }}
-            contentContainerStyle={{ paddingBottom: tabBarHeight }}
+            contentContainerStyle={{
+              paddingBottom: tabBarHeight + 6, 
+            }}
             keyboardShouldPersistTaps="handled"
             initialNumToRender={10}
             maxToRenderPerBatch={10}
@@ -415,7 +420,6 @@ export default GenericScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#EFEEF6",
   },
   emptyListText: {
     fontSize: RFPercentage(2.18),

@@ -20,7 +20,7 @@ import {
   doc,
   serverTimestamp,
 } from "firebase/firestore";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useTheme } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { RFPercentage } from "react-native-responsive-fontsize";
 
@@ -29,6 +29,8 @@ const NotesInputScreen = ({ navigation }) => {
   const [isUpdating, setIsUpdating] = useState();
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
+
+  const { colors, fonts } = useTheme();
 
   const route = useRoute();
   const { params } = route;
@@ -136,7 +138,7 @@ const NotesInputScreen = ({ navigation }) => {
                   ? 0.4
                   : title.length >= 1 || note.length >= 1
                   ? 1
-                  : 0.2,
+                  : 0.4,
               },
             ]}
             onPress={() =>
@@ -145,7 +147,7 @@ const NotesInputScreen = ({ navigation }) => {
             disabled={title.length >= 1 || note.length >= 1 ? false : true}
             hitSlop={5}
           >
-            <Text style={styles.saveButton}>Speichern</Text>
+            <Text style={[styles.saveButton, { color: colors.primary, fontFamily: fonts.bold }]}>Speichern</Text>
           </Pressable>
         ),
         headerLeft: () => (
@@ -154,7 +156,7 @@ const NotesInputScreen = ({ navigation }) => {
             onPress={() => navigation.goBack()}
             hitSlop={5}
           >
-            <Text style={styles.quitButton}>Abbrechen</Text>
+            <Text style={[styles.quitButton, { color: colors.warning, fontFamily: fonts.regular }]}>Abbrechen</Text>
           </Pressable>
         ),
       });
@@ -164,7 +166,9 @@ const NotesInputScreen = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1, backgroundColor: "#EFEEF6" }}
+      style={{ flex: 1, backgroundColor: colors.background, marginTop: 5, 
+        borderTopColor: colors.border,
+        borderTopWidth: StyleSheet.hairlineWidth,  }}
     >
       <ScrollView
         contentContainerStyle={{ padding: 20 }}
@@ -172,27 +176,28 @@ const NotesInputScreen = ({ navigation }) => {
         onScroll={() => Keyboard.dismiss()}
       >
         {loading ? (
-          <ActivityIndicator size={"small"} color="#333" />
+          <ActivityIndicator size={"small"} color={colors.text} />
         ) : (
           <View>
             <TextInput
               placeholder="Titel"
-              placeholderTextColor={"lightgray"}
+              placeholderTextColor={colors.text + "99"}
               value={title}
               onChangeText={setTitle}
               autoFocus
               style={{
                 fontSize: RFPercentage(2.69),
-                fontWeight: "bold",
+                color: colors.text,
+                fontFamily: fonts.semibold,
                 borderBottomWidth: 1,
-                borderColor: "#ccc",
+                borderColor: colors.border,
                 marginBottom: 10,
                 padding: 5,
               }}
             />
             <TextInput
               placeholder="Schreibe eine Notiz..."
-              placeholderTextColor={"lightgray"}
+              placeholderTextColor={colors.text + "99"}
               value={note}
               onChangeText={setNote}
               multiline
@@ -200,8 +205,10 @@ const NotesInputScreen = ({ navigation }) => {
               style={{
                 height: 250,
                 textAlignVertical: "top",
+                color: colors.text,
+                fontFamily: fonts.semibold,
                 borderWidth: 1,
-                borderColor: "#ccc",
+                borderColor: colors.border,
                 padding: 10,
                 paddingVertical: 10,
                 borderRadius: 5,
@@ -218,6 +225,7 @@ const NotesInputScreen = ({ navigation }) => {
                       : title.length >= 1 || note.length >= 1
                       ? 1
                       : 0.2,
+                    backgroundColor: colors.primary
                   },
                 ]}
                 onPress={() =>
@@ -226,7 +234,7 @@ const NotesInputScreen = ({ navigation }) => {
                 disabled={title.length >= 1 || note.length >= 1 ? false : true}
                 hitSlop={5}
               >
-                <Text style={[styles.saveButton, { color: "white" }]}>
+                <Text style={[styles.saveButton, { color: colors.text, fontFamily: fonts.semibold }]}>
                   Speichern
                 </Text>
               </Pressable>
@@ -242,18 +250,13 @@ export default NotesInputScreen;
 
 const styles = StyleSheet.create({
   saveButton: {
-    color: "red",
     fontSize: RFPercentage(2.375),
-    fontWeight: "600",
   },
   quitButton: {
-    color: "red",
     fontSize: RFPercentage(2.31),
-    fontWeight: "400",
   },
   androidSaveButton: {
     padding: 8,
-    backgroundColor: "green",
     borderRadius: 10,
     width: 130,
     height: 40,

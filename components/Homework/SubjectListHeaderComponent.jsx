@@ -2,12 +2,15 @@ import { memo } from "react";
 import { Pressable, View, Text, StyleSheet } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useTheme } from "@react-navigation/native";
 
 const SubjectListHeaderComponent = memo(function ({
   subjectsLength,
   loading,
   toggleEditMode,
+  editMode
 }) {
+  const { colors, fonts } = useTheme();
   if (subjectsLength < 1 && !loading) {
     return (
       <View style={styles.listEmptyBox}>
@@ -27,7 +30,7 @@ const SubjectListHeaderComponent = memo(function ({
           ]}
           hitSlop={30}
         >
-          <Icon.Feather name="edit-2" size={26} color={"black"} />
+          <Icon.Feather name="edit-2" size={26} color={editMode ? colors.primary : colors.text}/>
         </Pressable>
       </View>
     );

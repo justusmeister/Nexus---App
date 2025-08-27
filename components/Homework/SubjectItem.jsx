@@ -10,9 +10,10 @@ import {
 import * as Icon from "@expo/vector-icons";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 
 const SubjectItem = memo(function ({ item, editMode, swipeableRefs, activeSwipeRef, setActiveSwipe, clearActiveSwipe, deleteSubject }) {
+  const { colors, fonts } = useTheme();
     const navigation = useNavigation();
 
   const handlePress = useCallback(() => {
@@ -44,7 +45,7 @@ const SubjectItem = memo(function ({ item, editMode, swipeableRefs, activeSwipeR
   return item.id === "loading-indicator" ? (
     <ActivityIndicator
       size="small"
-      color="#333"
+      color={colors.text}
       style={{ marginVertical: 20, alignSelf: "center" }}
     />
   ) : (
@@ -74,7 +75,7 @@ const SubjectItem = memo(function ({ item, editMode, swipeableRefs, activeSwipeR
         >
           <Icon.FontAwesome name={item.icon} size={30} color="white" />
           <Text
-            style={styles.subjectText}
+            style={[styles.subjectText, { fontFamily: fonts.bold }]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
   subjectBox: {
     width: "auto",
     height: 85,
-    borderRadius: 25,
+    borderRadius: 24,
     padding: 15,
     marginHorizontal: 14,
     flexDirection: "row",

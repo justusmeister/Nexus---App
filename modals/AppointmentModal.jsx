@@ -186,6 +186,7 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
                 date={dueDate}
                 onDateChange={setDueDate}
                 title="Startdatum wählen"
+                originalDate={new Date(item?.day)}
               />
 
               <DatePickerModal
@@ -194,6 +195,7 @@ const AppointmentModal = ({ visible, onClose, item, onDelete, onUpdate }) => {
                 date={endDate}
                 onDateChange={setEndDate}
                 title="Enddatum wählen"
+                originalDate={new Date(item?.endDate)}
               />
             </Animated.View>
           </TouchableWithoutFeedback>

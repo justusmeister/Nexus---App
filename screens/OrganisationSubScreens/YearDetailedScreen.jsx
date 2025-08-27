@@ -13,7 +13,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useTheme } from "@react-navigation/native";
 import { getAuth } from "firebase/auth";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { FlashList } from "@shopify/flash-list";
@@ -34,6 +34,7 @@ const YearDetailedScreen = function ({ navigation }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalAppointmentItem, setModalAppointmentItem] = useState(null);
+  const { colors, fonts } = useTheme();
 
   const sheetRef = useRef(null);
   const titleInputRef = useRef(null);
@@ -178,7 +179,9 @@ const YearDetailedScreen = function ({ navigation }) {
 
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.background, 
+      borderTopColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth }]}>
       <View style={styles.container}>
         <View style={styles.monthOverviewContainer}>
           {[...Array(6)].map((_, i) => (
@@ -195,9 +198,9 @@ const YearDetailedScreen = function ({ navigation }) {
           ))}
         </View>
         <View
-          style={[styles.deadlineListView, { paddingBottom: tabBarHeight + 6 }]}
+          style={[styles.deadlineListView, { backgroundColor: colors.background }]}
         >
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontFamily: fonts.semibold }]}>
             Termine {selectedDay ? `am ${selectedDay}.` : "im ganzen"}{" "}
             {params?.month}:
           </Text>
@@ -213,9 +216,12 @@ const YearDetailedScreen = function ({ navigation }) {
                 onPress={() => handleItemPress(item)}
               />
             )}
+            contentContainerStyle={{
+              paddingBottom: tabBarHeight + 6, 
+            }}
             ListEmptyComponent={
               loading ? (
-                <ActivityIndicator size={"small"} color={"#333"} />
+                <ActivityIndicator size={"small"} color={colors.text} />
               ) : (
                 <Text style={styles.emptyListText}>
                   {selectedDay
@@ -250,7 +256,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#a1a1a1",
+    marginTop: 5,
   },
   container: {
     width: "100%",
@@ -266,7 +272,6 @@ const styles = StyleSheet.create({
     width: "100%",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    backgroundColor: "#EFEEF6",
   },
   sectionTitle: {
     fontSize: RFPercentage(2.44),

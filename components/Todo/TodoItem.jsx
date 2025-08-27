@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Animated, Pressable } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
-import Checkbox from "../Checkbox";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { formatDueDateFromTimestamp } from "../../utils/formatDueDate";
 import * as Icon from "@expo/vector-icons";
+import { useTheme } from "@react-navigation/native";
+import Reanimated, { LinearTransition, FadeInRight, FadeOutLeft } from "react-native-reanimated";
 
 const colorByType = {
   Dringend: "#E07A5F", // Rot
@@ -14,6 +16,10 @@ const colorByType = {
 const TodoItem = ({ item, index, onPress, onDelete }) => {
   const [activeAnimation, setActiveAnimation] = useState(null);
   const scale = useState(new Animated.Value(1))[0];
+
+  const { colors, fonts } = useTheme();
+
+  const [isChecked, setIsChecked] = useState(false);
 
   const handlePressIn = () => {
     setActiveAnimation(index);
@@ -67,22 +73,30 @@ const TodoItem = ({ item, index, onPress, onDelete }) => {
           { borderLeftColor: colorByType[item.typ] || "#000" },
         ]}
       >
-        <Checkbox onConfirm={() => onDelete(item.id)} />
+        <BouncyCheckbox
+        isChecked={isChecked}
+        disableBuiltInState
+        onPress={() => onDelete(item.id)}
+        fillColor="black"
+        unfillColor="transparent"
+        iconStyle={{ borderColor: "black", borderWidth: 2, margin: 5, }}
+        textComponent={<></>}
+      />
         <View style={styles.todoDetails}>
           <Text style={styles.todoText} numberOfLines={1} ellipsizeMode="tail">
             {item.title}
           </Text>
-          {formattedDueDate /*!== "n.A."*/ && (
+          {formattedDueDate !== "n.A." && (
             <Text style={styles.dueDateText}>
               Fälligkeit: {formattedDueDate}
             </Text>
           )}
         </View>
         {item.priority > 0 && (
-          <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+          <Icon.FontAwesome name="exclamation" size={27} color={colors.warning} />
         )}
         {item.priority > 1 && (
-          <Icon.FontAwesome name="exclamation" size={27} color="#D32F2F" />
+          <Icon.FontAwesome name="exclamation" size={27} color={colors.warning} />
         )}
       </Pressable>
     </Animated.View>

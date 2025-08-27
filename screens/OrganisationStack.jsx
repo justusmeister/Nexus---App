@@ -12,7 +12,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,12 +23,16 @@ import YearDetailedScreen from "./OrganisationSubScreens/YearDetailedScreen";
 import { FlashList } from "@shopify/flash-list";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import CustomBackButton from "../components/General/CustomBackButton";
+import { colors } from "../components/BottomSheets/AddSubjectBottomSheet/selectableTypesList";
+import FadeInTab from "../components/General/FadeInTab";
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
 const OrganisationStack = function ({ navigation }) {
   insets = useSafeAreaInsets();
+  const { colors, fonts } = useTheme();
 
   return (
     <Stack.Navigator initialRouteName="MaterialTopTabs">
@@ -42,8 +46,10 @@ const OrganisationStack = function ({ navigation }) {
         component={YearDetailedScreen}
         options={{
           title: "Monatsdetaillansicht",
-          headerBackTitle: "Zurück",
-          headerTintColor: "black",
+          headerTitleStyle: { fontFamily: fonts.semibold },
+          headerStyle: { backgroundColor: colors.background },
+          headerLeft: () => <CustomBackButton />,
+          headerShadowVisible: false,
         }}
       />
     </Stack.Navigator>
@@ -53,9 +59,11 @@ const OrganisationStack = function ({ navigation }) {
 export default OrganisationStack;
 
 const MaterialTopTabs = function () {
+  const { colors, fonts } = useTheme();
+
   return (
     <View
-      style={{ flex: 1, backgroundColor: "#EFEEF6", paddingTop: insets.top }}
+      style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}
     >
       <Tab.Navigator
         initialRouteName="TimeTableScreen"
@@ -68,25 +76,25 @@ const MaterialTopTabs = function () {
                   flex: 1,
                   justifyContent: "center",
                   alignItems: "center",
-                  backgroundColor: "#EFEEF6",
+                  backgroundColor: colors.background,
                 }}
               >
-                <ActivityIndicator size={"small"} color={"#333"} />
+                <ActivityIndicator size={"small"} color={colors.primary} />
               </View>
             );
           },
-          tabBarActiveTintColor: "#333",
-          tabBarInactiveTintColor: "#888",
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.text + "99",
           tabBarLabelStyle: {
             fontSize: 13.5,
-            fontWeight: "600",
+            fontFamily: fonts.bold
           },
           tabBarStyle: {
-            backgroundColor: "#EFEEF6",
+            backgroundColor: colors.background,
             height: 48,
           },
           tabBarIndicatorStyle: {
-            backgroundColor: "#333",
+            backgroundColor: colors.primary,
             height: 3,
           },
         }}
@@ -122,6 +130,7 @@ const generateWeeks = (startWeek, count) =>
   });
 
 const TimeTableScreen = function ({ navigation }) {
+  const { colors, fonts } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const flashListRef = useRef();
 
@@ -192,8 +201,9 @@ const TimeTableScreen = function ({ navigation }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#EFEEF6" }}>
-      <SafeAreaView style={[styles.screen, { marginBottom: tabBarHeight + 6 }]}>
+    <FadeInTab>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <SafeAreaView style={[styles.screen, { marginBottom: tabBarHeight + 12 }]}>
         <View style={styles.containerTimeTable}>
           <TouchableOpacity
             style={{
@@ -273,6 +283,7 @@ const TimeTableScreen = function ({ navigation }) {
         </View>
       </SafeAreaView>
     </View>
+    </FadeInTab>
   );
 };
 
@@ -288,7 +299,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#a1a1a1",
-    borderRadius: 25,
+    borderRadius: 24,
     shadowOffset: {
       width: 0,
       height: 4,

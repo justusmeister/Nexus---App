@@ -1,67 +1,57 @@
-import { memo, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Platform,
-} from "react-native";
-import DateTimePicker, {
-  DateTimePickerAndroid,
-} from "@react-native-community/datetimepicker";
+import { memo, useCallback, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import * as Icon from "@expo/vector-icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import DatePickerModal from "../DatePickerModal";
 
-const DateTimeSelector = memo(function ({ 
-  label, 
-  date, 
-  setDate, 
+const DateTimeSelector = memo(function ({
+  label,
+  date,
+  setDate,
   minimumDate = undefined,
-  dateType = "start"
+  dateType = "start",
+  homework = false,
+  noDateOption = false,
 }) {
-  const showDatePicker = useCallback(() => {
-    if (Platform.OS === "android") {
-      DateTimePickerAndroid.open({
-        value: date,
-        mode: "date",
-        onChange: (event, selectedDate) => {
-          if (selectedDate) setDate(selectedDate);
-        },
-        minimumDate,
-      });
-    }
-  }, [date, setDate, minimumDate]);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const showModal = useCallback(() => {
+    setModalVisible(true);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setModalVisible(false);
+  }, []);
+
+  const handleDateChange = useCallback(
+    (selectedDate) => {
+      setDate(selectedDate);
+      handleClose();
+    },
+    [setDate, handleClose]
+  );
 
   return (
     <View style={styles.dateTimeContainer}>
       <Text style={styles.label}>{label}</Text>
-      {Platform.OS === "ios" ? (
-        <View style={styles.iosPickerContainer}>
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => selectedDate && setDate(selectedDate)}
-            minimumDate={minimumDate}
-            style={styles.iosDatePicker}
-          />
-        </View>
-      ) : (
-        <Pressable
-          style={styles.dateButton}
-          onPress={showDatePicker}
-        >
-          <Text style={styles.dateText}>
-            {date.toLocaleDateString()}
-          </Text>
-          <Icon.Feather
-            name="calendar"
-            size={20}
-            color="#fff"
-            style={styles.icon}
-          />
-        </Pressable>
-      )}
+
+      <Pressable style={styles.dateButton} onPress={showModal}>
+        <Text style={styles.dateText}>
+          {date ? date.toLocaleDateString() : "Kein Datum"}
+        </Text>
+        <Icon.Feather name="calendar" size={20} color="#fff" style={styles.icon} />
+      </Pressable>
+
+      <DatePickerModal
+        visible={modalVisible}
+        onClose={handleClose}
+        date={date}
+        onDateChange={handleDateChange}
+        minimumDate={minimumDate}
+        homework={homework}
+        originalDate={date}
+        noDateOption={noDateOption}
+      />
     </View>
   );
 });
@@ -76,15 +66,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#333",
     marginBottom: 8,
-  },
-  iosPickerContainer: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    padding: 8,
-    alignItems: "center",
-  },
-  iosDatePicker: {
-    flex: 1,
   },
   dateButton: {
     backgroundColor: "#007AFF",

@@ -539,6 +539,7 @@ const HomeworkModal = ({
                 onDateChange={setDueDate}
                 title="Abgabedatum wählen"
                 homework={true}
+                originalDate={new Date()}
               />
             </Animated.View>
           </TouchableWithoutFeedback>

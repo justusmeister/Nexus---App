@@ -293,6 +293,7 @@ const TodoBottomSheet = memo(function ({
           date={formState.dueDate}
           setDate={(val) => updateFormState("dueDate", val)}
           dateType="end"
+          noDateOption={true}
         />
 
         <AttachmentBar

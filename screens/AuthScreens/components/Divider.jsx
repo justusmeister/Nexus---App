@@ -1,15 +1,59 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { styles } from "../styles/RegistrationStyles";
+import { View, Text, StyleSheet } from "react-native";
+import { useTheme } from "@react-navigation/native";
 
-const Divider = React.memo(() => (
-  <View style={styles.divider}>
-    <View style={styles.dividerLine} />
-    <Text style={styles.dividerText}>oder</Text>
-    <View style={styles.dividerLine} />
-  </View>
-));
+const Divider = React.memo(() => {
+  const { colors, fonts, spacing } = useTheme();
 
-Divider.displayName = 'Divider';
+  return (
+    <View
+      style={[
+        styles.divider,
+        { marginVertical: spacing.md }
+      ]}
+    >
+      <View
+        style={[
+          styles.dividerLine,
+          { backgroundColor: colors.border }
+        ]}
+      />
+      <Text
+        style={[
+          styles.dividerText,
+          {
+            color: colors.text + "99", 
+            fontFamily: fonts.semibold,
+            paddingHorizontal: spacing.sm
+          }
+        ]}
+      >
+        oder
+      </Text>
+      <View
+        style={[
+          styles.dividerLine,
+          { backgroundColor: colors.border }
+        ]}
+      />
+    </View>
+  );
+});
+
+Divider.displayName = "Divider";
 
 export default Divider;
+
+const styles = StyleSheet.create({
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1.5,
+  },
+  dividerText: {
+    fontSize: 12,
+  },
+});

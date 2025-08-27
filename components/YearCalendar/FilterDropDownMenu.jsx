@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Pressable } from "react-native";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useTheme } from "@react-navigation/native";
 
 const FilterDropDownMenu = ({
   onFilterNone,
@@ -9,16 +10,28 @@ const FilterDropDownMenu = ({
   onFilterEvents,
   filter,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <View style={styles.filterButton}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.filterButton,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              opacity: pressed ? 0.6 : 1,
+            },
+          ]}
+          hitSlop={12}
+        >
           <Icon
             name={filter === 0 ? "filter-list-off" : "filter-list"}
             size={30}
-            color="#333"
+            color={colors.text}
           />
-        </View>
+        </Pressable>
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content>
@@ -26,7 +39,7 @@ const FilterDropDownMenu = ({
         <DropdownMenu.Item key="1" onSelect={onFilterNone}>
           <DropdownMenu.ItemIcon
             ios={{
-              name: "xmark", // required
+              name: "xmark",
               pointSize: 18,
             }}
           />
@@ -35,7 +48,7 @@ const FilterDropDownMenu = ({
         <DropdownMenu.Item key="2" onSelect={onFilterHolidays}>
           <DropdownMenu.ItemIcon
             ios={{
-              name: "beach.umbrella", // required
+              name: "beach.umbrella",
               pointSize: 18,
             }}
           />
@@ -44,7 +57,7 @@ const FilterDropDownMenu = ({
         <DropdownMenu.Item key="3" onSelect={onFilterEvents}>
           <DropdownMenu.ItemIcon
             ios={{
-              name: "calendar", // required
+              name: "calendar",
               pointSize: 18,
             }}
           />
@@ -59,16 +72,13 @@ export default FilterDropDownMenu;
 
 const styles = StyleSheet.create({
   filterButton: {
-    height: 40,
-    width: 40,
+    padding: 6,
     borderRadius: 50,
-    backgroundColor: "#d1d1d1",
-    alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#333",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    alignItems: "center",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });

@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { View, Alert, ActivityIndicator } from "react-native";
+import { Alert } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { firebaseAuth } from "../../firebaseConfig";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useTheme } from "@react-navigation/native";
 
-import Header from "./components/Header";
 import EmailInput from "./components/EmailInput";
 import PasswordInput from "./components/PasswordInput";
 import ConfirmPasswordInput from "./components/ConfirmPasswordInput";
@@ -15,7 +14,7 @@ import Divider from "./components/Divider";
 import GoogleButton from "./components/GoogleButton";
 import Footer from "./components/Footer";
 import { validateRegistration } from "./utils/validation";
-import { styles } from "./styles/RegistrationStyles";
+import TopSection from "./components/TopSection";
 
 const RegistrationScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -30,6 +29,7 @@ const RegistrationScreen = ({ navigation }) => {
 
   const route = useRoute();
   const { params } = route;
+  const { colors, spacing, radius, fonts } = useTheme();
 
   // Memoized validation results
   const passwordValidation = useMemo(() => ({
@@ -85,13 +85,14 @@ const RegistrationScreen = ({ navigation }) => {
 
   return (
     <KeyboardAwareScrollView
-      style={styles.container}
+      style={{ backgroundColor: colors.background, paddingHorizontal: spacing.lg }}
       enableOnAndroid
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.contentContainer}
     >
-      <Header onBack={() => navigation.goBack()} />
+      
+      {/* Top Section */} 
+      <TopSection title="Registrieren 🎉" subtitle="Erstelle ein neues Konto" onBack={() => navigation.goBack()} />
 
       <EmailInput
         value={formData.email}
@@ -122,7 +123,6 @@ const RegistrationScreen = ({ navigation }) => {
 
       <ActionButton
         onPress={handleRegistration}
-        disabled={loading}
         loading={loading}
         title="Registrieren"
       />
@@ -131,7 +131,7 @@ const RegistrationScreen = ({ navigation }) => {
 
       <GoogleButton text="Mit Google registrieren" />
 
-      <Footer onNavigateToLogin={handleNavigateToLogin} />
+      <Footer question1="Schon ein Konto?" screenName="Anmelden" onNavigateToScreen={handleNavigateToLogin} />
     </KeyboardAwareScrollView>
   );
 };

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { View, FlatList, StyleSheet } from "react-native";
 import { getAuth } from "firebase/auth";
 import AddSubjectBottomSheet from "../../components/BottomSheets/AddSubjectBottomSheet/AddSubjectBottomSheet";
@@ -6,8 +6,11 @@ import SubjectItem from "../../components/Homework/SubjectItem";
 import SubjectListFooterComponent from "../../components/Homework/SubjectListFooterComponent";
 import SubjectListHeaderComponent from "../../components/Homework/SubjectListHeaderComponent";
 import { useSubjects } from "../../hooks/useSubjects";
+import { useFocusEffect, useTheme } from "@react-navigation/native";
+import FadeInTab from "../../components/General/FadeInTab";
 
 const HomeworkScreen = () => {
+  const { colors, fonts } = useTheme();
   const [editMode, setEditMode] = useState(false);
   const swipeableRefs = useRef({});
   const activeSwipeRef = useRef(null);
@@ -20,12 +23,21 @@ const HomeworkScreen = () => {
   const { subjects, loading, addSubject, deleteSubject } = useSubjects(user);
 
   const setActiveSwipe = useCallback((id) => {
-    if (activeSwipeRef.current && activeSwipeRef.current !== id) {
-      const prevRef = swipeableRefs.current[activeSwipeRef.current];
-      prevRef?.close();
+    if (!editMode) {                 
+      if (activeSwipeRef.current && activeSwipeRef.current !== id) {
+        swipeableRefs.current[activeSwipeRef.current]?.close();
+      }
+      activeSwipeRef.current = id;
     }
-    activeSwipeRef.current = id;
-  }, []);
+  }, [editMode]);
+  
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setEditMode(false);
+      };
+    }, [])
+  );
 
   const clearActiveSwipe = useCallback((id) => {
     if (activeSwipeRef.current === id) {
@@ -33,9 +45,7 @@ const HomeworkScreen = () => {
     }
   }, []);
 
-  const toggleEditMode = () => {
-    setEditMode((prev) => !prev);
-  };
+  const toggleEditMode = () => { setEditMode((prev) => !prev); };   
 
   const handleOpen = () => {
     sheetRef.current?.present();
@@ -45,7 +55,8 @@ const HomeworkScreen = () => {
   };
 
   return (
-    <View style={styles.screen}>
+    <FadeInTab>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <FlatList
         data={loading ? [...subjects, { id: "loading-indicator" }] : subjects}
         keyExtractor={(item) => item.id.toString()}
@@ -68,6 +79,7 @@ const HomeworkScreen = () => {
             subjectsLength={subjects.length}
             loading={loading}
             toggleEditMode={toggleEditMode}
+            editMode={editMode}
           />
         )}
         style={styles.flatList}
@@ -79,6 +91,7 @@ const HomeworkScreen = () => {
         addSubject={addSubject}
       />
     </View>
+    </FadeInTab>
   );
 };
 
@@ -87,7 +100,6 @@ export default HomeworkScreen;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#EFEEF6",
   },
   flatList: {
     paddingVertical: 8,

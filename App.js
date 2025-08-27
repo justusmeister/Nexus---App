@@ -8,52 +8,59 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   useFonts,
-  Inter_400Regular,
+  Inter_500Regular,
   Inter_600SemiBold,
+  Inter_700Bold
 } from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
-import { NativeModules } from "react-native";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { TimetableContextProvider } from "./contexts/TimetableContext";
 import { ThemeProvider, useThemePreference } from "./hooks/useThemePreference";
 
-const { EmailModule } = NativeModules;
 SplashScreen.preventAutoHideAsync();
 
 const App = function () {
-
   const [loaded, error] = useFonts({
-    Inter_400Regular,
+    Inter_500Regular,
     Inter_600SemiBold,
+    Inter_700Bold
   });
-
-  useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
-
-  if (!loaded && !error) return null;
 
   return (
     <GestureHandlerRootView>
       <ThemeProvider>
-        <ActionSheetProvider>
-          <BottomSheetModalProvider>
-            <TimetableContextProvider>
-              <EmailContextProvider>
-                <HolidayDataContextProvider>
-                  <Navigation />
-                  <StatusBar style="dark" />
-                  <Toast />
-                </HolidayDataContextProvider>
-              </EmailContextProvider>
-            </TimetableContextProvider>
-          </BottomSheetModalProvider>
-        </ActionSheetProvider>
-        </ThemeProvider>
+        <AppContent loaded={loaded} error={error} />
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 };
+
+function AppContent({ loaded, error }) {
+  const { isThemeReady } = useThemePreference();
+
+  useEffect(() => {
+    if ((loaded || error) && isThemeReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error, isThemeReady]);
+
+  if ((!loaded && !error) || !isThemeReady) return null;
+
+  return (
+    <ActionSheetProvider>
+      <BottomSheetModalProvider>
+        <TimetableContextProvider>
+          <EmailContextProvider>
+            <HolidayDataContextProvider>
+              <Navigation />
+              <StatusBar style="auto" />
+              <Toast />
+            </HolidayDataContextProvider>
+          </EmailContextProvider>
+        </TimetableContextProvider>
+      </BottomSheetModalProvider>
+    </ActionSheetProvider>
+  );
+}
 
 export default App;

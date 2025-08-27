@@ -1,5 +1,5 @@
 import React, { useState, memo, useRef, useMemo, useEffect } from "react";
-import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Text, ActivityIndicator, LayoutAnimation } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import PlusButton from "../../components/General/PlusButton";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -10,51 +10,10 @@ import TodoBottomSheet from "../../components/BottomSheets/TodoBottomSheet/TodoB
 import { useTodos } from "../../hooks/useTodos";
 import { getAuth } from "firebase/auth";
 import { RFPercentage } from "react-native-responsive-fontsize";
-
-const exampleTodos = [
-  {
-    id: "1",
-    typ: "Dringend",
-    todo: "Mathearbeit lernen",
-    dueDate: "2025-06-01",
-    priority: 2,
-    attachments: [],
-  },
-  {
-    id: "2",
-    typ: "Demnächst",
-    todo: "Buch abgeben",
-    dueDate: "2025-06-05",
-    priority: 2,
-    attachments: [],
-  },
-  {
-    id: "3",
-    typ: "Optional",
-    todo: "Ordner sortieren",
-    dueDate: null,
-    priority: 0,
-    attachments: [],
-  },
-  {
-    id: "4",
-    typ: "Dringend",
-    todo: "Elternzettel unterschreiben",
-    dueDate: "2025-05-25",
-    priority: 0,
-    attachments: [],
-  },
-  {
-    id: "5",
-    type: "Demnächst",
-    todo: "Facharbeit formatieren",
-    dueDate: null,
-    priority: 1,
-    attachments: ["karste.png"],
-  },
-];
+import { useTheme } from "@react-navigation/native";
 
 const TodosScreen = () => {
+  const { colors, fonts } = useTheme();
   const bottomTabBarHeight = useBottomTabBarHeight();
   const segmentedValues = ["Dringend", "Demnächst", "Optional"];
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -65,6 +24,11 @@ const TodosScreen = () => {
   const auth = getAuth();
   const user = auth.currentUser;
   const { todoList, loading, fetchTodos, addTodo, deleteTodo } = useTodos(user);
+
+  const handleDeleteTodo = (id) => {
+    //LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    deleteTodo(id);
+  };
 
   const handleOpen = () => {
     sheetRef.current?.present();
@@ -83,7 +47,7 @@ const TodosScreen = () => {
   }, []);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <View style={styles.segmentedControlBox}>
         <SegmentedControl
           values={segmentedValues}
@@ -96,7 +60,7 @@ const TodosScreen = () => {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="small" color="#333" />
+        <ActivityIndicator size="small" color={colors.text} />
       ) : (
         <Animated.View
           key={selectedIndex}
@@ -112,8 +76,8 @@ const TodosScreen = () => {
               <TodoItem
                 item={item}
                 index={index}
-                onPress={() => console.log("Todo pressed:", item.todo)}
-                onDelete={(id) => console.log("Delete todo with id:", id)}
+                //onPress={(id) => console.log("Todo pressed:", id)}
+                onDelete={handleDeleteTodo}
               />
             )}
             ListEmptyComponent={

@@ -1,11 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, Button } from "react-native";
 import FullScreenModalHeader from "../../components/General/FullScreenModalHeader";
+import { useTheme } from "@react-navigation/native";
 
 const DayOverviewScreen = function ({ navigation }) {
+  const { colors, fonts } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <FullScreenModalHeader title="Tagesübersicht" onClose={() => navigation.goBack()} />
+      <Button title="test" onPress={() => navigation.navigate("AuthStack", {
+      screen: "ConfigurationCarusselScreen",
+    })} />
     </View>
   );
 };
@@ -13,9 +18,8 @@ const DayOverviewScreen = function ({ navigation }) {
 export default DayOverviewScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#fff",
     paddingTop: 60,
     paddingHorizontal: 20,
   },

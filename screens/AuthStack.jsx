@@ -3,6 +3,7 @@ import LoginScreen from "./AuthScreens/LoginScreen";
 import WelcomeScreen from "./AuthScreens/WelcomeScreen";
 import RegistrationScreen from "./AuthScreens/RegistrationScreen";
 import ForgotPasswordScreen from "./AuthScreens/ForgotPasswordScreen";
+import ConfigurationCarusselScreen from "./AuthScreens/ConfigurationCarusselScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,8 +30,14 @@ const AuthStack = function () {
           component={ForgotPasswordScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="ConfigurationCarusselScreen"
+          component={ConfigurationCarusselScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
   );
 };
 
-export default AuthStack;
+export default AuthStack; 
+

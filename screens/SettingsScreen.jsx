@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, useEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,24 +16,27 @@ import { firebaseAuth } from "../firebaseConfig";
 import { getAuth, deleteUser } from "firebase/auth";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import LicenseModal from "../modals/LicenseModal";
-import LicensesModal from "../modals/LicensesModal";
 import SettingItem from "../components/Settings/SettingItem";
-//import Snackbar from 'react-native-snackbar';
+import Snackbar from "react-native-snackbar";
 import { ReactNativeLegal } from "react-native-legal";
 import PortraylModal from "../modals/PortraylModal";
 import { useTheme } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import Constants from 'expo-constants';
+
+const version = Constants.expoConfig?.version;
+//const buildNumber = Constants.expoConfig?.android?.versionCode || Constants.expoConfig?.ios?.buildNumber;
+
 
 function launchNotice() {
-  ReactNativeLegal.launchLicenseListScreen();
+  ReactNativeLegal.launchLicenseListScreen("Lizenzen");
 }
 
 const SettingsScreen = ({ navigation }) => {
   const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
-  const [isLicensesModalVisible, setIsLicensesModalVisible] = useState(false);
   const [isPortraylModalVisible, setIsPortraylModalVisible] = useState(false);
   const { showActionSheetWithOptions } = useActionSheet();
-
-  const { colors } = useTheme();
+  const { colors, fonts } = useTheme();
 
   const auth = getAuth();
   const user = auth.currentUser;
@@ -47,11 +50,15 @@ const SettingsScreen = ({ navigation }) => {
             style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
             hitSlop={12}
           >
-            <Icon.Ionicons name="close" size={34} color="black" />
+            <Icon.Feather
+              name="x"
+              size={30}
+              color={colors.text}
+            />
           </Pressable>
         ),
     });
-  }, [navigation]);
+  }, [navigation, colors.text]);
 
   const handleLogout = () => {
     const options = ["Abmelden", "Abbrechen"];
@@ -97,52 +104,55 @@ const SettingsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.container}>
           {/* ACCOUNT */}
-          <Section title="Account">
+          <Section title="Account" colors={colors} fonts={fonts}>
             <SettingItem
-              icon="account-circle"
+              icon="user"
               label="Accountverwaltung"
-              bg="#6366F1"
+              bg={colors.iconBg.primary}
               onPress={() => setIsLicenseModalVisible(true)}
               showDivider
             />
             <SettingItem
-              icon="delete-forever"
+              icon="trash-2"
               label="Account löschen"
-              bg="#EF4444"
+              bg={colors.iconBg.warning}
               onPress={handleDeleteAccount}
             />
           </Section>
 
           {/* APP */}
-          <Section title="Allgemein">
+          <Section title="Allgemein" colors={colors} fonts={fonts}>
             <SettingItem
-              icon="nightlight"
+              icon="moon"
               label="App-Darstellung"
-              bg="#10B981"
+              bg={colors.iconBg.success}
               onPress={() => setIsPortraylModalVisible(true)}
               showDivider
             />
             <SettingItem
-              icon="notifications"
+              icon="bell"
               label="Mitteilungsverwaltung"
-              bg="#F59E0B"
+              bg={colors.iconBg.exam}
               onPress={() => setIsLicenseModalVisible(true)}
             />
           </Section>
 
           {/* FEEDBACK */}
-          <Section title="Kontakt">
+          <Section title="Kontakt" colors={colors} fonts={fonts}>
             <SettingItem
-              icon="feedback"
+              icon="message-circle"
               label="Feedback geben"
-              bg="#3B82F6"
+              bg={colors.iconBg.primary}
               onPress={() =>
                 Linking.openURL(
                   "mailto:feedback.nexus.app@gmail.com?subject=Feedback-Mail"
@@ -152,36 +162,45 @@ const SettingsScreen = ({ navigation }) => {
           </Section>
 
           {/* LEGAL */}
-          <Section title="Rechtliches">
+          <Section title="Rechtliches" colors={colors} fonts={fonts}>
             <SettingItem
-              icon="info-outline"
+              icon="info"
               label="Lizenzen"
-              bg="#6B7280"
-              onPress={() => setIsLicensesModalVisible(true)}
+              bg={colors.iconBg.neutral}
+              onPress={launchNotice}
               showDivider
             />
             <SettingItem
-              icon="lock-outline"
+              icon="lock"
               label="Datenschutzerklärung"
-              bg="#6366F1" // Indigo
+              bg={colors.iconBg.primary}
               onPress={() => setIsLicenseModalVisible(true)}
               showDivider
             />
             <SettingItem
-              icon="gavel"
+              icon="shield"
               label="AGB"
-              bg="#F59E0B" // Amber
+              bg={colors.iconBg.exam}
               onPress={() => setIsLicenseModalVisible(true)}
               showDivider
             />
             <SettingItem
-              icon="article"
+              icon="clipboard"
               label="Impressum"
-              bg="#10B981" // Emerald
-              onPress={() => Snackbar.show({
-                text: 'Hello world',
-                duration: Snackbar.LENGTH_SHORT,
-              })}
+              bg={colors.iconBg.success}
+              onPress={() =>
+                Snackbar.show({
+                  text: "Der Termin wurde erfolgreich gelöscht.",
+                  duration: 4500,
+                  action: {
+                    text: "Rückgängig ↺",
+                    textColor: colors.success,
+                    onPress: () => {
+                      console.log("hello");
+                    },
+                  },
+                })
+              }
             />
           </Section>
 
@@ -189,15 +208,20 @@ const SettingsScreen = ({ navigation }) => {
             onPress={handleLogout}
             style={({ pressed }) => [
               styles.logout,
-              { opacity: pressed ? 0.6 : 1 },
+              {
+                opacity: pressed ? 0.6 : 1,
+                backgroundColor: colors.warning,
+              },
             ]}
           >
-            <Icon.MaterialIcons name="logout" size={22} color="white" />
-            <Text style={styles.logoutText}>Abmelden</Text>
+            <Icon.Feather name="log-out" size={22} color="white" />
+            <Text style={[styles.logoutText, { fontFamily: fonts.semibold }]}>Abmelden</Text>
           </Pressable>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Version 1.0.0</Text>
+            <Text style={[styles.footerText, { color: colors.text + "99", fontFamily: fonts.regular }]}>
+              Version {version}
+            </Text>
             <Image
               source={require("../assets/adaptive-icon.png")}
               style={styles.logo}
@@ -205,11 +229,6 @@ const SettingsScreen = ({ navigation }) => {
             />
           </View>
         </View>
-
-        <LicensesModal
-          visible={isLicensesModalVisible}
-          onClose={() => setIsLicensesModalVisible(false)}
-        />
         <LicenseModal
           visible={isLicenseModalVisible}
           onClose={() => setIsLicenseModalVisible(false)}
@@ -219,14 +238,25 @@ const SettingsScreen = ({ navigation }) => {
           onClose={() => setIsPortraylModalVisible(false)}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
-const Section = ({ title, children }) => (
+const Section = ({ title, children, colors }) => (
   <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={styles.card}>{children}</View>
+    <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          shadowColor: colors.border,
+        },
+      ]}
+    >
+      {children}
+    </View>
   </View>
 );
 
@@ -250,15 +280,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 10,
   },
   card: {
     borderRadius: 25,
-    backgroundColor: "rgba(0, 0, 0, 0.065)",
     borderWidth: 1,
-    borderColor: "#c6c6c6",
-    shadowColor: "darkgray",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
@@ -268,7 +294,6 @@ const styles = StyleSheet.create({
   },
   logout: {
     marginTop: 26,
-    backgroundColor: "#e35a5a",
     paddingVertical: 16,
     paddingHorizontal: 60,
     borderRadius: 16,
@@ -276,7 +301,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
     gap: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,
     shadowRadius: 2,
@@ -293,9 +317,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   footerText: {
-    color: "#9CA3AF",
     fontSize: 13,
-    fontWeight: "500",
+    marginBottom: 2,
   },
   logo: {
     marginTop: 8,

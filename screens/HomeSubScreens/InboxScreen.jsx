@@ -25,8 +25,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import FileViewer from "react-native-file-viewer";
 import ParsedText from "react-native-parsed-text";
 import { useEmailData } from "../../contexts/EmailContext";
-import { useRoute } from "@react-navigation/native";
-//import * as WebBrowser from "expo-web-browser";
+import { useRoute, useTheme } from "@react-navigation/native";
+import * as WebBrowser from "expo-web-browser";
+import MailCore from "react-native-mailcore";
 
 const saveEmailsToStorage = async (emails) => {
   try {
@@ -123,6 +124,7 @@ function extractName(from) {
 }
 
 const InboxScreen = ({ navigation }) => {
+  const { colors, fonts } = useTheme(); // Theme-Werte
   const tabBarHeight = useBottomTabBarHeight();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentEmail, setCurrentEmail] = useState(null);
@@ -145,11 +147,11 @@ const InboxScreen = ({ navigation }) => {
           style={({ pressed }) => [{ opacity: pressed ? 0.4 : 1 }]}
           hitSlop={12}
         >
-          <Icon.Feather name="rotate-ccw" size={27} color="black" />
+          <Icon.Feather name="rotate-ccw" size={27} color={colors.text} />
         </Pressable>
       ),
     });
-  }, [navigation]);
+  }, [navigation, colors.text]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -248,25 +250,30 @@ const InboxScreen = ({ navigation }) => {
     <View
       style={{
         flex: 1,
-        backgroundColor: "#EFEEF6",
-        paddingBottom: tabBarHeight + 6,
+        marginTop: 5,
+        backgroundColor: colors.background,
+        borderTopColor: colors.border,
+        borderTopWidth: StyleSheet.hairlineWidth
       }}
     >
       <FlatList
         data={mailData[0] === "loading" ? [] : mailData}
-        renderItem={resultBox}
+        renderItem={(props) => resultBox({ ...props, colors })}
         keyExtractor={(item, index) => index.toString()}
         style={{ padding: 8 }}
+  contentContainerStyle={{
+    paddingBottom: tabBarHeight + 6, 
+  }}
         ListHeaderComponent={
           <View style={styles.listHeader}>
             {refreshing && !pullRefresh ? (
               <ActivityIndicator
                 size="small"
-                color="black"
+                color={colors.text}
                 style={styles.indicator}
               />
             ) : null}
-            <Text style={styles.lastUpdatedFont}>
+            <Text style={[styles.lastUpdatedFont, { color: colors.text }]}>
               zuletzt aktualisiert: {loadEmailsLastUpdatedFromStorage()}
             </Text>
           </View>
@@ -275,7 +282,7 @@ const InboxScreen = ({ navigation }) => {
           <View style={styles.listHeader}>
             <ActivityIndicator
               size="small"
-              color="black"
+              color={colors.text}
               style={styles.indicator}
             />
           </View>
@@ -287,8 +294,8 @@ const InboxScreen = ({ navigation }) => {
               onRefresh={() => {
                 fetchEmails(setMailData, setRefreshing, setPullRefresh);
               }}
-              colors={["grey"]}
-              progressBackgroundColor={"black"}
+              colors={[colors.secondaryText]}
+              progressBackgroundColor={colors.card}
             />
           )
         }
@@ -297,6 +304,8 @@ const InboxScreen = ({ navigation }) => {
         visible={isModalVisible}
         email={currentEmail}
         onClose={() => setIsModalVisible(false)}
+        colors={colors}
+        fonts={fonts}
       />
     </View>
   );
@@ -306,6 +315,29 @@ const EmailModal = ({ visible, email, onClose }) => {
   const handleOpenInAppBrowser = async (url) => {
     return result = await WebBrowser.openBrowserAsync(url);
   }
+
+  const markEmailAsRead = async (uid) => {
+    try {
+      const imapSession = await MailCore.imapSession({
+        hostname: "imap.urs-os.de",
+        port: 993,
+        username: "justus.meister",
+        password: "password",
+        connectionType: "TLS",
+      });
+  
+      await imapSession.storeFlagsByUID("INBOX", [uid], ["\\Seen"], true);
+      console.log(`✅ Mail mit UID ${uid} als gelesen markiert`);
+    } catch (error) {
+      console.error("❌ Fehler beim Setzen des Gelesen-Flags:", error);
+    }
+  };
+
+
+  useEffect(() => {
+    if (visible && email?.uid)
+      markEmailAsRead(email.uid);
+  }, [visible])
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
@@ -344,7 +376,7 @@ const EmailModal = ({ visible, email, onClose }) => {
                             },
                           },
                         ]}
-                      >x
+                      >
                         {email?.text}
                       </ParsedText>
                       {email?.attachments.length > 0 && (

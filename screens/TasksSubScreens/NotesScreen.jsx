@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, useRef, useEffect } from "react";
+import { useLayoutEffect, useState, useRef, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -28,12 +28,13 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import Toast from "react-native-toast-message";
-import { useRoute } from "@react-navigation/native";
+import { useFocusEffect, useRoute, useTheme } from "@react-navigation/native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import AppleStyleSwipeableRow from "../../components/AppleStyleSwipeableRow";
 
 const NotesScreen = function ({ navigation }) {
+  const { colors, fonts } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const [notesList, setNotesList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,13 +43,22 @@ const NotesScreen = function ({ navigation }) {
   const activeSwipeRef = useRef(null);
   const [editMode, setEditMode] = useState(false);
 
-  const setActiveSwipe = (id) => {
-    if (activeSwipeRef.current && activeSwipeRef.current !== id) {
-      const prevRef = swipeableRefs.current[activeSwipeRef.current];
-      prevRef?.close();
+  const setActiveSwipe = useCallback((id) => {
+    if (!editMode) {                 
+      if (activeSwipeRef.current && activeSwipeRef.current !== id) {
+        swipeableRefs.current[activeSwipeRef.current]?.close();
+      }
+      activeSwipeRef.current = id;
     }
-    activeSwipeRef.current = id;
-  };
+  }, [editMode]);
+  
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setEditMode(false);
+      };
+    }, [])
+  );
 
   const clearActiveSwipe = (id) => {
     if (activeSwipeRef.current === id) {
@@ -84,7 +94,7 @@ const NotesScreen = function ({ navigation }) {
           style={styles.addButton}
           onPress={() => navigation.navigate("NotesInputScreen")}
         >
-          <Icon.Feather name="edit" size={30} color="#007AFF" />
+          <Icon.Feather name="edit" size={30} color={colors.primary} />
         </TouchableOpacity>
       ),
     });
@@ -186,14 +196,16 @@ const NotesScreen = function ({ navigation }) {
   );
 
   return (
-    <View style={[styles.container, { paddingBottom: tabBarHeight }]}>
+    <View style={[styles.container, { backgroundColor: colors.background, marginTop: 5, 
+      borderTopColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth }]}>
       <FlatList
         data={notesList}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator size="small" color="#333" />
+            <ActivityIndicator size="small" color={colors.text} />
           ) : notesList.length < 1 ? (
             <Text style={styles.emptyListText}>
               Keine Hausaufgaben vorhanden
@@ -217,13 +229,16 @@ const NotesScreen = function ({ navigation }) {
                 <Icon.Feather
                   name="edit-2"
                   size={26}
-                  color={"black"}
+                  color={editMode ? colors.primary : colors.text}
                 />
               </Pressable>
             </View>
           )
         }
         style={{ padding: 8 }}
+        contentContainerStyle={{
+          paddingBottom: tabBarHeight + 6, 
+        }}
       />
     </View>
   );
@@ -234,7 +249,6 @@ export default NotesScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#EFEEF6",
   },
   emptyListText: {
     fontSize: RFPercentage(2.05),
