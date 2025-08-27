@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { REGIONS_DATA } from '../constants/data';
 
-// Separate RegionItem component to prevent unnecessary re-renders
 const RegionItem = memo(({ 
   region, 
   isSelected, 
@@ -18,7 +17,7 @@ const RegionItem = memo(({
   theme 
 }) => {
   const handlePress = useCallback(() => {
-    onPress(region);
+    onPress(region.code);
   }, [onPress, region]);
 
   return (
@@ -45,7 +44,7 @@ const RegionItem = memo(({
           }
         ]}
       >
-        {region}
+        {region.label}
       </Text>
       {isSelected && (
         <View style={[styles.checkmark, { backgroundColor: theme.colors.primary }]}>
@@ -63,19 +62,16 @@ const RegionsList = memo(({
   isNavigating, 
   theme 
 }) => {
-  // Memoize regions data to prevent re-computation
   const regionsData = useMemo(() => {
     return REGIONS_DATA[selectedCountry].map((region) => ({
-      id: region,
+      id: region.code,
       region: region,
-      isSelected: selectedRegion === region,
+      isSelected: selectedRegion === region.code,
     }));
   }, [selectedCountry, selectedRegion]);
 
-  // Use keyExtractor to ensure stable keys for FlatList performance
   const keyExtractor = useCallback((item) => `${selectedCountry}-${item.id}`, [selectedCountry]);
 
-  // Render item function for FlatList
   const renderItem = useCallback(({ item }) => (
     <RegionItem
       region={item.region}
@@ -86,7 +82,6 @@ const RegionsList = memo(({
     />
   ), [onRegionSelect, isNavigating, theme]);
 
-  // Item separator component
   const ItemSeparator = useCallback(() => <View style={styles.itemSeparator} />, []);
 
   return (
@@ -98,22 +93,7 @@ const RegionsList = memo(({
         ItemSeparatorComponent={ItemSeparator}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        windowSize={10}
-        initialNumToRender={8}
-        // This is crucial for maintaining scroll position
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 0,
-          autoscrollToTopThreshold: 10
-        }}
-        // Prevent unnecessary re-renders when content changes
-        keyboardShouldPersistTaps="handled"
-        // Optimize for performance
-        getItemLayout={(data, index) => ({
-          length: 64, // Height of each item (56 + 8 margin)
-          offset: 64 * index,
-          index,
-        })}
+        scrollEnabled={false}
       />
     </View>
   );
@@ -136,7 +116,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
-    minHeight: 56, // Fixed height for getItemLayout optimization
+    minHeight: 56,
   },
   regionItemText: {
     fontSize: 16,

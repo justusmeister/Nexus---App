@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.meister.Nexus.dev</string>
+          <string>com.meister.Nexus.com</string>
         </array>
       </dict>
       <dict>

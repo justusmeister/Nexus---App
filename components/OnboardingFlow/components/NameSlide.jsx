@@ -50,7 +50,6 @@ const NameSlide = memo(({
           (Optional)
         </Text>
         
-        {/* Modern Input Field Container */}
         <View style={styles.inputContainer}>
           <TextInput
             ref={nameInputRef}

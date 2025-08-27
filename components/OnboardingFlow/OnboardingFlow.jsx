@@ -20,7 +20,6 @@ const OnboardingFlow = ({ onComplete }) => {
   const theme = useTheme();
   const pagerRef = useRef(null);
   
-  // States
   const [currentPage, setCurrentPage] = useState(0);
   const [name, setName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('DE');
@@ -28,19 +27,11 @@ const OnboardingFlow = ({ onComplete }) => {
   const [hasSkippedLastSlide, setHasSkippedLastSlide] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Validation functions
   const isNameValid = useCallback(() => validateName(name), [name]);
   const canProceedFromRegionSelection = useCallback(() => validateRegion(selectedRegion), [selectedRegion]);
 
-  // Navigation functions with proper validation and state management
   const goToPage = useCallback(async (page) => {
     if (isNavigating) return;
-    
-    // Validation checks
-    if (page === 1 && currentPage === 0 && !isNameValid()) {
-      Alert.alert('Name erforderlich', 'Bitte geben Sie einen Namen mit mindestens 2 Zeichen ein.');
-      return;
-    }
     
     if (page === 2 && !canProceedFromRegionSelection()) {
       Alert.alert('Region erforderlich', 'Bitte wählen Sie Ihre Region aus, um fortzufahren.');
@@ -51,7 +42,6 @@ const OnboardingFlow = ({ onComplete }) => {
     
     try {
       pagerRef.current?.setPage(page);
-      // Wait for the page transition to complete
       await new Promise(resolve => setTimeout(resolve, 300));
       setCurrentPage(page);
     } catch (error) {
@@ -76,7 +66,6 @@ const OnboardingFlow = ({ onComplete }) => {
   const skipToNext = useCallback(() => {
     if (currentPage < 2) {
       const nextPageIndex = currentPage + 1;
-      // Bei Skip zu Slide 2 ohne Name wird der Name auf "Gast" gesetzt
       if (currentPage === 0 && !isNameValid()) {
         setName('Gast');
       }
@@ -84,11 +73,9 @@ const OnboardingFlow = ({ onComplete }) => {
     }
   }, [currentPage, isNameValid, goToPage]);
 
-  // Handler functions
   const handleComplete = useCallback(() => {
     const userData = {
       name: name.trim() || 'Gast',
-      country: selectedCountry,
       region: selectedRegion
     };
     
@@ -106,7 +93,7 @@ const OnboardingFlow = ({ onComplete }) => {
   const handleCountryChange = useCallback((country) => {
     if (country !== selectedCountry) {
       setSelectedCountry(country);
-      setSelectedRegion(''); // Reset region when country changes
+      setSelectedRegion('');
     }
   }, [selectedCountry]);
 
@@ -115,18 +102,14 @@ const OnboardingFlow = ({ onComplete }) => {
   }, []);
 
   const handleNameChange = useCallback((text) => {
-    // Begrenzen auf 50 Zeichen und entfernen unerwünschter Zeichen
     const cleanText = text.replace(/[^\w\s-äöüßÄÖÜ]/g, '').slice(0, 50);
     setName(cleanText);
   }, []);
 
-  // PagerView page change handler - Allow swiping except when region not selected
   const handlePageSelected = useCallback((e) => {
     const newPage = e.nativeEvent.position;
     
-    // Prevent swiping to page 2 if no region is selected
     if (newPage === 2 && currentPage === 1 && !canProceedFromRegionSelection()) {
-      // Go back to previous page
       setTimeout(() => {
         pagerRef.current?.setPage(currentPage);
       }, 100);
@@ -137,7 +120,6 @@ const OnboardingFlow = ({ onComplete }) => {
     setCurrentPage(newPage);
   }, [currentPage, canProceedFromRegionSelection]);
 
-  // Memoized props objects to prevent unnecessary re-renders
   const progressProps = {
     currentPage,
     isNameValid: isNameValid(),
@@ -179,7 +161,11 @@ const OnboardingFlow = ({ onComplete }) => {
     onNextPage: nextPage,
     onComplete: handleComplete,
     isNavigating,
-    theme
+    theme,
+    data: {
+      name: name.trim() || 'Gast',
+      region: selectedRegion || "DE-NI"
+    }
   };
 
   return (

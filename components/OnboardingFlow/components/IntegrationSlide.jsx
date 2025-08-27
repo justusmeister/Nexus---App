@@ -1,4 +1,3 @@
-// components/IntegrationSlide.js
 import React, { memo } from 'react';
 import {
   View,

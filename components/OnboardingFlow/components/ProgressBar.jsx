@@ -1,4 +1,3 @@
-// components/ProgressBar.js
 import React, { useRef, useEffect, memo } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 

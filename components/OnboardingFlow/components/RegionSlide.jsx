@@ -7,7 +7,6 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import CountrySelector from './CountrySelector';
 import RegionsList from './RegionsList';
 
