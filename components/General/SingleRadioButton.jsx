@@ -1,6 +1,7 @@
 import { Pressable } from "react-native";
 import * as Icon from "@expo/vector-icons";
-import { useTheme } from "@react-navigation/native";
+import { DarkTheme, LightTheme } from "../../constants/theme";
+import { useThemePreference } from "../../hooks/useThemePreference";
 
 const SingleRadioButton = function ({
   value,
@@ -8,7 +9,7 @@ const SingleRadioButton = function ({
   size = 25,
   color, // optional
 }) {
-  const { colors } = useTheme(); 
+  const { colorScheme } = useThemePreference();
 
   return (
     <Pressable
@@ -19,10 +20,10 @@ const SingleRadioButton = function ({
       <Icon.MaterialIcons
         name={value ? "radio-button-checked" : "radio-button-unchecked"}
         size={size}
-        color={color || colors.text} 
+        color={ color || colorScheme === "dark" ? DarkTheme.colors.text : LightTheme.colors.text } 
       />
     </Pressable>
   );
-};
+};  
 
 export default SingleRadioButton;

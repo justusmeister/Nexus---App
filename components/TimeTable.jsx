@@ -104,7 +104,7 @@ const SubjectColumn = ({
 
   return (
     <View
-      style={[styles.column, { borderRightWidth: indexColumn !== 4 ? 1 : 0 }]}
+      style={[styles.column, { borderRightWidth: indexColumn !== 4 ? 1 : 0, borderBottomRightRadius: indexColumn !== 4 ? 0 : 15, overflow: "hidden" }]}
     >
       {isHoliday(columnDay) ? (
         <View
